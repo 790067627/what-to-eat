@@ -260,28 +260,23 @@ Component({
       ctx.fillText('微信搜索「Yuki 小厨房」', 20, fy + 42);
     },
 
+    /** 逐字换行（适配中文无空格文本）：超宽即断行；maxLines=Infinity 时不截断 */
     wrapText(ctx, text, maxW, maxLines) {
       if (!text) return [];
       const lines = [];
-      for (const segment of text.split(' ')) {
-        let line = '';
-        for (const ch of segment) {
-          const test = line + ch;
-          if (ctx.measureText(test).width > maxW && line) {
-            lines.push(line);
-            line = ch;
-          } else {
-            line = test;
-          }
-        }
-        if (line) {
-          if (lines.length > 0) lines[lines.length - 1] += (lines[lines.length - 1] ? ' ' : '') + line;
-          else lines.push(line);
+      let line = '';
+      for (const ch of text) {
+        const test = line + ch;
+        if (ctx.measureText(test).width > maxW && line) {
+          lines.push(line);
+          line = (ch === ' ') ? '' : ch;   // 行首空格丢弃
+        } else {
+          line = test;
         }
       }
-      if (lines.length > maxLines && maxLines !== Infinity) {
-        const last = lines[maxLines - 1];
-        let truncated = last;
+      if (line) lines.push(line);
+      if (maxLines !== Infinity && lines.length > maxLines) {
+        let truncated = lines[maxLines - 1];
         while (ctx.measureText(truncated + '…').width > maxW && truncated.length > 0) {
           truncated = truncated.slice(0, -1);
         }
