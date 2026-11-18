@@ -110,8 +110,10 @@ Page({
       });
 
       const firstTs = Date.parse(`${ym}-01T00:00:00+08:00`);
-      const firstWeekday = new Date(firstTs).getUTCDay();
-      const daysInMonth = new Date(firstTs + 86400000 * 32).getUTCDate();
+      // 星期按北京时间算：firstTs 是 UTC 前一天 16:00，直接 getUTCDay 会差一天
+      const firstWeekday = new Date(firstTs + 8 * 3600000).getUTCDay();
+      // 当月天数：下月第 0 天 = 本月最后一天（标准公式，勿用 +32 天推算）
+      const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
       const today = new Date();
       const isTodayMonth = today.getFullYear() === y && today.getMonth() + 1 === m;
       const todayDate = today.getDate();
