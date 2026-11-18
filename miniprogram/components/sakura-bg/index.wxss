@@ -3,11 +3,13 @@
    - z-index:-1 位于页面内容之下；TabBar(fixed,z-999) 之上不受影响
    - pointer-events:none 保证不阻挡任何点击 */
 :host {
-  /* 装饰图宽度（原图 1536x1024，widthFix 自动等比，高≈宽×2/3） */
-  --kitty-width: 460rpx;
-  /* 底部留白 = TabBar 高 110rpx + 中间凸起按钮超出 44rpx + 呼吸间距 16rpx + 安全区 */
-  --kitty-bottom: calc(170rpx + constant(safe-area-inset-bottom));
-  --kitty-bottom: calc(170rpx + env(safe-area-inset-bottom));
+  /* 装饰图宽度（原图 1536x1024，widthFix 自动等比，高≈宽×2/3）
+     380rpx：顶部不再伸入分类卡区域 */
+  --kitty-width: 380rpx;
+  /* 底部留白 = TabBar 高 110rpx + 中间凸起按钮超出 44rpx + 呼吸间距 6rpx + 安全区
+     （再低就会与「抽一抽」凸起按钮重叠，此为下限） */
+  --kitty-bottom: calc(160rpx + constant(safe-area-inset-bottom));
+  --kitty-bottom: calc(160rpx + env(safe-area-inset-bottom));
   --kitty-opacity: 0.92;
 }
 
