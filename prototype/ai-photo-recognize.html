@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 拍照识别建菜 · 交互原型 v2</title>
+<style>
+  :root {
+    --primary: #FF8FB8;
+    --primary-dark: #D96C99;
+    --primary-light: #FFF0F6;
+    --bg: #FFF7FA;
+    --card: #FFFFFF;
+    --text: #4A2C3A;
+    --text-sub: #9C7B8C;
+    --text-hint: #C9A8B8;
+    --border: #F8E3EC;
+    --success: #639922;
+    --success-bg: #EAF3DE;
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+    --ai-grad: linear-gradient(135deg, #A78BFA, #EC6FAE);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif;
+    background: #2a1f26;
+    background-image: radial-gradient(ellipse at 20% 10%, rgba(217,108,153,.18), transparent 50%),
+                      radial-gradient(ellipse at 80% 90%, rgba(167,139,250,.12), transparent 50%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 48px;
+    padding: 40px 20px;
+    flex-wrap: wrap;
+  }
+
+  /* ============ 左侧说明面板 ============ */
+  .doc-panel { width: 350px; color: #f3e4ec; }
+  .doc-panel h1 {
+    font-size: 22px; font-weight: 700; margin-bottom: 6px;
+    background: linear-gradient(90deg, #FFB3D1, #C4A6FF);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .doc-panel .sub { font-size: 13px; color: rgba(243,228,236,.55); margin-bottom: 20px; }
+  .doc-panel h2 {
+    font-size: 12px; text-transform: uppercase; letter-spacing: .12em;
+    color: rgba(243,228,236,.45); margin: 18px 0 10px; font-weight: 600;
+  }
+  .flow-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 9px 12px; border-radius: 10px; margin-bottom: 6px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.06);
+    font-size: 12.5px; line-height: 1.5; color: rgba(243,228,236,.85);
+    cursor: pointer; transition: all .2s;
+  }
+  .flow-item:hover { background: rgba(255,255,255,.08); border-color: rgba(255,143,184,.3); }
+  .flow-item.active { background: rgba(255,143,184,.12); border-color: rgba(255,143,184,.45); }
+  .flow-num {
+    flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--ai-grad); color: #fff; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; margin-top: 1px;
+  }
+  .doc-note {
+    margin-top: 16px; padding: 13px; border-radius: 12px;
+    background: rgba(167,139,250,.08); border: 1px solid rgba(167,139,250,.2);
+    font-size: 11.5px; line-height: 1.75; color: rgba(243,228,236,.62);
+  }
+  .doc-note b { color: #C4A6FF; }
+  .doc-note .rule { display: flex; gap: 6px; margin-top: 4px; }
+  .doc-note .rule i { font-style: normal; color: #FF8FB8; }
+
+  /* ============ 手机壳 ============ */
+  .phone {
+    width: 390px; height: 844px; background: #000; border-radius: 54px; padding: 12px;
+    box-shadow: 0 40px 100px rgba(0,0,0,.6), 0 0 0 2px #3a3a3a, inset 0 0 0 2px #1a1a1a;
+    position: relative; flex-shrink: 0;
+  }
+  .screen-wrap { width: 100%; height: 100%; border-radius: 44px; overflow: hidden; position: relative; background: var(--bg); }
+  .island { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 118px; height: 34px; background: #000; border-radius: 20px; z-index: 200; }
+
+  /* ============ 页面通用 ============ */
+  .page { position: absolute; inset: 0; display: none; flex-direction: column; background: var(--bg); overflow: hidden; }
+  .page.active { display: flex; animation: pageIn .3s ease; }
+  @keyframes pageIn { from { opacity: 0; transform: translateX(24px);} to {opacity:1; transform:none;} }
+
+  .statusbar { height: 54px; flex-shrink: 0; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 30px 6px; font-size: 14px; font-weight: 600; color: var(--text); }
+  .statusbar .right { display: flex; gap: 5px; align-items: center; font-size: 12px; }
+
+  .navbar { height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative; font-size: 16px; font-weight: 600; color: var(--text); }
+  .navbar .back {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    background: rgba(255,255,255,.6); border: 1px solid var(--border);
+    font-size: 16px; color: var(--text-sub); transition: all .15s;
+  }
+  .navbar .back:active { transform: translateY(-50%) scale(.9); }
+  .navbar .capsule {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    width: 84px; height: 30px; border-radius: 15px;
+    border: 1px solid rgba(74,44,58,.1); background: rgba(255,255,255,.6);
+    display: flex; align-items: center; justify-content: space-evenly; color: var(--text); font-size: 14px;
+  }
+  .capsule .divider { width: 1px; height: 16px; background: rgba(74,44,58,.12); }
+
+  .body { flex: 1; overflow-y: auto; padding: 16px; scrollbar-width: none; }
+  .body::-webkit-scrollbar { display: none; }
+
+  /* ============ 屏1 菜品库空态 ============ */
+  .empty-card {
+    background: rgba(255,255,255,.88); border-radius: var(--radius-lg);
+    padding: 40px 26px; text-align: center; border: 1px solid rgba(255,255,255,.9);
+    box-shadow: 0 4px 20px rgba(217,108,153,.06); margin-top: 26px;
+  }
+  .empty-icon {
+    width: 80px; height: 80px; margin: 0 auto 16px; border-radius: 50%;
+    background: linear-gradient(135deg, #FFEAF2, #FFF7FB);
+    display: flex; align-items: center; justify-content: center; font-size: 38px;
+    box-shadow: inset 0 0 0 1px rgba(255,143,184,.15);
+  }
+  .empty-title { font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .empty-sub { font-size: 12.5px; color: var(--text-sub); margin-bottom: 24px; line-height: 1.6; }
+
+  .ai-entry-btn {
+    display: flex; align-items: center; gap: 12px; width: 100%; padding: 15px 18px;
+    border-radius: var(--radius-md); background: var(--ai-grad); color: #fff;
+    cursor: pointer; border: none; text-align: left;
+    box-shadow: 0 8px 24px rgba(167,110,220,.35);
+    transition: transform .15s; position: relative; overflow: hidden; margin-bottom: 12px;
+  }
+  .ai-entry-btn::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.25) 50%, transparent 60%);
+    transform: translateX(-100%); animation: shine 3s infinite;
+  }
+  @keyframes shine { 0%,60% {transform:translateX(-100%);} 100% {transform:translateX(100%);} }
+  .ai-entry-btn:active { transform: scale(.97); }
+  .ai-entry-btn .icon { font-size: 25px; }
+  .ai-entry-btn .txt { flex: 1; }
+  .ai-entry-btn .t1 { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  .ai-entry-btn .t2 { font-size: 11px; opacity: .85; margin-top: 2px; }
+  .ai-badge { font-size: 9px; padding: 2px 6px; border-radius: 8px; background: rgba(255,255,255,.25); font-weight: 700; letter-spacing: .05em; }
+  .ai-tag { font-size: 9px; background: var(--ai-grad); color: #fff; padding: 1.5px 6px; border-radius: 7px; font-weight: 700; }
+  .ai-entry-btn .arrow { font-size: 18px; opacity: .7; }
+
+  .ghost-btn {
+    width: 100%; padding: 13px; border-radius: var(--radius-md);
+    background: #fff; border: 1.5px solid var(--border);
+    color: var(--primary-dark); font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s;
+  }
+  .ghost-btn:active { background: var(--primary-light); }
+
+  .fab {
+    position: absolute; right: 20px; bottom: 96px; width: 54px; height: 54px; border-radius: 50%;
+    background: linear-gradient(135deg, #FFB3D1, #FF8FB8); color: #fff; font-size: 26px; font-weight: 300;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 20px rgba(255,143,184,.45); cursor: pointer; z-index: 50; transition: transform .15s;
+  }
+  .fab:active { transform: scale(.92); }
+
+  .tabbar { height: 82px; flex-shrink: 0; background: rgba(255,255,255,.96); border-top: 1px solid var(--border); display: flex; padding-bottom: 18px; }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10.5px; color: var(--text-hint); cursor: pointer; }
+  .tab .ic { font-size: 21px; filter: grayscale(1) opacity(.45); }
+  .tab.on { color: var(--primary); font-weight: 600; }
+  .tab.on .ic { filter: none; }
+
+  /* ============ 屏2 表单 ============ */
+  .ai-strip {
+    display: flex; align-items: center; gap: 12px; padding: 13px 15px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, rgba(167,139,250,.1), rgba(236,111,174,.1));
+    border: 1.5px dashed rgba(167,110,220,.4);
+    cursor: pointer; margin-bottom: 14px; transition: all .15s; position: relative; overflow: hidden;
+  }
+  .ai-strip:active { transform: scale(.98); }
+  .ai-strip.pulse { animation: pulseGlow 1.1s ease 2; }
+  @keyframes pulseGlow {
+    0%,100% { box-shadow: 0 0 0 0 rgba(167,110,220,0); }
+    50% { box-shadow: 0 0 0 8px rgba(167,110,220,.18); border-color: #A78BFA; }
+  }
+  .ai-strip .cam {
+    width: 40px; height: 40px; border-radius: 12px; background: var(--ai-grad);
+    display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(167,110,220,.35);
+  }
+  .ai-strip .info { flex: 1; }
+  .ai-strip .t1 { font-size: 14px; font-weight: 700; color: #7C5AC2; display: flex; align-items: center; gap: 6px; }
+  .ai-strip .t2 { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
+  .ai-strip .go { font-size: 16px; color: #A78BFA; }
+
+  .ai-banner {
+    display: none; align-items: flex-start; gap: 9px; padding: 10px 13px;
+    border-radius: var(--radius-md); background: rgba(167,139,250,.09);
+    border: 1px solid rgba(167,139,250,.28); font-size: 12px; color: #6D4FB8;
+    margin-bottom: 13px; line-height: 1.55; animation: pageIn .3s;
+  }
+  .ai-banner.show { display: flex; }
+  .ai-banner .dot { width: 7px; height: 7px; border-radius: 50%; background: #A78BFA; flex-shrink: 0; margin-top: 5px; animation: blink 1.4s infinite; }
+  @keyframes blink { 50% { opacity: .3; } }
+  .ai-banner b { color: #7C3AED; }
+
+  .form-card {
+    background: rgba(255,255,255,.92); border-radius: var(--radius-lg); padding: 18px 16px;
+    border: 1px solid rgba(255,255,255,.9); box-shadow: 0 4px 20px rgba(217,108,153,.05);
+  }
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 4px; }
+  .field label { display: block; font-size: 12.5px; color: var(--text-sub); margin-bottom: 7px; font-weight: 600; }
+  .field label .opt { font-weight: 400; color: var(--text-hint); }
+  .field label .req { color: var(--primary); }
+  .field input[type=text], .field input[type=number], .field textarea {
+    width: 100%; padding: 11px 13px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 14.5px; color: var(--text); background: #fff; outline: none; font-family: inherit;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .field input:focus, .field textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(255,143,184,.12); }
+  .field textarea { resize: none; height: 72px; line-height: 1.6; }
+  .field input.ai-filled, .field textarea.ai-filled {
+    border-color: rgba(167,139,250,.5); background: rgba(167,139,250,.04); animation: fillPop .45s ease;
+  }
+  .field input.dirty, .field textarea.dirty { border-color: var(--primary); }
+  @keyframes fillPop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.015); box-shadow: 0 0 0 5px rgba(167,139,250,.18); }
+    100% { transform: scale(1); }
+  }
+
+  .cover-preview {
+    width: 100%; height: 140px; border-radius: var(--radius-md); background: #FBEFF5;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px;
+    color: var(--text-hint); font-size: 12.5px; cursor: pointer;
+    border: 1.5px dashed #F0C6DA; margin-bottom: 14px; overflow: hidden; position: relative;
+  }
+  .cover-preview .big { font-size: 28px; }
+  .cover-preview .ai-flag {
+    position: absolute; top: 8px; left: 8px; font-size: 10px; padding: 3px 9px; border-radius: 9px;
+    background: var(--ai-grad); color: #fff; font-weight: 700; display: none; z-index: 2;
+  }
+  .cover-preview.has-img .ai-flag { display: block; }
+  .cover-emoji { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 58px; background: linear-gradient(135deg,#FFE3EF,#F3E8FF); }
+  .re-scan {
+    position: absolute; bottom: 8px; right: 8px; z-index: 2;
+    font-size: 11px; padding: 5px 12px; border-radius: 99px;
+    background: rgba(30,18,26,.62); color: #fff; backdrop-filter: blur(4px);
+    display: flex; align-items: center; gap: 4px;
+  }
+  .re-scan:active { transform: scale(.94); }
+
+  /* 更多图片 */
+  .extra-imgs { display: flex; gap: 10px; flex-wrap: wrap; }
+  .extra-tile {
+    width: 68px; height: 68px; border-radius: var(--radius-sm);
+    background: linear-gradient(135deg,#FFE9F2,#FFF6FA);
+    display: flex; align-items: center; justify-content: center; font-size: 30px;
+    animation: fillPop .4s ease;
+    position: relative;
+  }
+  .extra-tile.add {
+    background: #fff; border: 1.5px dashed #E8C6D6; color: var(--text-hint); font-size: 22px; cursor: pointer;
+  }
+  .extra-tile.add:active { background: var(--primary-light); }
+  .extra-note { font-size: 10.5px; color: var(--text-hint); margin-top: 7px; line-height: 1.5; }
+  .extra-note b { color: #7C5AC2; font-weight: 600; }
+
+  .cat-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cat-pill {
+    padding: 7px 14px; border-radius: 99px; background: #FBEFF5; color: var(--text-sub);
+    font-size: 13px; cursor: pointer; border: 1.5px solid transparent; transition: all .15s;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .cat-pill.on { background: var(--primary-light); color: var(--primary-dark); font-weight: 700; border-color: #FFD6E7; }
+  .cat-pill.ai-new { animation: fillPop .45s ease; }
+  .cat-pill .newdot { font-size: 8.5px; background: var(--ai-grad); color: #fff; padding: 1px 5px; border-radius: 6px; font-weight: 700; }
+
+  /* AI 建议新分类确认条 */
+  .cat-suggest {
+    display: none; margin-top: 10px; padding: 10px 12px; border-radius: var(--radius-sm);
+    background: rgba(167,139,250,.08); border: 1px dashed rgba(167,110,220,.45);
+    font-size: 12px; color: #6D4FB8; animation: pageIn .3s;
+  }
+  .cat-suggest.show { display: block; }
+  .cat-suggest .cs-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .cat-suggest .cs-txt { flex: 1; line-height: 1.5; }
+  .cat-suggest .cs-txt b { color: #7C3AED; }
+  .cs-btns { display: flex; gap: 6px; flex-shrink: 0; }
+  .cs-btns button {
+    font-size: 11.5px; padding: 6px 12px; border-radius: 99px; cursor: pointer; border: none; font-weight: 600;
+  }
+  .cs-btns .yes { background: var(--ai-grad); color: #fff; }
+  .cs-btns .no { background: #fff; color: var(--text-sub); border: 1px solid var(--border); }
+  .cs-btns button:active { transform: scale(.94); }
+
+  .save-btn {
+    width: 100%; padding: 15px; border-radius: var(--radius-md);
+    background: linear-gradient(135deg, #FFB3D1, #FF8FB8); color: #fff; font-size: 16px; font-weight: 700;
+    border: none; cursor: pointer; box-shadow: 0 8px 20px rgba(255,143,184,.35); margin-top: 14px; transition: transform .15s;
+  }
+  .save-btn:active { transform: scale(.97); }
+
+  /* ============ 底部面板 ============ */
+  .sheet-mask { position: absolute; inset: 0; z-index: 300; background: rgba(40,20,30,.5); display: none; align-items: flex-end; backdrop-filter: blur(3px); }
+  .sheet-mask.show { display: flex; animation: fadeIn .2s; }
+  @keyframes fadeIn { from { opacity: 0; } }
+  .sheet { width: 100%; background: #fff; border-radius: 24px 24px 0 0; padding: 10px 16px 38px; animation: sheetUp .3s cubic-bezier(.22,1,.36,1); }
+  @keyframes sheetUp { from { transform: translateY(100%); } }
+  .sheet-handle { width: 38px; height: 4px; border-radius: 2px; background: #EEE; margin: 6px auto 14px; }
+  .sheet-title { text-align: center; font-size: 13px; color: var(--text-hint); margin-bottom: 12px; }
+  .sheet-opt { display: flex; align-items: center; gap: 14px; padding: 13px 12px; border-radius: var(--radius-md); cursor: pointer; transition: background .15s; }
+  .sheet-opt:active { background: var(--primary-light); }
+  .sheet-opt .ic { width: 42px; height: 42px; border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .ic.purple { background: linear-gradient(135deg, #E9DEFF, #F6ECFF); }
+  .ic.pink { background: linear-gradient(135deg, #FFE3EF, #FFF0F6); }
+  .ic.gray { background: #F3EEF0; }
+  .sheet-opt .t1 { font-size: 14.5px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px; }
+  .sheet-opt .t2 { font-size: 11px; color: var(--text-hint); margin-top: 2px; }
+  .sheet-cancel { margin-top: 8px; padding: 13px; text-align: center; border-radius: var(--radius-md); background: #F7F2F4; color: var(--text-sub); font-size: 14px; cursor: pointer; }
+  .demo-tag { font-size: 9px; padding: 1.5px 6px; border-radius: 6px; background: #EFE9F7; color: #7C5AC2; font-weight: 700; }
+
+  /* ============ 识别中 ============ */
+  .scan-overlay { position: absolute; inset: 0; z-index: 400; background: rgba(30,18,26,.92); display: none; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(6px); }
+  .scan-overlay.show { display: flex; animation: fadeIn .25s; }
+  .scan-box { width: 210px; height: 210px; border-radius: 22px; position: relative; overflow: hidden; box-shadow: 0 0 0 2px rgba(167,139,250,.5), 0 20px 60px rgba(0,0,0,.5); margin-bottom: 28px; }
+  .scan-box .food { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 90px; background: linear-gradient(160deg, #4a3242, #33222e); }
+  .scan-line { position: absolute; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, #C4A6FF, #FF8FB8, transparent); box-shadow: 0 0 18px 4px rgba(196,166,255,.6); animation: scan 1.8s ease-in-out infinite; }
+  @keyframes scan { 0%,100% { top: 4%; } 50% { top: 94%; } }
+  .scan-corner { position: absolute; width: 26px; height: 26px; border-color: #C4A6FF; border-style: solid; border-width: 0; }
+  .scan-corner.tl { top: 10px; left: 10px; border-top-width: 3px; border-left-width: 3px; border-radius: 8px 0 0 0; }
+  .scan-corner.tr { top: 10px; right: 10px; border-top-width: 3px; border-right-width: 3px; border-radius: 0 8px 0 0; }
+  .scan-corner.bl { bottom: 10px; left: 10px; border-bottom-width: 3px; border-left-width: 3px; border-radius: 0 0 0 8px; }
+  .scan-corner.br { bottom: 10px; right: 10px; border-bottom-width: 3px; border-right-width: 3px; border-radius: 0 0 8px 0; }
+  .scan-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .scan-title .sparkle { animation: spin 2.4s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .scan-steps { font-size: 12.5px; height: 19px; color: rgba(255,255,255,.55); }
+  .scan-steps span { display: none; }
+  .scan-steps span.on { display: inline; animation: fadeIn .3s; color: #C4A6FF; }
+  .scan-progress { width: 210px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.12); margin-top: 22px; overflow: hidden; }
+  .scan-progress i { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, #A78BFA, #FF8FB8); border-radius: 2px; transition: width .5s ease; }
+  .scan-cancel { margin-top: 26px; font-size: 12.5px; color: rgba(255,255,255,.4); cursor: pointer; padding: 7px 18px; border-radius: 99px; border: 1px solid rgba(255,255,255,.15); }
+  .scan-cancel:active { background: rgba(255,255,255,.08); }
+
+  /* ============ 失败弹窗 / toast ============ */
+  .modal-mask { position: absolute; inset: 0; z-index: 500; background: rgba(40,20,30,.55); display: none; align-items: center; justify-content: center; padding: 36px; backdrop-filter: blur(3px); }
+  .modal-mask.show { display: flex; animation: fadeIn .2s; }
+  .modal { width: 100%; background: #fff; border-radius: 22px; padding: 28px 22px 18px; text-align: center; animation: modalPop .3s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes modalPop { from { transform: scale(.8); opacity: 0; } }
+  .modal .m-icon { font-size: 44px; margin-bottom: 10px; }
+  .modal .m-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .modal .m-desc { font-size: 12.5px; color: var(--text-sub); line-height: 1.7; margin-bottom: 20px; }
+  .modal .m-actions { display: flex; gap: 10px; }
+  .modal .m-btn { flex: 1; padding: 12px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: transform .15s; }
+  .modal .m-btn:active { transform: scale(.96); }
+  .m-btn.ghost { background: #F7F2F4; color: var(--text-sub); }
+  .m-btn.solid { background: linear-gradient(135deg, #FFB3D1, #FF8FB8); color: #fff; }
+
+  .toast { position: absolute; top: 45%; left: 50%; transform: translate(-50%,-50%); background: rgba(30,18,26,.88); color: #fff; padding: 20px 26px; border-radius: 16px; display: none; flex-direction: column; align-items: center; gap: 9px; z-index: 600; backdrop-filter: blur(8px); min-width: 130px; text-align: center; white-space: pre-line; }
+  .toast.show { display: flex; animation: fadeIn .2s; }
+  .toast .t-ic { font-size: 32px; }
+  .toast .t-txt { font-size: 13px; line-height: 1.5; }
+
+  /* ============ 列表 ============ */
+  .dish-card { display: flex; gap: 12px; background: rgba(255,255,255,.9); border-radius: var(--radius-md); padding: 12px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,.9); box-shadow: 0 3px 14px rgba(217,108,153,.05); align-items: center; }
+  .dish-card.new-in { animation: cardIn .5s cubic-bezier(.22,1,.36,1); }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(16px) scale(.96); } }
+  .dish-thumb { width: 70px; height: 70px; border-radius: var(--radius-sm); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 34px; }
+  .dish-meta { flex: 1; min-width: 0; }
+  .dish-meta .n { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+  .dish-meta .s { font-size: 11.5px; color: var(--text-sub); margin-bottom: 6px; }
+  .mini-chip { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 7px; background: var(--primary-light); color: var(--primary-dark); margin-right: 5px; }
+  .mini-chip.ai { background: rgba(167,139,250,.12); color: #7C5AC2; }
+  .mini-chip.st { background: var(--success-bg); color: var(--success); }
+
+  .search-bar { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,.9); border-radius: 99px; padding: 10px 16px; border: 1px solid rgba(255,255,255,.9); box-shadow: 0 3px 14px rgba(217,108,153,.05); margin-bottom: 13px; }
+  .search-bar .ic { color: var(--text-hint); font-size: 14px; }
+  .search-bar span { color: var(--text-hint); font-size: 13.5px; }
+  .seg-row { display: flex; gap: 8px; margin-bottom: 15px; }
+  .seg { padding: 6px 14px; border-radius: 99px; font-size: 12.5px; background: rgba(255,255,255,.85); color: var(--text-sub); border: 1px solid var(--border); }
+  .seg.on { background: var(--primary-light); color: var(--primary-dark); font-weight: 600; border-color: #FFD6E7; }
+
+  .proto-hint { position: absolute; top: 60px; left: 50%; transform: translateX(-50%); z-index: 150; background: rgba(30,18,26,.78); color: #fff; font-size: 11px; padding: 6px 14px; border-radius: 99px; white-space: nowrap; pointer-events: none; animation: fadeIn .4s; backdrop-filter: blur(6px); display: none; max-width: 90%; }
+  .proto-hint.show { display: block; }
+</style>
+</head>
+<body>
+
+<!-- ================= 左侧说明 ================= -->
+<div class="doc-panel">
+  <h1>AI 拍照识别建菜 · v2</h1>
+  <div class="sub">针对三个评审问题的修订版 · Mock 数据</div>
+
+  <h2>演示路径（点击或手机内操作）</h2>
+  <div class="flow-item active" data-goto="screen-empty" onclick="gotoScreen('screen-empty', this)">
+    <div class="flow-num">1</div>
+    <div><b>空态 AI 入口</b> → 进表单并自动弹图片来源</div>
+  </div>
+  <div class="flow-item" onclick="openAddSheet()">
+    <div class="flow-num">2</div>
+    <div><b>FAB「+」入口</b> → 先弹二选一菜单（识别/手动），与手动入口区分</div>
+  </div>
+  <div class="flow-item" onclick="startRecognize('ok')">
+    <div class="flow-num">3</div>
+    <div><b>识别成功</b> → 5 字段回填 + 图设封面</div>
+  </div>
+  <div class="flow-item" onclick="demoExtraAndRescan()">
+    <div class="flow-num">4</div>
+    <div><b>加图不识别 / 重新识别保护手改</b><br><span style="opacity:.6">先识别→加 2 张补充图（无 AI）→手改菜名→点封面「重新识别」看保护效果</span></div>
+  </div>
+  <div class="flow-item" onclick="startRecognize('newcat')">
+    <div class="flow-num">5</div>
+    <div><b>AI 建议新分类</b> → 确认条「创建并使用 / 不用」，不静默建分类</div>
+  </div>
+  <div class="flow-item" onclick="startRecognize('fail')">
+    <div class="flow-num">6</div>
+    <div><b>识别失败</b> → 换图 / 手动填写，不阻断</div>
+  </div>
+  <div class="flow-item" data-goto="screen-list" onclick="gotoScreen('screen-list', this)">
+    <div class="flow-num">7</div>
+    <div><b>保存入库</b> → 列表带 AI 角标</div>
+  </div>
+
+  <div class="doc-note">
+    <b>三条触发规则（本次修订核心）</b>
+    <div class="rule"><i>①</i><span>AI 只绑定<b>封面槽位</b>：首次识别 / 重新识别才调用；「更多图片」纯上传，<b>不调 AI</b>（省钱省时间，补充图不改变菜品身份）</span></div>
+    <div class="rule"><i>②</i><span>重新识别 = <b>增量回填</b>：只填空字段和没手改过的字段，手动改过的内容绝不覆盖（演示：先改菜名再重新识别）</span></div>
+    <div class="rule"><i>③</i><span>分类优先从<b>用户已有分类</b>中选（提示词约束）；都不匹配才给「建议新分类」确认条，<b>用户点了才创建</b>，不静默污染分类体系</span></div>
+  </div>
+</div>
+
+<!-- ================= 手机 ================= -->
+<div class="phone">
+  <div class="island"></div>
+  <div class="screen-wrap">
+    <div class="proto-hint" id="protoHint"></div>
+
+    <!-- ===== 屏1 空态 ===== -->
+    <div class="page active" id="screen-empty">
+      <div class="statusbar"><span>10:24</span><span class="right">📶 🔋</span></div>
+      <div class="navbar">菜品库<div class="capsule">···<div class="divider"></div>◎</div></div>
+      <div class="body">
+        <div class="search-bar"><span class="ic">🔍</span><span>搜索菜品、标签、介绍…</span></div>
+        <div class="seg-row"><div class="seg on">全部</div><div class="seg">想吃</div><div class="seg">常吃</div></div>
+        <div class="empty-card">
+          <div class="empty-icon">🍽️</div>
+          <div class="empty-title">菜品库还是空的</div>
+          <div class="empty-sub">让 AI 帮你建库 —— 拍一张菜的照片<br>菜名、分类、做法描述自动填好</div>
+          <button class="ai-entry-btn" onclick="aiEntry()">
+            <div class="icon">📷</div>
+            <div class="txt">
+              <div class="t1">拍照识别添加 <span class="ai-badge">AI</span></div>
+              <div class="t2">3 秒录入一道菜，比手动快 10 倍</div>
+            </div>
+            <div class="arrow">›</div>
+          </button>
+          <button class="ghost-btn" onclick="gotoScreen('screen-edit')">＋ 手动添加</button>
+        </div>
+      </div>
+      <div class="fab" onclick="openAddSheet()">＋</div>
+      <div class="tabbar">
+        <div class="tab"><div class="ic">🏠</div>首页</div>
+        <div class="tab on"><div class="ic">📖</div>菜品库</div>
+        <div class="tab"><div class="ic">🎲</div>抽一抽</div>
+        <div class="tab"><div class="ic">👤</div>我的</div>
+      </div>
+    </div>
+
+    <!-- ===== 屏2 表单 ===== -->
+    <div class="page" id="screen-edit">
+      <div class="statusbar"><span>10:24</span><span class="right">📶 🔋</span></div>
+      <div class="navbar">
+        <div class="back" onclick="gotoScreen('screen-empty')">‹</div>
+        添加菜品
+        <div class="capsule">···<div class="divider"></div>◎</div>
+      </div>
+      <div class="body">
+        <div class="ai-strip" id="aiStrip" onclick="openSheet()">
+          <div class="cam">📷</div>
+          <div class="info">
+            <div class="t1">拍照识别菜品 <span class="ai-tag">AI</span></div>
+            <div class="t2">拍张照或从相册选图，AI 自动填好下面的表单</div>
+          </div>
+          <div class="go">›</div>
+        </div>
+
+        <div class="ai-banner" id="aiBanner">
+          <div class="dot"></div>
+          <div id="aiBannerTxt"><b>AI 已识别完成</b>，以下内容已自动填入，请核对修改后保存</div>
+        </div>
+
+        <div class="form-card">
+          <!-- 封面槽（AI 绑定） -->
+          <div class="cover-preview" id="coverPreview" onclick="onCoverTap()">
+            <span class="ai-flag">AI 识别图 · 已设为封面</span>
+            <div class="big">🖼️</div>
+            <span>点击添加封面（AI 识别用这张）</span>
+          </div>
+
+          <!-- 更多图片（不触发 AI） -->
+          <div class="field">
+            <label>更多图片 <span class="opt">（补充视角）</span></label>
+            <div class="extra-imgs" id="extraImgs">
+              <div class="extra-tile add" onclick="addExtraImg()">＋</div>
+            </div>
+            <div class="extra-note">补充图<b>直接上传、不走 AI 识别</b>，不产生额外识别耗时与费用</div>
+          </div>
+
+          <div class="field">
+            <label>菜名 <span class="req">*</span></label>
+            <input type="text" id="fName" placeholder="例如：番茄牛腩煲">
+          </div>
+
+          <div class="field">
+            <label>分类</label>
+            <div class="cat-pills" id="fCats">
+              <div class="cat-pill" data-cat="家常菜" onclick="pickCat(this)">🍲 家常菜</div>
+              <div class="cat-pill" data-cat="面食粉类" onclick="pickCat(this)">🍜 面食粉类</div>
+              <div class="cat-pill" data-cat="轻食沙拉" onclick="pickCat(this)">🥗 轻食沙拉</div>
+              <div class="cat-pill" data-cat="火锅烧烤" onclick="pickCat(this)">🍢 火锅烧烤</div>
+              <div class="cat-pill" data-cat="甜品饮品" onclick="pickCat(this)">🍰 甜品饮品</div>
+            </div>
+            <div class="cat-suggest" id="catSuggest">
+              <div class="cs-row">
+                <div class="cs-txt">✨ 现有分类里没有匹配的，AI 建议新建「<b id="csName">川味</b>」</div>
+                <div class="cs-btns">
+                  <button class="yes" onclick="acceptCatSuggest()">创建并使用</button>
+                  <button class="no" onclick="dismissCatSuggest()">不用</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>价格（元）<span class="opt">（可选）</span></label>
+            <input type="number" id="fPrice" placeholder="例如：32">
+          </div>
+
+          <div class="field">
+            <label>介绍 / 做法笔记</label>
+            <textarea id="fDesc" placeholder="简单描述这道菜的做法或口感…"></textarea>
+          </div>
+
+          <div class="field">
+            <label>标签（逗号分隔）</label>
+            <input type="text" id="fTags" placeholder="例如：家常，炖菜，下饭">
+          </div>
+        </div>
+
+        <button class="save-btn" onclick="saveDish()">保存菜品</button>
+      </div>
+    </div>
+
+    <!-- ===== 屏3 列表 ===== -->
+    <div class="page" id="screen-list">
+      <div class="statusbar"><span>10:26</span><span class="right">📶 🔋</span></div>
+      <div class="navbar">菜品库<div class="capsule">···<div class="divider"></div>◎</div></div>
+      <div class="body">
+        <div class="search-bar"><span class="ic">🔍</span><span>搜索菜品、标签、介绍…</span></div>
+        <div class="seg-row"><div class="seg on">全部</div><div class="seg">想吃</div><div class="seg">常吃</div></div>
+        <div class="dish-card new-in" id="newDishCard">
+          <div class="dish-thumb" style="background:linear-gradient(135deg,#FFE3EF,#FFF7FB)">🍲</div>
+          <div class="dish-meta">
+            <div class="n">番茄牛腩煲</div>
+            <div class="s">家常菜 · ¥48 · 3 张图</div>
+            <div>
+              <span class="mini-chip st">想吃</span>
+              <span class="mini-chip ai">✨ AI 识别</span>
+              <span class="mini-chip">炖菜</span>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:center;font-size:12px;color:var(--text-hint);padding:8px 0 20px">已保存 · 菜品库共 1 道菜</div>
+      </div>
+      <div class="fab" onclick="openAddSheet()">＋</div>
+      <div class="tabbar">
+        <div class="tab"><div class="ic">🏠</div>首页</div>
+        <div class="tab on"><div class="ic">📖</div>菜品库</div>
+        <div class="tab"><div class="ic">🎲</div>抽一抽</div>
+        <div class="tab"><div class="ic">👤</div>我的</div>
+      </div>
+    </div>
+
+    <!-- ===== 面板：添加方式（FAB） ===== -->
+    <div class="sheet-mask" id="addSheet" onclick="if(event.target===this)closeAddSheet()">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">添加菜品</div>
+        <div class="sheet-opt" onclick="aiEntry()">
+          <div class="ic purple">📷</div>
+          <div><div class="t1">拍照识别添加 <span class="ai-tag">AI</span></div><div class="t2">拍一张图，AI 自动填好表单</div></div>
+        </div>
+        <div class="sheet-opt" onclick="closeAddSheet();gotoScreen('screen-edit')">
+          <div class="ic pink">✍️</div>
+          <div><div class="t1">手动添加</div><div class="t2">自己填写菜品信息</div></div>
+        </div>
+        <div class="sheet-cancel" onclick="closeAddSheet()">取消</div>
+      </div>
+    </div>
+
+    <!-- ===== 面板：图片来源 ===== -->
+    <div class="sheet-mask" id="sheetMask" onclick="if(event.target===this)closeSheet()">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">选择图片来源（仅封面识别用）</div>
+        <div class="sheet-opt" onclick="startRecognize('ok')">
+          <div class="ic purple">📸</div>
+          <div><div class="t1">拍照</div><div class="t2">现在拍一张菜品的照片</div></div>
+        </div>
+        <div class="sheet-opt" onclick="startRecognize('ok')">
+          <div class="ic pink">🖼️</div>
+          <div><div class="t1">从相册选择</div><div class="t2">选已有的菜品图 / 菜谱截图</div></div>
+        </div>
+        <div class="sheet-opt" onclick="startRecognize('newcat')">
+          <div class="ic gray">🧪</div>
+          <div><div class="t1">模拟：AI 建议新分类 <span class="demo-tag">演示</span></div><div class="t2">识别出的分类不在你的分类里</div></div>
+        </div>
+        <div class="sheet-opt" onclick="startRecognize('fail')">
+          <div class="ic gray">🧪</div>
+          <div><div class="t1">模拟：识别失败 <span class="demo-tag">演示</span></div><div class="t2">图里没有菜品，走降级流程</div></div>
+        </div>
+        <div class="sheet-cancel" onclick="closeSheet()">取消</div>
+      </div>
+    </div>
+
+    <!-- ===== 识别中 ===== -->
+    <div class="scan-overlay" id="scanOverlay">
+      <div class="scan-box">
+        <div class="food" id="scanFood">🍲</div>
+        <div class="scan-line"></div>
+        <div class="scan-corner tl"></div><div class="scan-corner tr"></div>
+        <div class="scan-corner bl"></div><div class="scan-corner br"></div>
+      </div>
+      <div class="scan-title"><span class="sparkle">✨</span> AI 正在识别…</div>
+      <div class="scan-steps">
+        <span id="step1">正在分析图片内容…</span>
+        <span id="step2">识别菜品名称与做法…</span>
+        <span id="step3">匹配分类与标签…</span>
+      </div>
+      <div class="scan-progress"><i id="scanBar"></i></div>
+      <div class="scan-cancel" onclick="cancelScan()">取消</div>
+    </div>
+
+    <!-- ===== 失败弹窗 ===== -->
+    <div class="modal-mask" id="failModal">
+      <div class="modal">
+        <div class="m-icon">🤔</div>
+        <div class="m-title">这张图里没认出菜品</div>
+        <div class="m-desc">图片可能不够清晰，或者不是食物照片。<br>你可以换一张再试，或直接手动填写。</div>
+        <div class="m-actions">
+          <button class="m-btn ghost" onclick="closeFail(false)">手动填写</button>
+          <button class="m-btn solid" onclick="closeFail(true)">重新选图</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"><div class="t-ic">✅</div><div class="t-txt">保存成功</div></div>
+  </div>
+</div>
+
+<script>
+  // ================== 状态 ==================
+  let scanTimer = null;
+  let dirty = new Set();        // 用户手动改过的字段
+  let catDirty = false;         // 用户手动选过分类
+  let recognized = false;       // 封面是否已识别
+  let extraCount = 0;
+  let catCreated = false;
+  const EXTRA_EMOJI = ['🥘','🥩','🍅'];
+
+  const MOCK_A = { name:'番茄牛腩煲', cat:'家常菜', price:'48',
+    desc:'浓郁番茄汤底，牛腩炖到软烂入味。番茄先炒出沙再兑水，牛腩冷水下锅焯沫，小火慢炖 90 分钟。',
+    tags:'家常，炖菜，下饭，冬日暖胃', emoji:'🍲' };
+  const MOCK_B = { name:'浓郁番茄牛腩煲', cat:'家常菜', price:'52',
+    desc:'加土豆和胡萝卜的版本，汤汁更浓。适合一次多做，第二天拌面也香。',
+    tags:'炖菜，浓郁，可隔夜', emoji:'🍲' };
+  const MOCK_C = { name:'麻婆豆腐', cat:null, suggestCat:'川味', price:'28',
+    desc:'豆瓣酱炒香出红油，豆腐焯水去豆腥，起锅前撒花椒面，麻辣鲜烫。',
+    tags:'辣，下饭，快手', emoji:'🌶️' };
+
+  // ================== 屏幕 ==================
+  function gotoScreen(id, item) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.flow-item').forEach(f => f.classList.remove('active'));
+    if (item) item.classList.add('active');
+    else {
+      const m = document.querySelector('.flow-item[data-goto="' + id + '"]');
+      if (m) m.classList.add('active');
+    }
+    if (id === 'screen-edit') resetForm();
+  }
+
+  function showHint(text, ms) {
+    const h = document.getElementById('protoHint');
+    h.textContent = text; h.classList.add('show');
+    clearTimeout(h._t); h._t = setTimeout(() => h.classList.remove('show'), ms || 2600);
+  }
+
+  // ================== 表单 ==================
+  function resetForm() {
+    dirty = new Set(); catDirty = false; recognized = false; extraCount = 0; catCreated = false;
+    ['fName','fPrice','fDesc','fTags'].forEach(id => {
+      const el = document.getElementById(id);
+      el.value = ''; el.classList.remove('ai-filled','dirty');
+    });
+    document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('on','ai-new'));
+    document.querySelectorAll('.cat-pill[data-ai-created]').forEach(p => p.remove());
+    document.getElementById('aiBanner').classList.remove('show');
+    document.getElementById('catSuggest').classList.remove('show');
+    const cp = document.getElementById('coverPreview');
+    cp.classList.remove('has-img');
+    cp.innerHTML = '<span class="ai-flag">AI 识别图 · 已设为封面</span><div class="big">🖼️</div><span>点击添加封面（AI 识别用这张）</span>';
+    document.getElementById('extraImgs').innerHTML = '<div class="extra-tile add" onclick="addExtraImg()">＋</div>';
+  }
+
+  // 用户手改追踪
+  ['fName','fPrice','fDesc','fTags'].forEach(id => {
+    document.getElementById(id).addEventListener('input', e => {
+      dirty.add(id); e.target.classList.add('dirty');
+    });
+  });
+
+  function pickCat(el) {
+    document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('on'));
+    el.classList.add('on'); catDirty = true;
+  }
+
+  function fillField(id, val) {
+    const el = document.getElementById(id);
+    el.value = val; el.classList.add('ai-filled'); el.classList.remove('dirty');
+  }
+
+  // mode: 'first' 全量回填 | 'rescan' 增量回填（保护手改）
+  function applyAI(data, mode) {
+    let applied = 0, skipped = 0;
+    const tryFill = (id, val, delay) => {
+      if (mode === 'rescan' && dirty.has(id)) { skipped++; return; }
+      setTimeout(() => { fillField(id, val); }, delay);
+      applied++;
+    };
+    tryFill('fName', data.name, 100);
+    if (mode === 'rescan' && (catDirty || document.querySelector('.cat-pill.on'))) { skipped++; }
+    else if (data.cat) {
+      setTimeout(() => {
+        document.querySelectorAll('.cat-pill').forEach(p => {
+          if (p.dataset.cat === data.cat) p.classList.add('on','ai-new');
+        });
+      }, 350);
+      applied++;
+    }
+    tryFill('fPrice', data.price, 500);
+    tryFill('fDesc', data.desc, 700);
+    tryFill('fTags', data.tags, 900);
+
+    setTimeout(() => {
+      const cp = document.getElementById('coverPreview');
+      cp.innerHTML = '<span class="ai-flag">AI 识别图 · 已设为封面</span>' +
+        '<div class="cover-emoji">' + data.emoji + '</div>' +
+        '<div class="re-scan" onclick="event.stopPropagation();rescan()">↻ 重新识别</div>';
+      cp.classList.add('has-img');
+      recognized = true;
+    }, 1100);
+
+    if (data.suggestCat) {
+      setTimeout(() => {
+        document.getElementById('csName').textContent = data.suggestCat;
+        document.getElementById('catSuggest').classList.add('show');
+      }, 1300);
+    }
+
+    setTimeout(() => {
+      const b = document.getElementById('aiBanner');
+      const t = document.getElementById('aiBannerTxt');
+      if (mode === 'first') {
+        t.innerHTML = '<b>AI 已识别完成</b>，以下内容已自动填入，请核对修改后保存';
+      } else {
+        t.innerHTML = '<b>重新识别完成</b>：更新 ' + applied + ' 个字段，保留 ' + skipped + ' 个你手动改过的字段';
+      }
+      b.classList.add('show');
+    }, 1350);
+  }
+
+  // ================== 更多图片（不触发 AI） ==================
+  function addExtraImg() {
+    if (extraCount >= 3) { showHint('演示最多 3 张补充图'); return; }
+    const wrap = document.getElementById('extraImgs');
+    const addTile = wrap.querySelector('.extra-tile.add');
+    const tile = document.createElement('div');
+    tile.className = 'extra-tile';
+    tile.textContent = EXTRA_EMOJI[extraCount];
+    wrap.insertBefore(tile, addTile);
+    extraCount++;
+    if (extraCount >= 3) addTile.style.display = 'none';
+    showHint('补充图直接上传，未调用 AI 识别', 1800);
+  }
+
+  function demoExtraAndRescan() {
+    gotoScreen('screen-edit');
+    setTimeout(() => {
+      applyAI(MOCK_A, 'first');
+      setTimeout(() => {
+        addExtraImg(); addExtraImg();
+        setTimeout(() => {
+          const n = document.getElementById('fName');
+          n.value = '我家的番茄牛腩煲';
+          n.classList.add('dirty'); dirty.add('fName');
+          showHint('已加 2 张补充图（无 AI）+ 手改了菜名，接着点封面「重新识别」', 3600);
+          setTimeout(() => rescan(), 2200);
+        }, 1600);
+      }, 1600);
+    }, 300);
+  }
+
+  function rescan() {
+    runScan('🍲', () => applyAI(MOCK_B, 'rescan'));
+  }
+
+  function onCoverTap() {
+    if (!recognized) openSheet();
+    else showHint('封面已识别；点右下角「重新识别」可换图重跑', 2200);
+  }
+
+  // ================== 面板 ==================
+  function openSheet() { document.getElementById('sheetMask').classList.add('show'); }
+  function closeSheet() { document.getElementById('sheetMask').classList.remove('show'); }
+  function openAddSheet() { document.getElementById('addSheet').classList.add('show'); }
+  function closeAddSheet() { document.getElementById('addSheet').classList.remove('show'); }
+
+  // AI 意图入口：进表单 + 脉冲高亮 + 自动弹图片来源
+  function aiEntry() {
+    closeAddSheet();
+    gotoScreen('screen-edit');
+    const strip = document.getElementById('aiStrip');
+    strip.classList.remove('pulse'); void strip.offsetWidth; strip.classList.add('pulse');
+    setTimeout(() => openSheet(), 450);
+  }
+
+  // ================== 识别流程 ==================
+  function startRecognize(mode) {
+    closeSheet();
+    const emoji = mode === 'fail' ? '🪑' : (mode === 'newcat' ? '🌶️' : '🍲');
+    runScan(emoji, () => {
+      if (mode === 'fail') document.getElementById('failModal').classList.add('show');
+      else if (mode === 'newcat') applyAI(MOCK_C, 'first');
+      else applyAI(MOCK_A, 'first');
+    });
+  }
+
+  function runScan(emoji, onDone) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('screen-edit').classList.add('active');
+    const ov = document.getElementById('scanOverlay');
+    document.getElementById('scanFood').textContent = emoji;
+    ov.classList.add('show');
+    const bar = document.getElementById('scanBar');
+    bar.style.width = '0%';
+    ['step1','step2','step3'].forEach(s => document.getElementById(s).classList.remove('on'));
+    document.getElementById('step1').classList.add('on');
+    let t = 0;
+    clearInterval(scanTimer);
+    scanTimer = setInterval(() => {
+      t += 500;
+      bar.style.width = Math.min(95, t / 3200 * 100) + '%';
+      if (t === 1000) { ['step1','step2','step3'].forEach(s => document.getElementById(s).classList.remove('on')); document.getElementById('step2').classList.add('on'); }
+      if (t === 2100) { ['step1','step2','step3'].forEach(s => document.getElementById(s).classList.remove('on')); document.getElementById('step3').classList.add('on'); }
+      if (t >= 3200) {
+        clearInterval(scanTimer);
+        bar.style.width = '100%';
+        setTimeout(() => { ov.classList.remove('show'); onDone(); }, 350);
+      }
+    }, 500);
+  }
+
+  function cancelScan() {
+    clearInterval(scanTimer);
+    document.getElementById('scanOverlay').classList.remove('show');
+    showHint('已取消识别，表单保持原样');
+  }
+
+  function closeFail(retry) {
+    document.getElementById('failModal').classList.remove('show');
+    if (retry) setTimeout(() => openSheet(), 200);
+    else { showHint('降级不阻断：表单照常可手动填写'); document.getElementById('fName').focus(); }
+  }
+
+  // ================== 新分类建议 ==================
+  function acceptCatSuggest() {
+    const name = document.getElementById('csName').textContent;
+    const pills = document.getElementById('fCats');
+    const p = document.createElement('div');
+    p.className = 'cat-pill on ai-new';
+    p.dataset.cat = name; p.dataset.aiCreated = '1';
+    p.onclick = function(){ pickCat(this); };
+    p.innerHTML = '🌶️ ' + name + ' <span class="newdot">新</span>';
+    document.querySelectorAll('.cat-pill').forEach(x => x.classList.remove('on'));
+    pills.appendChild(p);
+    document.getElementById('catSuggest').classList.remove('show');
+    catCreated = true;
+    showHint('分类「' + name + '」已创建并选中（保存时同步入库）', 2400);
+  }
+  function dismissCatSuggest() {
+    document.getElementById('catSuggest').classList.remove('show');
+    showHint('已忽略建议，分类留空由你自选', 2000);
+  }
+
+  // ================== 保存 ==================
+  function saveDish() {
+    const name = document.getElementById('fName').value.trim();
+    if (!name) { showHint('菜名不能为空（与现有表单校验一致）'); document.getElementById('fName').focus(); return; }
+    const toast = document.getElementById('toast');
+    toast.querySelector('.t-txt').textContent = catCreated ? '保存成功\n新分类已同步创建' : '保存成功';
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+      const cat = document.querySelector('.cat-pill.on')?.dataset.cat || '家常菜';
+      document.querySelector('#newDishCard .dish-meta .n').textContent = name;
+      document.querySelector('#newDishCard .dish-meta .s').textContent =
+        cat + ' · ¥' + (document.getElementById('fPrice').value || '--') + ' · ' + (1 + extraCount) + ' 张图';
+      gotoScreen('screen-list');
+    }, 1400);
+  }
+</script>
+</body>
+</html>

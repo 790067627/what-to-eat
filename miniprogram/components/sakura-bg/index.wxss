@@ -1,0 +1,27 @@
+.sakura-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* 柔光罩：压一点饱和度，让文字更可读、上下装饰与中段过渡自然 */
+.sakura-veil {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 247, 250, 0.10) 0%,
+    rgba(255, 247, 250, 0.45) 22%,
+    rgba(255, 247, 250, 0.45) 78%,
+    rgba(255, 247, 250, 0.10) 100%
+  );
+}

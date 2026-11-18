@@ -1,0 +1,136 @@
+<sakura-bg />
+<view class="page">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <text class="search-icon"><text class="bi"></text></text>
+    <input
+      class="search-input"
+      placeholder="搜索菜品、标签、介绍…"
+      placeholder-class="search-placeholder"
+      value="{{keyword}}"
+      bindinput="onSearchInput"
+      confirm-type="search"
+    />
+    <text wx:if="{{keyword}}" class="search-clear" bindtap="onSearchClear">✕</text>
+  </view>
+
+  <!-- 状态筛选 -->
+  <scroll-view class="status-bar" scroll-x enhanced show-scrollbar="{{false}}">
+    <view
+      class="status-chip {{statusFilter === 'want' ? 'on' : ''}}"
+      data-status="want" bindtap="onStatusTap"
+    ><text class="bi"></text> 想吃</view>
+    <view
+      class="status-chip {{statusFilter === 'often' ? 'on' : ''}}"
+      data-status="often" bindtap="onStatusTap"
+    ><text class="bi"></text> 常吃</view>
+    <view
+      class="status-chip {{statusFilter === 'never' ? 'on' : ''}}"
+      data-status="never" bindtap="onStatusTap"
+    ><text class="bi"></text> 不想再吃</view>
+  </scroll-view>
+
+  <view class="content">
+    <!-- 分类侧栏 -->
+    <scroll-view class="side" scroll-y>
+      <view
+        class="side-item {{!activeCategoryId ? 'on' : ''}}"
+        data-id="" data-name="" bindtap="onCategoryTap"
+      >全部</view>
+      <view
+        wx:for="{{categories}}"
+        wx:key="_id"
+        class="side-item {{activeCategoryId === item._id ? 'on' : ''}}"
+        data-id="{{item._id}}"
+        data-name="{{item.name}}"
+        bindtap="onCategoryTap"
+      ><text class="bi">{{item.icon}}</text> {{item.name}}</view>
+    </scroll-view>
+
+    <!-- 菜品列表 -->
+    <scroll-view class="list" scroll-y>
+      <block wx:if="{{loading}}">
+        <view wx:for="{{[1,2,3,4]}}" wx:key="*this" class="skeleton-item">
+          <view class="skeleton-img"></view>
+          <view style="flex:1">
+            <view class="skeleton-line" style="width:60%"></view>
+            <view class="skeleton-line" style="width:40%"></view>
+          </view>
+        </view>
+      </block>
+
+      <block wx:else>
+        <view
+          wx:for="{{dishes}}"
+          wx:key="_id"
+          class="dish-card card"
+          data-id="{{item._id}}"
+          bindtap="goDetail"
+        >
+          <image wx:if="{{item.coverImageUrl || item.coverImage}}" class="dish-img" src="{{item.coverImageUrl || item.coverImage}}" mode="aspectFill" lazy-load />
+          <view wx:else class="dish-img dish-img-ph bi">{{item.status === 'never' ? '' : ''}}</view>
+          <view class="dish-info">
+            <view class="dish-name ellipsis">{{item.name}}</view>
+            <view class="dish-sub ellipsis">
+              <text wx:if="{{item.rating}}" class="dish-rating">★{{item.rating}}</text>
+              <text wx:if="{{item.categoryName}}"> · {{item.categoryName}}</text>
+              <text wx:if="{{item.priceYuan}}"> · ¥{{item.priceYuan}}</text>
+            </view>
+            <view class="dish-tags">
+              <text wx:if="{{item.statusText}}" class="chip {{item.status === 'never' ? 'chip-plain' : ''}}">{{item.statusText}}</text>
+              <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" class="chip chip-plain">{{tag}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 空态 -->
+        <view wx:if="{{!dishes.length}}" class="empty-state">
+          <view class="empty-icon"></view>
+          <view class="empty-text">{{keyword || activeCategoryId || statusFilter ? '没有符合条件的菜品' : '这个分类还空着'}}</view>
+          <block wx:if="{{!keyword && !activeCategoryId && !statusFilter}}">
+            <view class="btn-ai-main" bindtap="goAddAi"><text class="bi"></text> AI 识别添加</view>
+            <view class="btn-ghost" bindtap="goAdd">＋ 手动添加</view>
+          </block>
+          <view wx:else class="btn-ghost" bindtap="goAdd">＋ 添加菜品</view>
+        </view>
+
+        <view style="height: 40rpx"></view>
+      </block>
+    </scroll-view>
+  </view>
+
+  <!-- 悬浮添加按钮 -->
+  <view class="fab" bindtap="onFabTap">＋</view>
+
+  <!-- 添加方式面板（自绘：AI 选项科技风卡片） -->
+  <view wx:if="{{fabSheetVisible}}" class="fab-mask" bindtap="closeFabSheet">
+    <view class="fab-sheet" catchtap="noop">
+      <view class="fab-handle"></view>
+
+      <!-- AI 识别：渐变发光卡 -->
+      <view class="fab-ai-card" bindtap="onSheetAi">
+        <view class="fab-ai-glow"></view>
+        <view class="fab-ai-dot d1"></view>
+        <view class="fab-ai-dot d2"></view>
+        <view class="fab-ai-dot d3"></view>
+        <view class="fab-ai-icon"><text class="bi"></text></view>
+        <view class="fab-ai-txt">
+          <view class="fab-ai-t1">AI 识别添加 <text class="fab-ai-badge">AI</text></view>
+          <view class="fab-ai-t2">拍一张菜品照片，菜名 / 分类 / 描述 / 标签自动填好</view>
+        </view>
+        <view class="fab-ai-go">›</view>
+      </view>
+
+      <!-- 手动添加：素净行 -->
+      <view class="fab-manual" bindtap="onSheetManual">
+        <view class="fab-manual-icon"><text class="bi"></text></view>
+        <view class="fab-manual-txt">
+          <view class="fab-manual-t1">手动添加</view>
+          <view class="fab-manual-t2">自己填写菜品信息</view>
+        </view>
+      </view>
+
+      <view class="fab-cancel" bindtap="closeFabSheet">取消</view>
+    </view>
+  </view>
+</view>

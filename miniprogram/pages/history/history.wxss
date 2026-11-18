@@ -1,0 +1,58 @@
+.page { padding: 24rpx 24rpx 0; }
+
+.summary {
+  font-size: 26rpx;
+  color: #9C7B8C;
+  margin-bottom: 24rpx;
+  padding-left: 8rpx;
+}
+
+/* 时间线 */
+.timeline { position: relative; padding-left: 36rpx; }
+.log-item { position: relative; }
+.log-dot {
+  position: absolute;
+  left: -28rpx;
+  top: 44rpx;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #FF8FB8;
+  z-index: 2;
+}
+.log-line {
+  position: absolute;
+  left: -21rpx;
+  top: 60rpx;
+  bottom: -20rpx;
+  width: 2rpx;
+  background: #F8E3EC;
+  z-index: 1;
+}
+
+.log-card { display: flex; align-items: center; gap: 20rpx; padding: 20rpx 24rpx; }
+.log-img {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+.log-img-ph {
+  background: #FFEAF2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44rpx;
+}
+.log-info { flex: 1; min-width: 0; }
+.log-name { font-size: 30rpx; font-weight: 600; margin-bottom: 4rpx; }
+.log-date { font-size: 22rpx; color: #C9A8B8; margin-bottom: 6rpx; }
+.log-note { font-size: 24rpx; color: #9C7B8C; }
+.log-arrow { color: #E5C9D8; font-size: 40rpx; flex-shrink: 0; }
+
+.loading-tip {
+  text-align: center;
+  color: #C9A8B8;
+  font-size: 24rpx;
+  padding: 30rpx 0;
+}

@@ -1,0 +1,100 @@
+.page { padding: 24rpx; }
+
+.tip {
+  font-size: 22rpx;
+  color: #C9A8B8;
+  line-height: 1.6;
+  margin-bottom: 20rpx;
+  padding: 0 8rpx;
+}
+
+/* 分类行 */
+.cat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 28rpx;
+}
+.cat-main { display: flex; align-items: center; flex: 1; min-width: 0; }
+.cat-icon { font-size: 44rpx; margin-right: 20rpx; }
+.cat-name { font-size: 30rpx; font-weight: 500; }
+.cat-ops { display: flex; align-items: center; gap: 8rpx; }
+.op {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  color: #9C7B8C;
+  background: #FBEFF5;
+  border-radius: 50%;
+}
+.op-del { font-size: 26rpx; }
+
+.add-btn { margin-top: 20rpx; }
+
+/* 弹层 */
+.mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal {
+  width: 600rpx;
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 40rpx 36rpx 28rpx;
+}
+.modal-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 32rpx;
+}
+
+.field { display: flex; align-items: center; margin-bottom: 28rpx; }
+.field-col { margin-bottom: 28rpx; }
+.field-label { font-size: 28rpx; color: #9C7B8C; width: 100rpx; flex-shrink: 0; margin-bottom: 16rpx; display: inline-block; }
+.field .field-label { margin-bottom: 0; }
+.field-input {
+  flex: 1;
+  background: #FDF5F9;
+  border-radius: 16rpx;
+  height: 88rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+}
+.ph { color: #D8BAC9; }
+
+.icon-grid { display: flex; flex-wrap: wrap; gap: 14rpx; }
+.icon-cell {
+  width: 88rpx;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44rpx;
+  background: #FDF5F9;
+  border-radius: 18rpx;
+  border: 3rpx solid transparent;
+}
+.icon-cell.on {
+  background: #FFF0F6;
+  border-color: #FF8FB8;
+}
+
+.modal-btns { display: flex; gap: 20rpx; margin-top: 12rpx; }
+.modal-btn {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+}
+.cancel { background: #FBEFF5; color: #9C7B8C; }
+.confirm { background: #FF8FB8; color: #fff; font-weight: 500; }

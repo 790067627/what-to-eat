@@ -1,0 +1,2 @@
+<image wx:if="{{url}}" class="sakura-bg" src="{{url}}" mode="aspectFill" binderror="onBgError" />
+<view wx:if="{{url}}" class="sakura-veil"></view>

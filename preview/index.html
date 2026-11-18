@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yuki小厨房 · 效果预览</title>
+<style>
+@font-face{font-family:'bi';src:url('../miniprogram/assets/fonts/bi.ttf') format('truetype')}
+.bi{font-family:'bi'!important;font-style:normal;display:inline-block;vertical-align:middle;line-height:1}
+:root{
+  --primary:#FF8FB8;--primary-light:#FFF0F6;--primary-dark:#D96C99;
+  --bg:#FFF7FA;--card:#fff;--text:#4A2C3A;--sub:#9C7B8C;--hint:#C9A8B8;--border:#F8E3EC;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;background:#2b2028;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 12px}
+.tip{color:#d4b8c6;font-size:13px;margin-bottom:14px;text-align:center;line-height:1.7}
+.tip b{color:#ffb0cd}
+.phone{width:375px;height:760px;background:var(--bg) url('bg-sakura.jpg') center/cover no-repeat;border-radius:44px;border:10px solid #241a20;overflow:hidden;display:flex;flex-direction:column;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.phone::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,247,250,.10) 0%,rgba(255,247,250,.45) 22%,rgba(255,247,250,.45) 78%,rgba(255,247,250,.10) 100%);pointer-events:none;z-index:0}
+.phone>*{position:relative;z-index:1}
+.navbar{background:rgba(255,247,250,.92);backdrop-filter:blur(15px);padding:14px 20px 8px;font-size:16px;font-weight:600;color:var(--text);text-align:center;flex-shrink:0}
+.scr{flex:1;overflow-y:auto;scrollbar-width:none}
+.scr::-webkit-scrollbar{display:none}
+.pg{display:none;padding:14px}
+.pg.on{display:block}
+.card{background:rgba(255,255,255,.88);border:1px solid rgba(255,143,184,.16);box-shadow:0 3px 12px rgba(217,108,153,.08);border-radius:16px;padding:14px;margin-bottom:12px}
+.btn{background:var(--primary);color:#fff;border-radius:24px;padding:12px;text-align:center;font-size:15px;font-weight:500;cursor:pointer;user-select:none}
+.btn:active{opacity:.85}
+.btn-ghost{background:var(--primary-light);color:var(--primary);border-radius:24px;padding:10px 22px;text-align:center;font-size:14px;display:inline-block;cursor:pointer}
+.chip{display:inline-block;background:var(--primary-light);color:var(--primary);font-size:11px;border-radius:10px;padding:3px 10px;margin:0 5px 5px 0}
+.chip-plain{background:#FBEFF5;color:var(--sub)}
+.sec{font-size:15px;font-weight:600;margin:4px 0 10px;color:var(--text)}
+.hint{font-size:11px;color:var(--hint)}
+/* tabbar */
+.tabbar{flex-shrink:0;background:transparent;border-top:none;display:flex;padding:6px 0 18px}
+.tab{flex:1;text-align:center;cursor:pointer;color:var(--hint);font-size:10px;text-shadow:0 1px 4px rgba(255,255,255,.9)}
+.tab .ic{font-size:21px;display:block;filter:grayscale(1);opacity:.55;line-height:1.3}
+.tab.on{color:var(--primary);font-weight:600}
+.tab.on .ic{filter:none;opacity:1}
+.tab.center .ic{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#FFB3D1,#FF8FB8);display:flex;align-items:center;justify-content:center;margin:-26px auto 2px;border:3px solid var(--bg);font-size:24px;filter:none;opacity:1}
+/* home */
+.hero{background:linear-gradient(135deg,#FFF0F6,#FFE3EF);text-align:center;padding:26px 20px}
+.hero .g{font-size:18px;font-weight:600;color:var(--text)}
+.hero .s{font-size:12px;color:var(--primary-dark);margin:6px 0 16px}
+.hero .btn{width:70%;margin:0 auto}
+.today{display:flex;gap:12px;cursor:pointer}
+.today .im{width:92px;height:92px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:40px}
+.today .nm{font-size:16px;font-weight:600;margin-bottom:4px}
+.today .ds{font-size:12px;color:var(--sub);line-height:1.5;margin-bottom:8px}
+.cat-grid{display:flex;gap:10px;flex-wrap:wrap}
+.cat-cell{width:calc((100% - 20px)/3);text-align:center;padding:16px 8px;margin-bottom:0;cursor:pointer}
+.cat-cell .i{font-size:28px;margin-bottom:6px}
+.cat-cell .n{font-size:12px}
+/* dishes */
+.search{display:flex;align-items:center;background:#fff;border-radius:22px;padding:9px 16px;margin-bottom:10px;font-size:13px;color:var(--hint)}
+.statusbar{display:flex;gap:8px;margin-bottom:10px}
+.schip{background:#fff;color:var(--sub);font-size:12px;border-radius:16px;padding:7px 14px;cursor:pointer}
+.schip.on{background:var(--primary);color:#fff;font-weight:500}
+.dlayout{display:flex;gap:10px}
+.side{width:84px;flex-shrink:0;background:#FBEFF5;border-radius:12px;padding:6px 4px}
+.side div{font-size:12px;color:var(--sub);padding:11px 4px;border-radius:9px;text-align:center;margin-bottom:3px;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.side div.on{background:#fff;color:var(--primary);font-weight:600}
+.dlist{flex:1;min-width:0}
+.dish{display:flex;gap:10px;padding:10px;margin-bottom:10px;cursor:pointer}
+.dish .im{width:64px;height:64px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:30px}
+.dish .nm{font-size:15px;font-weight:600;margin-bottom:3px}
+.dish .sb{font-size:11px;color:var(--sub);margin-bottom:6px}
+.fab{position:absolute;right:20px;bottom:96px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#FFB3D1,#FF8FB8);color:#fff;font-size:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(255,143,184,.45);cursor:pointer;z-index:50}
+/* random */
+.filters .fr{display:flex;align-items:center;margin-bottom:12px;font-size:13px}
+.filters .fr:last-child{margin-bottom:0}
+.filters .lb{width:130px;color:var(--text);flex-shrink:0}
+.filters input[type=range]{flex:1;accent-color:var(--primary)}
+.filters .vl{width:52px;text-align:right;color:var(--primary);font-weight:600;font-size:13px}
+.sw{width:44px;height:25px;border-radius:13px;background:#EBD9E3;position:relative;cursor:pointer;transition:.2s;flex-shrink:0}
+.sw.on{background:var(--primary)}
+.sw::after{content:'';position:absolute;width:21px;height:21px;border-radius:50%;background:#fff;top:2px;left:2px;transition:.2s}
+.sw.on::after{left:21px}
+.picker{font-size:13px;color:var(--primary);background:var(--primary-light);border-radius:13px;padding:5px 14px;cursor:pointer}
+.stage{min-height:300px;display:flex;align-items:center;justify-content:center;padding:20px 0}
+.idle{text-align:center}
+.dice{font-size:64px;animation:float 2.4s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.idle .t{font-size:22px;font-weight:600;margin-top:8px}
+.idle .s{font-size:13px;color:var(--hint);margin-top:6px}
+.rollcard{width:220px;height:130px;background:#fff;border:3px solid #FFD6E7;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:600;color:var(--primary);animation:shake .3s infinite}
+@keyframes shake{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+.rescard{width:100%;background:#fff;border:3px solid #FFD6E7;border-radius:18px;padding:24px 18px;text-align:center;animation:pop .35s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+.rescard .im{width:100px;height:100px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:48px}
+.rescard .nm{font-size:26px;font-weight:600;margin-bottom:8px}
+.rescard .lt{font-size:12px;color:var(--hint);margin:8px 0}
+.rescard .ds{font-size:13px;color:var(--sub);line-height:1.6}
+.actions{padding:8px 0 16px}
+.arow{display:flex;gap:10px}
+.arow .rej{flex:1;background:#FBEFF5;color:var(--sub);border-radius:24px;padding:12px;text-align:center;font-size:14px;cursor:pointer}
+.arow .acc{flex:1.4}
+.addhint{text-align:center;font-size:12px;color:var(--hint);margin-top:12px;cursor:pointer}
+/* detail */
+.cover{width:100%;height:200px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:80px;margin-bottom:12px}
+.nmrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.nmrow .nm{font-size:21px;font-weight:600}
+.nmrow .ed{font-size:13px;color:var(--primary);cursor:pointer}
+.stars{display:flex;gap:6px;font-size:24px;cursor:pointer}
+.stars span{color:#F8E3EC}
+.stars span.on{color:#FF9500}
+.strow{display:flex;gap:8px;margin-top:14px}
+.stbtn{flex:1;text-align:center;font-size:13px;padding:9px 0;border-radius:20px;background:#FBEFF5;color:var(--sub);cursor:pointer}
+.stbtn.on{background:var(--primary-light);color:var(--primary);font-weight:600;border:1px solid #FFD6E7}
+.desc{font-size:14px;line-height:1.7;color:var(--text)}
+.del{text-align:center;color:var(--hint);font-size:13px;margin-top:14px;cursor:pointer}
+.backbar{display:flex;align-items:center;gap:8px;justify-content:center}
+.backbar .bk{position:absolute;left:16px;cursor:pointer;font-size:18px;color:var(--text)}
+/* edit */
+.form-item{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid #FCEFF5;font-size:14px}
+.form-item:last-child{border:none}
+.form-item .lb{width:100px;flex-shrink:0;color:var(--text)}
+.form-item input,.form-item textarea{flex:1;border:none;outline:none;font-size:14px;background:transparent;font-family:inherit}
+.ph{color:#D8BAC9}
+.img-grid{display:flex;flex-wrap:wrap;gap:8px}
+.img-cell{width:calc((100% - 16px)/3);height:96px;border-radius:9px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;font-size:36px}
+.img-cell .bd{position:absolute;left:0;bottom:0;background:rgba(255,143,184,.9);color:#fff;font-size:10px;padding:2px 8px;border-top-right-radius:8px}
+.img-cell .dl{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.img-add{border:1px dashed #F0C9DD;background:#FFFBF7;flex-direction:column;gap:4px;cursor:pointer}
+.img-add .t{font-size:11px;color:var(--hint)}
+.tag-in{display:flex;gap:8px;margin-top:8px}
+.tag-in input{flex:1;background:#FDF5F9;border-radius:9px;padding:9px 12px;border:none;outline:none;font-size:13px}
+.tag-in .ab{background:var(--primary-light);color:var(--primary);border-radius:9px;padding:9px 16px;font-size:13px;cursor:pointer;flex-shrink:0}
+/* mine */
+.stats{background:linear-gradient(135deg,#FFF0F6,#FFE3EF);text-align:center;padding:24px}
+.stats .t{font-size:17px;font-weight:600;margin-bottom:18px}
+.stats .row{display:flex;align-items:center}
+.stats .c{flex:1}
+.stats .n{font-size:28px;font-weight:600;color:var(--primary)}
+.stats .l{font-size:12px;color:var(--primary-dark);margin-top:3px}
+.stats .d{width:1px;height:32px;background:#F5C9DD}
+.menu-item{display:flex;align-items:center;padding:15px 0;border-bottom:1px solid #FCEFF5;font-size:15px;cursor:pointer}
+.menu-item:last-child{border:none}
+.menu-item .i{width:34px;font-size:19px}
+.menu-item .t{flex:1}
+.menu-item .a{color:#E5C9D8;font-size:19px}
+.footer{text-align:center;font-size:11px;color:#D8BAC9;margin:30px 0}
+/* history */
+.tl{position:relative;padding-left:20px}
+.tl-item{position:relative}
+.tl-dot{position:absolute;left:-14px;top:22px;width:8px;height:8px;border-radius:50%;background:var(--primary)}
+.tl-line{position:absolute;left:-11px;top:30px;bottom:-8px;width:1px;background:var(--border)}
+.log{display:flex;align-items:center;gap:10px;padding:10px 12px}
+.log .im{width:50px;height:50px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px}
+.log .nm{font-size:15px;font-weight:600}
+.log .dt{font-size:11px;color:var(--hint);margin-top:2px}
+.toast{position:absolute;left:50%;top:45%;transform:translateX(-50%);background:rgba(0,0,0,.75);color:#fff;font-size:13px;padding:10px 18px;border-radius:8px;opacity:0;transition:.3s;pointer-events:none;z-index:99;white-space:nowrap}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="tip">「Yuki小厨房」高保真预览 · 模拟真实小程序的样式与交互（数据为演示 mock）<br>可点击：<b>底部 tab 切换 · 抽一抽动画 · 记一笔 · 菜品详情 · 添加菜品</b>　｜　真实代码请用微信开发者工具打开本目录运行</div>
+<div class="phone">
+  <div class="navbar" id="navbar">Yuki小厨房</div>
+  <div class="scr" id="scr">
+
+    <!-- 首页 -->
+    <div class="pg on" id="pg-home">
+      <div class="card hero">
+        <div class="g" id="greeting">晚上好，今天吃点好的</div>
+        <div class="s">纠结的话，交给运气吧</div>
+        <div class="btn" onclick="goTab(2)"><span class="bi"></span> 帮我随机抽一道</div>
+      </div>
+      <div class="sec">今日推荐</div>
+      <div class="card today" onclick="openDetail(0)">
+        <div class="im" style="background:#FFEAF2"><span class="bi"></span></div>
+        <div style="flex:1;min-width:0">
+          <div class="nm">番茄牛腩煲</div>
+          <div class="ds">浓郁番茄汤底，牛腩炖到软烂。番茄要多炒出沙。</div>
+          <span class="chip">家常菜</span><span class="chip">¥48</span><span class="chip chip-plain">★5</span>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="sec">分类速览</div>
+        <div style="font-size:12px;color:var(--primary);margin-bottom:10px;cursor:pointer" onclick="goTab(1)">全部菜品 ›</div>
+      </div>
+      <div class="cat-grid">
+        <div class="card cat-cell" onclick="goTab(1)"><div class="i"><span class="bi"></span></div><div class="n">家常菜</div></div>
+        <div class="card cat-cell" onclick="goTab(1)"><div class="i"><span class="bi"></span></div><div class="n">面食粉类</div></div>
+        <div class="card cat-cell" onclick="goTab(1)"><div class="i"><span class="bi">奈</span></div><div class="n">轻食沙拉</div></div>
+        <div class="card cat-cell" onclick="goTab(1)"><div class="i"><span class="bi"></span></div><div class="n">火锅烧烤</div></div>
+        <div class="card cat-cell" onclick="goTab(1)"><div class="i"><span class="bi"></span></div><div class="n">甜品饮品</div></div>
+      </div>
+      <div style="height:70px"></div>
+    </div>
+
+    <!-- 菜品库 -->
+    <div class="pg" id="pg-dishes">
+      <div class="search"><span class="bi"></span>　搜索菜品、标签、介绍…</div>
+      <div class="statusbar">
+        <div class="schip on" onclick="filterStatus(this,'')">全部</div>
+        <div class="schip" onclick="filterStatus(this,'want')"><span class="bi"></span> 想吃</div>
+        <div class="schip" onclick="filterStatus(this,'often')"><span class="bi"></span> 常吃</div>
+        <div class="schip" onclick="filterStatus(this,'never')"><span class="bi"></span> 不想再吃</div>
+      </div>
+      <div class="dlayout">
+        <div class="side" id="side"></div>
+        <div class="dlist" id="dlist"></div>
+      </div>
+      <div style="height:70px"></div>
+    </div>
+
+    <!-- 抽一抽 -->
+    <div class="pg" id="pg-random">
+      <div class="card filters">
+        <div class="fr"><span class="lb">排除最近吃过的</span><input type="range" min="0" max="14" value="3" id="exRange" oninput="document.getElementById('exVal').textContent=this.value==0?'不排除':this.value+'天'"><span class="vl" id="exVal">3天</span></div>
+        <div class="fr"><span class="lb">只从「想吃」里抽</span><div class="sw" id="wantSw" onclick="this.classList.toggle('on')"></div></div>
+        <div class="fr"><span class="lb">限定分类</span><span class="picker" onclick="toast('演示版：真机上是分类 picker')">不限 ▾</span></div>
+      </div>
+      <div class="stage" id="stage">
+        <div class="idle">
+          <div class="dice"><span class="bi"></span></div>
+          <div class="t">今天吃啥？</div>
+          <div class="s">让命运替你决定</div>
+        </div>
+      </div>
+      <div class="actions" id="actions">
+        <div class="btn" onclick="roll()">开始抽</div>
+        <div class="addhint" onclick="openEdit()">菜品库不够丰富？去加几道 ›</div>
+      </div>
+    </div>
+
+    <!-- 我的 -->
+    <div class="pg" id="pg-mine">
+      <div class="card stats">
+        <div class="t">我的小厨房</div>
+        <div class="row">
+          <div class="c"><div class="n" id="stDish">6</div><div class="l">菜品</div></div><div class="d"></div>
+          <div class="c"><div class="n">5</div><div class="l">分类</div></div><div class="d"></div>
+          <div class="c"><div class="n" id="stEat">0</div><div class="l">吃过记录</div></div>
+        </div>
+      </div>
+      <div class="card" style="padding:4px 16px">
+        <div class="menu-item" onclick="openEdit()"><span class="i">＋</span><span class="t">添加菜品</span><span class="a">›</span></div>
+        <div class="menu-item" onclick="toast('演示版：分类管理页（真机可增删改排序）')"><span class="i"><span class="bi"></span></span><span class="t">分类管理</span><span class="a">›</span></div>
+        <div class="menu-item" onclick="openHistory()"><span class="i"><span class="bi"></span></span><span class="t">吃过时间线</span><span class="a">›</span></div>
+        <div class="menu-item" onclick="toast('演示版：导出全部数据 JSON 到剪贴板')"><span class="i"><span class="bi"></span></span><span class="t">导出数据</span><span class="a">›</span></div>
+        <div class="menu-item" onclick="toast('个人点菜灵感小工具 · 数据存于微信云开发')"><span class="i"><span class="bi"></span></span><span class="t">关于</span><span class="a">›</span></div>
+      </div>
+      <div class="footer">Yuki小厨房 · 个人点菜灵感工具</div>
+    </div>
+
+    <!-- 详情 -->
+    <div class="pg" id="pg-detail"></div>
+    <!-- 编辑 -->
+    <div class="pg" id="pg-edit"></div>
+    <!-- 时间线 -->
+    <div class="pg" id="pg-history"></div>
+  </div>
+
+  <div class="fab" id="fab" style="display:none" onclick="openEdit()">＋</div>
+  <div class="tabbar" id="tabbar">
+    <div class="tab on" onclick="goTab(0)"><span class="ic"><span class="bi"></span></span>首页</div>
+    <div class="tab" onclick="goTab(1)"><span class="ic"><span class="bi"></span></span>菜品库</div>
+    <div class="tab center" onclick="goTab(2)"><span class="ic"><span class="bi"></span></span>抽一抽</div>
+    <div class="tab" onclick="goTab(3)"><span class="ic"><span class="bi"></span></span>我的</div>
+  </div>
+  <div class="toast" id="toastEl"></div>
+</div>
+
+<script>
+const EMOJI=['<span class="bi"></span>','<span class="bi"></span>','<span class="bi">奈</span>','<span class="bi"></span>','<span class="bi"></span>','<span class="bi"></span>'];
+const CATS=['家常菜','面食粉类','轻食沙拉','火锅烧烤','甜品饮品'];
+let dishes=[
+ {name:'番茄牛腩煲',cat:0,price:'48',rating:5,status:'want',tags:['家常','炖菜'],desc:'浓郁番茄汤底，牛腩炖到软烂。番茄要多炒出沙。'},
+ {name:'葱油拌面',cat:1,price:'18',rating:4,status:'often',tags:['快手','面食'],desc:'小葱熬到焦黄，酱油糖调汁，十分钟搞定。'},
+ {name:'鸡胸肉沙拉',cat:2,price:'32',rating:4,status:'want',tags:['低卡','健身'],desc:'鸡胸肉煎前用盐和黑胡椒腌 15 分钟，油醋汁。'},
+ {name:'麻辣香锅',cat:3,price:'68',rating:5,status:'often',tags:['辣','聚餐'],desc:'荤素一锅出，豆瓣酱+火锅底料炒香。'},
+ {name:'杨枝甘露',cat:4,price:'22',rating:4,status:'want',tags:['甜品','夏日'],desc:'芒果+西柚+西米+椰浆，冷藏后更好喝。'},
+ {name:'冬阴功汤',cat:3,price:'58',rating:5,status:'never',tags:['辣','泰式'],desc:'酸辣开胃，上次做失败太咸了…'}
+];
+const ST={want:'<span class="bi"></span> 想吃',often:'<span class="bi"></span> 常吃',never:'<span class="bi"></span> 不想再吃'};
+let logs=[],curCat=-1,curStatus='',rolling=false,lastPick=null;
+
+function toast(m){const t=document.getElementById('toastEl');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1600);}
+function dishCard(d,i){return `<div class="card dish" onclick="openDetail(${i})"><div class="im" style="background:${d.status==='never'?'#F0EAEE':'#FFEAF2'}">${d.status==='never'?'<span class="bi"></span>':EMOJI[i%6]}</div><div style="flex:1;min-width:0"><div class="nm">${d.name}</div><div class="sb">★${d.rating} · ${CATS[d.cat]} · ¥${d.price}</div><span class="chip ${d.status==='never'?'chip-plain':''}">${ST[d.status]}</span>${d.tags.map(t=>`<span class="chip chip-plain">${t}</span>`).join('')}</div></div>`;}
+function renderDishes(){
+  document.getElementById('side').innerHTML=`<div class="${curCat<0?'on':''}" onclick="setCat(-1)">全部</div>`+CATS.map((c,i)=>`<div class="${curCat===i?'on':''}" onclick="setCat(${i})">${['<span class="bi"></span>','<span class="bi"></span>','<span class="bi">奈</span>','<span class="bi"></span>','<span class="bi"></span>'][i]} ${c}</div>`).join('');
+  let list=dishes.map((d,i)=>({d,i})).filter(({d})=>(curCat<0||d.cat===curCat)&&(!curStatus||d.status===curStatus));
+  document.getElementById('dlist').innerHTML=list.length?list.map(({d,i})=>dishCard(d,i)).join(''):'<div style="text-align:center;padding:60px 0;color:var(--hint);font-size:13px">没有符合条件的菜品</div>';
+  document.getElementById('stDish').textContent=dishes.length;
+}
+function setCat(i){curCat=i;renderDishes();}
+function filterStatus(el,s){document.querySelectorAll('.schip').forEach(x=>x.classList.remove('on'));el.classList.add('on');curStatus=s;renderDishes();}
+
+const titles=['Yuki小厨房','菜品库','抽一抽','我的','菜品详情','添加菜品','吃过时间线'];
+const pages=['pg-home','pg-dishes','pg-random','pg-mine','pg-detail','pg-edit','pg-history'];
+function show(i){
+  pages.forEach(p=>document.getElementById(p).classList.remove('on'));
+  document.getElementById(pages[i]).classList.add('on');
+  document.getElementById('navbar').innerHTML=(i>=4?`<span class="bk" onclick="goTab(${i===5?1:0})">‹</span>`:'')+titles[i];
+  document.getElementById('tabbar').style.display=i<4?'flex':'none';
+  document.getElementById('fab').style.display=i===1?'flex':'none';
+  document.getElementById('scr').scrollTop=0;
+}
+function goTab(i){show(i);document.querySelectorAll('.tab').forEach((t,x)=>t.classList.toggle('on',x===i));if(i===1)renderDishes();}
+
+/* 抽卡 */
+function roll(){
+  if(rolling)return;
+  let pool=dishes.map((d,i)=>({d,i})).filter(({d})=>d.status!=='never');
+  if(document.getElementById('wantSw').classList.contains('on'))pool=pool.filter(({d})=>d.status==='want');
+  if(!pool.length){toast('没有符合条件的菜品，放宽筛选试试');return;}
+  rolling=true;
+  document.getElementById('stage').innerHTML='<div class="rollcard" id="rollName"></div>';
+  const names=pool.map(p=>p.d.name);let k=0;
+  const timer=setInterval(()=>{document.getElementById('rollName').textContent=names[k++%names.length];},80);
+  setTimeout(()=>{
+    clearInterval(timer);
+    const pick=pool[Math.floor(Math.random()*pool.length)];lastPick=pick;
+    const d=pick.d;
+    document.getElementById('stage').innerHTML=`<div class="rescard"><div class="im" style="background:#FFEAF2">${EMOJI[pick.i%6]}</div><div class="nm">${d.name}</div><span class="chip chip-plain">${CATS[d.cat]}</span><span class="chip">¥${d.price}</span><span class="chip chip-plain">★${d.rating}</span><div class="lt">${d.status==='want'?'还没吃过，尝个鲜':'上次吃是 12 天前'} · 从 ${pool.length} 道里抽中</div><div class="ds">${d.desc}</div><div style="font-size:12px;color:var(--primary);margin-top:10px;cursor:pointer" onclick="openDetail(${pick.i})">查看详情 ›</div></div>`;
+    document.getElementById('actions').innerHTML=`<div class="arow"><div class="rej" onclick="roll()"><span class="bi"></span> 不想吃，换一个</div><div class="btn acc" onclick="accept()">✓ 就它了，记一笔</div></div>`;
+    rolling=false;
+  },1300);
+}
+function accept(){
+  if(!lastPick)return;
+  const d=lastPick.d;
+  if(d.status==='want')d.status='often';
+  logs.unshift({name:d.name,emoji:EMOJI[lastPick.i%6],date:'今天'});
+  toast(`就吃${d.name}！已记一笔 <span class="bi"></span>`);
+  document.getElementById('stEat').textContent=logs.length;
+  document.getElementById('stage').innerHTML='<div class="idle"><div class="dice"><span class="bi"></span></div><div class="t">今天吃啥？</div><div class="s">让命运替你决定</div></div>';
+  document.getElementById('actions').innerHTML='<div class="btn" onclick="roll()">开始抽</div><div class="addhint" onclick="openEdit()">菜品库不够丰富？去加几道 ›</div>';
+}
+
+/* 详情 */
+function openDetail(i){
+  const d=dishes[i];
+  document.getElementById('pg-detail').innerHTML=`
+  <div class="cover" style="background:${d.status==='never'?'#F0EAEE':'#FFEAF2'}">${d.status==='never'?'<span class="bi"></span>':EMOJI[i%6]}</div>
+  <div class="card"><div class="nmrow"><div class="nm">${d.name}</div><div class="ed" onclick="openEdit(${i})"><span class="bi"></span> 编辑</div></div>
+  <span class="chip chip-plain">${CATS[d.cat]}</span><span class="chip">¥${d.price}</span><span class="hint" style="margin-left:6px">${d.status==='want'?'还没吃过这道菜':'上次吃：12 天前'}</span>
+  <div style="display:flex;align-items:center;margin-top:14px"><span style="font-size:13px;color:var(--sub);margin-right:10px">我的评分</span><div class="stars">${[1,2,3,4,5].map(s=>`<span class="${s<=d.rating?'on':''}" onclick="rate(${i},${s})">★</span>`).join('')}</div></div>
+  <div class="strow">${Object.keys(ST).map(k=>`<div class="stbtn ${d.status===k?'on':''}" onclick="setStatus(${i},'${k}')">${ST[k]}</div>`).join('')}</div></div>
+  <div class="card"><div class="sec">介绍 / 做法笔记</div><div class="desc">${d.desc}</div></div>
+  <div class="card"><div class="sec">标签</div>${d.tags.map(t=>`<span class="chip">${t}</span>`).join('')}</div>
+  <div class="btn" onclick="logFromDetail(${i})"><span class="bi"></span> 记一笔「今天吃了」</div>
+  <div class="del" onclick="delDish(${i})">删除这道菜</div><div style="height:20px"></div>`;
+  show(4);
+}
+function rate(i,s){dishes[i].rating=s;openDetail(i);toast('评分已更新');}
+function setStatus(i,k){dishes[i].status=k;openDetail(i);toast('状态已更新');}
+function logFromDetail(i){if(dishes[i].status==='want')dishes[i].status='often';logs.unshift({name:dishes[i].name,emoji:EMOJI[i%6],date:'今天'});document.getElementById('stEat').textContent=logs.length;toast('记好啦，吃得开心！');openDetail(i);}
+function delDish(i){if(confirm(`确定删除「${dishes[i].name}」吗？`)){dishes.splice(i,1);renderDishes();goTab(1);toast('已删除');}}
+
+/* 编辑 */
+function openEdit(i){
+  const d=i!==undefined?dishes[i]:null;
+  document.getElementById('pg-edit').innerHTML=`
+  <div class="card"><div class="sec">菜品图片 <span class="hint">（第一张为封面，最多9张）</span></div>
+  <div class="img-grid">
+    ${d?`<div class="img-cell" style="background:#FFEAF2">${EMOJI[i%6]}<div class="bd">封面</div><div class="dl" onclick="toast('演示版：删除图片并同步清理云存储')">✕</div></div>`:''}
+    <div class="img-cell img-add" onclick="toast('演示版：真机调起相册/相机，压缩后传云存储')"><span><span class="bi"></span></span><span class="t">上传图片</span></div>
+  </div></div>
+  <div class="card">
+    <div class="form-item"><span class="lb">名称 *</span><input id="fName" placeholder="如：番茄牛腩煲" value="${d?d.name:''}"></div>
+    <div class="form-item"><span class="lb">分类</span><span class="picker" onclick="toast('演示版：真机是分类 picker')">${d?CATS[d.cat]:'不分类'} ▾</span></div>
+    <div class="form-item"><span class="lb">价格（选填）</span><span style="color:var(--primary);font-weight:600;margin-right:4px">¥</span><input id="fPrice" type="number" placeholder="48" value="${d?d.price:''}"></div>
+    <div class="form-item"><span class="lb">评分</span><div class="stars" id="fStars">${[1,2,3,4,5].map(s=>`<span class="${d&&s<=d.rating?'on':''}">★</span>`).join('')}</div></div>
+    <div class="form-item"><span class="lb">状态</span><div class="strow" style="flex:1;margin:0">${Object.keys(ST).map(k=>`<div class="stbtn ${!d&&k==='want'?'on':''} ${d&&d.status===k?'on':''}">${ST[k]}</div>`).join('')}</div></div>
+  </div>
+  <div class="card"><div class="sec">标签 <span class="hint">（辣、快手、聚餐…最多10个）</span></div>
+    <div id="fTags">${d?d.tags.map(t=>`<span class="chip">${t} ✕</span>`).join(''):''}</div>
+    <div class="tag-in"><input id="fTagIn" placeholder="输入标签后点添加" maxlength="8"><span class="ab" onclick="addTag()">添加</span></div></div>
+  <div class="card"><div class="sec">介绍 / 做法笔记（选填）</div><textarea id="fDesc" rows="3" style="width:100%;background:#FDF5F9;border-radius:9px;padding:10px 12px;border:none;outline:none" placeholder="记点做法要点、口味心得，比如：番茄要多炒出沙…">${d?d.desc:''}</textarea></div>
+  <div class="btn" onclick="saveDish(${i!==undefined?i:-1})">${d?'保存修改':'保存菜品'}</div><div style="height:20px"></div>`;
+  document.querySelectorAll('#fStars span').forEach((s,x)=>s.onclick=()=>{document.querySelectorAll('#fStars span').forEach((y,yx)=>y.classList.toggle('on',yx<=x));});
+  show(5);
+}
+function addTag(){const v=document.getElementById('fTagIn').value.trim();if(!v)return;const c=document.createElement('span');c.className='chip';c.textContent=v+' ✕';document.getElementById('fTags').appendChild(c);document.getElementById('fTagIn').value='';}
+function saveDish(i){
+  const name=document.getElementById('fName').value.trim();
+  if(!name){toast('给菜品起个名字吧');return;}
+  const price=document.getElementById('fPrice').value||'--';
+  const rating=document.querySelectorAll('#fStars span.on').length;
+  const desc=document.getElementById('fDesc').value;
+  const tags=[...document.querySelectorAll('#fTags .chip')].map(x=>x.textContent.replace(' ✕',''));
+  if(i>=0){Object.assign(dishes[i],{name,price,rating,desc,tags});}
+  else{dishes.unshift({name,cat:0,price,rating,status:'want',tags,desc});}
+  renderDishes();goTab(1);toast('保存成功');
+}
+
+/* 时间线 */
+function openHistory(){
+  document.getElementById('pg-history').innerHTML=`
+  <div class="hint" style="margin-bottom:12px">共记录 ${logs.length} 次「今天吃了」<span class="bi"></span></div>
+  ${logs.length?'<div class="tl">'+logs.map((l,i)=>`<div class="tl-item"><div class="tl-dot"></div>${i<logs.length-1?'<div class="tl-line"></div>':''}<div class="card log"><div class="im" style="background:#FFEAF2">${l.emoji}</div><div><div class="nm">${l.name}</div><div class="dt">${l.date}</div></div></div></div>`).join('')+'</div>':'<div style="text-align:center;padding:80px 0;color:var(--hint);font-size:13px"><span class="bi"></span><br><br>还没有记录，抽中啥就记一笔吧</div>'}<div style="height:20px"></div>`;
+  show(6);
+}
+
+const h=new Date().getHours();
+document.getElementById('greeting').textContent=h<6?'夜深了，来点宵夜灵感？':h<11?'早上好，今天想吃点啥？':h<14?'中午好，午饭有着落了吗？':h<18?'下午好，先想想晚饭吃啥':'晚上好，今天吃点好的';
+renderDishes();
+</script>
+</body>
+</html>

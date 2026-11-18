@@ -1,0 +1,9 @@
+{
+  "name": "dish",
+  "version": "1.0.0",
+  "description": "Yuki小厨房 - 数据云函数（分类/菜品/随机/吃过记录/统计）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

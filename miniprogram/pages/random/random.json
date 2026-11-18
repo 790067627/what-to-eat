@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "sakura-bg": "/components/sakura-bg/index",
+    "poster": "/components/poster/index"
+  },
+  "navigationBarTitleText": "抽一抽"
+}

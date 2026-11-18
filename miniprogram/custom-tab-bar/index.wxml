@@ -1,0 +1,21 @@
+<view class="tab-bar safe-bottom">
+  <view
+    wx:for="{{list}}"
+    wx:key="pagePath"
+    class="tab-item {{selected === index ? 'active' : ''}}"
+    data-index="{{index}}"
+    data-path="{{item.pagePath}}"
+    bindtap="onTap"
+  >
+    <block wx:if="{{item.center}}">
+      <view class="center-btn">
+        <image src="{{selected === index ? item.selectedIconPath : item.iconPath}}" class="center-icon" />
+      </view>
+      <text class="tab-text center-text">{{item.text}}</text>
+    </block>
+    <block wx:else>
+      <image src="{{selected === index ? item.selectedIconPath : item.iconPath}}" class="tab-icon" />
+      <text class="tab-text">{{item.text}}</text>
+    </block>
+  </view>
+</view>

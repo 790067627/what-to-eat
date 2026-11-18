@@ -1,0 +1,17 @@
+# 依赖（云函数 node_modules 80MB+，云端部署自带，不入库）
+node_modules/
+
+# 系统/编辑器
+.DS_Store
+*.swp
+
+# 微信开发者工具个人配置（含本机路径/调试开关）
+project.private.config.json
+
+# 本地产物/临时文件
+preview-qr.png
+preview-qrcode.jpg
+.workbuddy/
+
+# AI 模型配置：key 只存云函数环境变量，此文件永不入库（防误提交密钥）
+cloudfunctions/*/ai-config.json

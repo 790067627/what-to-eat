@@ -1,0 +1,6 @@
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "吃过时间线",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark"
+}

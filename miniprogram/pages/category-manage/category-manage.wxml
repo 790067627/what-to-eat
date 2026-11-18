@@ -1,0 +1,59 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="skeleton-item"><view style="flex:1"><view class="skeleton-line"></view><view class="skeleton-line" style="width:50%"></view></view></view>
+
+  <block wx:else>
+    <view class="tip">分类用于归置菜品，排序影响菜品库侧栏顺序。删除前需清空分类下的菜品。</view>
+
+    <view wx:for="{{categories}}" wx:key="_id" class="card cat-row">
+      <view class="cat-main">
+        <text class="cat-icon bi">{{item.icon}}</text>
+        <text class="cat-name">{{item.name}}</text>
+      </view>
+      <view class="cat-ops">
+        <text class="op" data-index="{{index}}" data-dir="{{-1}}" bindtap="onMove">↑</text>
+        <text class="op" data-index="{{index}}" data-dir="{{1}}" bindtap="onMove">↓</text>
+        <text class="op bi" data-id="{{item._id}}" data-name="{{item.name}}" data-icon="{{item.icon}}" bindtap="openEdit"></text>
+        <text class="op op-del" data-id="{{item._id}}" data-name="{{item.name}}" bindtap="onDelete"><text class="bi"></text></text>
+      </view>
+    </view>
+
+    <view wx:if="{{!categories.length}}" class="empty-state">
+      <view class="empty-icon bi"></view>
+      <view class="empty-text">还没有分类</view>
+    </view>
+
+    <view class="btn-primary add-btn" bindtap="openAdd">＋ 新增分类</view>
+  </block>
+
+  <!-- 新增/编辑弹层 -->
+  <view wx:if="{{showModal}}" class="mask" bindtap="closeModal">
+    <view class="modal" catchtap="noop">
+      <view class="modal-title">{{editingId ? '编辑分类' : '新增分类'}}</view>
+
+      <view class="field">
+        <text class="field-label">名称</text>
+        <input class="field-input" placeholder="如：家常菜" placeholder-class="ph" value="{{inputName}}" maxlength="10" bindinput="onNameInput" />
+      </view>
+
+      <view class="field-col">
+        <text class="field-label">图标</text>
+        <view class="icon-grid">
+          <view
+            wx:for="{{iconOptions}}"
+            wx:key="*this"
+            class="icon-cell bi {{inputIcon === item ? 'on' : ''}}"
+            data-icon="{{item}}"
+            bindtap="onIconChoose"
+          >{{item}}</view>
+        </view>
+      </view>
+
+      <view class="modal-btns">
+        <view class="modal-btn cancel" bindtap="closeModal">取消</view>
+        <view class="modal-btn confirm" bindtap="onSave">{{submitting ? '保存中' : '保存'}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view style="height: 60rpx"></view>
+</view>

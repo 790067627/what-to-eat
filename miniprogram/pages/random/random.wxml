@@ -1,0 +1,87 @@
+<sakura-bg />
+<view class="page">
+  <!-- 筛选条件 -->
+  <view class="card filters">
+    <view class="filter-row">
+      <text class="filter-label">排除最近吃过的</text>
+      <slider
+        class="filter-slider"
+        min="0" max="14" step="1"
+        value="{{excludeDays}}"
+        activeColor="#FF8FB8"
+        backgroundColor="#F8E3EC"
+        block-size="20"
+        bindchanging="onDaysChange"
+        bindchange="onDaysChange"
+      />
+      <text class="filter-value">{{excludeDays === 0 ? '不排除' : excludeDays + '天'}}</text>
+    </view>
+    <view class="filter-row">
+      <text class="filter-label">只从「想吃」里抽</text>
+      <switch checked="{{onlyWant}}" color="#FF8FB8" bindchange="toggleWant" />
+    </view>
+    <view class="filter-row">
+      <text class="filter-label">高分优先 <text class="bi"></text></text>
+      <switch checked="{{weightByRating}}" color="#FF8FB8" bindchange="toggleWeight" />
+    </view>
+    <view class="filter-row">
+      <text class="filter-label">限定分类</text>
+      <picker range="{{categoryNames}}" bindchange="onCategoryChoose">
+        <view class="filter-picker">{{categoryFilterName || '不限'}} ▾</view>
+      </picker>
+    </view>
+  </view>
+
+  <!-- 抽卡区域 -->
+  <view class="stage">
+    <!-- 初始态 -->
+    <view wx:if="{{phase === 'idle'}}" class="idle">
+      <view class="dice bi"><text class="bi"></text></view>
+      <view class="idle-title">今天吃啥？</view>
+      <view class="idle-sub">让命运替你决定</view>
+      <view wx:if="{{errorMessage}}" class="error-tip">{{errorMessage}}</view>
+    </view>
+
+    <!-- 滚动中 -->
+    <view wx:elif="{{phase === 'rolling'}}" class="rolling">
+      <view class="roll-card shake">
+        <text class="roll-name">{{rollingName}}</text>
+      </view>
+    </view>
+
+    <!-- 结果 -->
+    <view wx:else class="result">
+      <view class="result-card pop-in">
+        <image wx:if="{{result.dish.coverImage}}" class="result-img" src="{{result.dish.coverImage}}" mode="aspectFill" />
+        <view wx:else class="result-img result-img-ph"><text class="bi"></text></view>
+        <view class="result-name">{{result.dish.name}}</view>
+        <view class="result-meta">
+          <text wx:if="{{result.categoryName}}" class="chip chip-plain">{{result.categoryName}}</text>
+          <text wx:if="{{result.dish.priceYuan}}" class="chip">¥{{result.dish.priceYuan}}</text>
+          <text wx:if="{{result.dish.rating}}" class="chip chip-plain">★{{result.dish.rating}}</text>
+        </view>
+        <view class="result-last">{{lastEatenText}} · 从 {{result.poolSize}} 道里抽中</view>
+        <view class="result-desc ellipsis-2" wx:if="{{result.dish.description}}" bindtap="goDetail">{{result.dish.description}}</view>
+        <view class="result-link" bindtap="goDetail">查看详情 ›</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作区 -->
+  <view class="actions safe-bottom">
+    <block wx:if="{{phase === 'result'}}">
+      <view class="action-row">
+        <view class="btn-ghost action-reject" bindtap="onReject"><text class="bi"></text> 不想吃，换一个</view>
+        <view class="btn-primary action-accept" bindtap="onAccept">✓ 就它了，记一笔</view>
+      </view>
+      <view class="btn-ghost poster-btn" bindtap="onPoster"><text class="bi"></text> 生成分享海报</view>
+    </block>
+    <block wx:else>
+      <view class="btn-primary {{phase === 'rolling' ? 'btn-disabled' : ''}}" bindtap="onRoll">
+        {{phase === 'rolling' ? '抽取中…' : ' 开始抽'}}
+      </view>
+      <view class="add-hint" bindtap="goAdd">菜品库不够丰富？去加几道 ›</view>
+    </block>
+  </view>
+</view>
+<poster id="poster" dish="{{result.dish}}" category-name="{{result.categoryName}}" />

@@ -1,0 +1,9 @@
+{
+  "name": "airec",
+  "version": "1.0.0",
+  "description": "Yuki小厨房 - AI 菜品识别云函数（独立长超时）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

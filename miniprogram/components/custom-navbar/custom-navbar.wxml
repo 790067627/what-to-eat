@@ -1,0 +1,12 @@
+<view class="custom-navbar" style="height: {{navbarHeight}}px; padding-top: {{statusBarHeight}}px;">
+  <view class="navbar-content" style="height: {{contentHeight}}px;">
+    <!-- 左侧返回按钮 -->
+    <view class="navbar-left" bindtap="onBack">
+      <text class="bi navbar-back-icon"></text>
+    </view>
+    <!-- 中间标题 -->
+    <view class="navbar-title">{{title}}</view>
+    <!-- 右侧占位（胶囊按钮区域） -->
+    <view class="navbar-right" style="width: {{capsuleWidth}}px;"></view>
+  </view>
+</view>

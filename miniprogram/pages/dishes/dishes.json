@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "sakura-bg": "/components/sakura-bg/index"
+  },
+  "navigationBarTitleText": "菜品库"
+}

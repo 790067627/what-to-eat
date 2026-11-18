@@ -1,0 +1,167 @@
+<view class="page">
+  <!-- 图片区 -->
+  <view class="card">
+    <view class="section-title">菜品图片 <text class="title-hint">（第一张为封面，最多{{maxImages}}张）</text></view>
+
+    <!-- AI 引导卡：仅无图时显示（方案A：入口收进图片卡，全页唯一 AI 触发器） -->
+    <view wx:if="{{!images.length}}" class="ai-guide {{aiMode ? 'pulse' : ''}}" bindtap="openAiPicker">
+      <view class="ai-guide-icon"><text class="bi"></text></view>
+      <view class="ai-guide-text">
+        <view class="ai-guide-title">AI 识别添加 <text class="ai-tag">AI</text></view>
+        <view class="ai-guide-sub">拍照或选一张菜品图，自动填写菜名、分类、价格、描述、标签</view>
+      </view>
+      <text class="ai-guide-arrow">›</text>
+    </view>
+
+    <view class="img-grid">
+      <view wx:for="{{images}}" wx:key="index" class="img-cell">
+        <image class="cell-img" src="{{item.local}}" mode="aspectFill" data-index="{{index}}" bindtap="previewImage" />
+        <view wx:if="{{index === 0}}" class="cover-badge">封面</view>
+        <view class="img-del" data-index="{{index}}" catchtap="removeImage">✕</view>
+        <view wx:if="{{index === 0 && aiRecognized}}" class="re-scan" catchtap="onRescanCover"><text class="bi"></text> 重新识别</view>
+      </view>
+      <view wx:if="{{images.length < maxImages}}" class="img-cell img-add" bindtap="chooseImages">
+        <view class="add-icon"><text class="bi"></text></view>
+        <view class="add-text">上传图片</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 基本信息 -->
+  <view class="card">
+    <view class="form-item">
+      <text class="form-label">名称 <text class="required">*</text></text>
+      <input
+        class="form-input"
+        placeholder="如：番茄牛腩煲"
+        placeholder-class="ph"
+        value="{{name}}"
+        maxlength="30"
+        bindinput="onNameInput"
+      />
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">分类</text>
+      <picker range="{{categoryNames}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
+        <view class="form-picker">{{categoryNames[categoryIndex]}} ▾</view>
+      </picker>
+    </view>
+
+    <view wx:if="{{catSuggest.show}}" class="cat-suggest">
+      <text class="bi cat-suggest-icon"></text>
+      <view class="cat-suggest-text">AI 建议新分类「{{catSuggest.name}}」</view>
+      <view class="cat-suggest-btns">
+        <view class="cat-suggest-btn primary" bindtap="onCreateSuggestedCat">创建并使用</view>
+        <view class="cat-suggest-btn" bindtap="onDismissSuggestedCat">不用</view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">价格（选填）</text>
+      <view class="price-wrap">
+        <text class="price-symbol">¥</text>
+        <input
+          class="form-input price-input"
+          type="digit"
+          placeholder="48"
+          placeholder-class="ph"
+          value="{{priceYuan}}"
+          bindinput="onPriceInput"
+        />
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">评分</text>
+      <view class="stars">
+        <text
+          wx:for="{{stars}}"
+          wx:key="*this"
+          class="star {{item <= rating ? 'on' : ''}}"
+          data-star="{{item}}"
+          bindtap="onRate"
+        >★</text>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">状态</text>
+      <view class="status-row">
+        <view
+          wx:for="{{statusList}}"
+          wx:key="key"
+          class="status-btn {{status === item.key ? 'on' : ''}}"
+          data-status="{{item.key}}"
+          bindtap="onStatusTap"
+        ><text class="bi">{{item.icon}}</text> {{item.text}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 标签 -->
+  <view class="card">
+    <view class="section-title">标签 <text class="title-hint">（辣、快手、聚餐…最多10个）</text></view>
+    <view class="tag-list">
+      <view wx:for="{{tags}}" wx:key="*this" class="chip tag-item">
+        {{item}} <text class="tag-del" data-index="{{index}}" bindtap="removeTag">✕</text>
+      </view>
+    </view>
+    <view class="tag-input-row">
+      <input
+        class="form-input tag-input"
+        placeholder="输入标签后点添加"
+        placeholder-class="ph"
+        value="{{tagInput}}"
+        maxlength="8"
+        bindinput="onTagInput"
+        bindconfirm="addTag"
+      />
+      <view class="tag-add-btn" bindtap="addTag">添加</view>
+    </view>
+  </view>
+
+  <!-- 介绍 -->
+  <view class="card">
+    <view class="section-title">介绍 / 做法笔记（选填）</view>
+    <textarea
+      class="form-textarea"
+      placeholder="记点做法要点、口味心得，比如：番茄要多炒出沙…"
+      placeholder-class="ph"
+      value="{{description}}"
+      maxlength="2000"
+      bindinput="onDescInput"
+      auto-height
+    />
+    <view class="count">{{description.length}}/2000</view>
+  </view>
+
+  <!-- AI 回填横幅 -->
+  <view wx:if="{{aiBanner.show}}" class="ai-banner">
+    <text class="bi"></text>
+    <text class="ai-banner-text">{{aiBanner.text}}</text>
+    <text class="bi ai-banner-close" bindtap="closeAiBanner"></text>
+  </view>
+
+  <!-- 提交 -->
+  <view class="btn-primary submit-btn {{submitting ? 'btn-disabled' : ''}}" bindtap="onSubmit">
+    {{submitting ? '保存中…' : (isEdit ? '保存修改' : '保存菜品')}}
+  </view>
+  <view style="height: 60rpx"></view>
+
+  <!-- 全屏扫描层 -->
+  <view wx:if="{{aiScanning}}" class="scan-overlay">
+    <view class="scan-box">
+      <view class="scan-corner tl"></view><view class="scan-corner tr"></view>
+      <view class="scan-corner bl"></view><view class="scan-corner br"></view>
+      <view class="scan-line"></view>
+    </view>
+    <view class="scan-title">AI 正在识别…</view>
+    <view class="scan-steps">
+      <text wx:if="{{aiScanStep === 0}}">正在上传图片…</text>
+      <text wx:elif="{{aiScanStep === 1}}">AI 识别中，一般 10 秒内…</text>
+      <text wx:else>快好了，整理信息…</text>
+    </view>
+    <view class="scan-cancel" bindtap="onCancelScan">取消识别</view>
+  </view>
+</view>

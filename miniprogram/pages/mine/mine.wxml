@@ -1,0 +1,123 @@
+<sakura-bg />
+<view class="page">
+  <!-- 统计卡 -->
+  <view class="card stats-card">
+    <view class="stats-title">我的小厨房 </view>
+    <view class="stats-row">
+      <view class="stat-cell">
+        <view class="stat-num">{{stats.dishCount}}</view>
+        <view class="stat-label">菜品</view>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-cell">
+        <view class="stat-num">{{stats.categoryCount}}</view>
+        <view class="stat-label">分类</view>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-cell">
+        <view class="stat-num">{{stats.eatCount}}</view>
+        <view class="stat-label">吃过记录</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 吃历：月历热力 + 分类占比 -->
+  <view class="card calendar-card">
+    <view class="cal-head">
+      <text class="cal-nav" bindtap="prevMonth">‹</text>
+      <text class="cal-title">{{calTitle}}</text>
+      <text class="cal-nav {{isCurrentMonth ? 'cal-nav-disabled' : ''}}" bindtap="nextMonth">›</text>
+    </view>
+    <view class="cal-week">
+      <text wx:for="{{weekNames}}" wx:key="*this" class="cal-week-cell">{{item}}</text>
+    </view>
+    <view class="cal-grid">
+      <view wx:for="{{calCells}}" wx:key="index"
+            class="cal-cell {{item.empty ? 'cal-empty' : ''}} {{item.isToday ? 'cal-today' : ''}}"
+            data-day="{{item.day}}" data-count="{{item.count}}" bindtap="onDayTap">
+        <block wx:if="{{!item.empty}}">
+          <text class="cal-day-num">{{item.day}}</text>
+          <text wx:if="{{item.count}}" class="cal-dot heat-{{item.heat}}">{{item.count}}</text>
+        </block>
+      </view>
+    </view>
+    <view class="cat-stats" wx:if="{{categoryStats.length}}">
+      <view class="cat-stats-title">本月分类占比</view>
+      <view wx:for="{{categoryStats}}" wx:key="categoryId" class="cat-bar-row">
+        <text class="cat-bar-label">{{item.icon}} {{item.name}}</text>
+        <view class="cat-bar-track">
+          <view class="cat-bar-fill" style="width: {{item.percent}}%"></view>
+        </view>
+        <text class="cat-bar-count">{{item.count}}</text>
+      </view>
+    </view>
+    <view wx:if="{{!calLoading && !monthTotal}}" class="cal-empty-tip">这个月还没有吃过记录，去抽一抽吧 <text class="bi"></text></view>
+  </view>
+
+  <!-- 功能入口 -->
+  <view class="card menu-card">
+    <view class="menu-item" bindtap="goAdd">
+      <text class="menu-icon">＋</text>
+      <text class="menu-text">添加菜品</text>
+      <text class="menu-arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="goCategoryManage">
+      <text class="menu-icon bi"></text>
+      <text class="menu-text">分类管理</text>
+      <text class="menu-arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="goHistory">
+      <text class="menu-icon"><text class="bi"></text></text>
+      <text class="menu-text">吃过时间线</text>
+      <text class="menu-arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="onExport">
+      <text class="menu-icon"><text class="bi"></text></text>
+      <text class="menu-text">导出数据</text>
+      <text class="menu-arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="openImport">
+      <text class="menu-icon"><text class="bi"></text></text>
+      <text class="menu-text">导入数据</text>
+      <text class="menu-arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="onAbout">
+      <text class="menu-icon bi"></text>
+      <text class="menu-text">关于</text>
+      <text class="menu-arrow">›</text>
+    </view>
+  </view>
+
+  <view class="footer">Yuki小厨房 · 个人点菜灵感工具</view>
+
+
+  <!-- 导入数据弹层 -->
+  <view wx:if="{{showImport}}" class="import-mask" bindtap="closeImport">
+    <view class="import-panel" catchtap="noop">
+      <view class="import-title">导入数据</view>
+      <view class="import-tip">粘贴之前「导出数据」复制的 JSON，已存在的内容会自动跳过，不会覆盖现有数据。</view>
+      <textarea class="import-textarea" value="{{importText}}" bindinput="onImportInput"
+        placeholder='{"categories":[...],"dishes":[...],"eatLogs":[...]}' maxlength="-1" />
+      <view class="import-actions">
+        <view class="import-btn-ghost" bindtap="closeImport">取消</view>
+        <view class="import-btn-primary" bindtap="onImportConfirm">开始导入</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 当日吃历弹层 -->
+  <view wx:if="{{dayDetail.length}}" class="import-mask" bindtap="closeDayDetail">
+    <view class="import-panel day-panel" catchtap="noop">
+      <view class="import-title">{{dayDetailTitle}}</view>
+      <view wx:for="{{dayDetail}}" wx:key="index" class="day-item">
+        <image wx:if="{{item.coverImage}}" class="day-thumb" src="{{item.coverImage}}" mode="aspectFill" />
+        <view wx:else class="day-thumb day-thumb-ph"><text class="bi"></text></view>
+        <view class="day-info">
+          <text class="day-name">{{item.dishName}}</text>
+          <text wx:if="{{item.note}}" class="day-note">{{item.note}}</text>
+        </view>
+      </view>
+      <view class="import-actions"><view class="import-btn-primary" bindtap="closeDayDetail">关闭</view></view>
+    </view>
+  </view>
+</view>

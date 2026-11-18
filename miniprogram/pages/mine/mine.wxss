@@ -1,0 +1,206 @@
+.page { padding: 24rpx; }
+
+/* 统计卡 */
+.stats-card {
+  background: linear-gradient(135deg, rgba(255,240,246,0.92), rgba(255,227,239,0.92));
+  text-align: center;
+  padding: 40rpx 24rpx;
+}
+.stats-title { font-size: 32rpx; font-weight: 600; color: #4A2C3A; margin-bottom: 30rpx; }
+.stats-row { display: flex; align-items: center; }
+.stat-cell { flex: 1; }
+.stat-num { font-size: 52rpx; font-weight: 600; color: #FF8FB8; }
+.stat-label { font-size: 24rpx; color: #D96C99; margin-top: 6rpx; }
+.stat-divider { width: 1rpx; height: 60rpx; background: #F5C9DD; }
+
+/* 菜单 */
+.menu-card { padding: 8rpx 28rpx; }
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 30rpx 0;
+  border-bottom: 1rpx solid #FCEFF5;
+}
+.menu-item:last-child { border-bottom: none; }
+.menu-icon { font-size: 36rpx; width: 64rpx; }
+.menu-text { flex: 1; font-size: 30rpx; color: #4A2C3A; }
+.menu-arrow { color: #E5C9D8; font-size: 36rpx; }
+
+.footer {
+  text-align: center;
+  font-size: 22rpx;
+  color: #D8BAC9;
+  margin-top: 60rpx;
+}
+
+/* ==================== 吃历日历 ==================== */
+.calendar-card { padding: 24rpx; }
+.cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+.cal-title { font-size: 30rpx; font-weight: 600; color: #4A2C3A; }
+.cal-nav {
+  width: 56rpx;
+  height: 56rpx;
+  line-height: 52rpx;
+  text-align: center;
+  font-size: 34rpx;
+  color: #D96C99;
+  background: #FFF0F6;
+  border-radius: 50%;
+}
+.cal-nav-disabled { opacity: 0.3; }
+.cal-week, .cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+.cal-week-cell {
+  text-align: center;
+  font-size: 20rpx;
+  color: #C9A8B8;
+  padding: 8rpx 0;
+}
+.cal-cell {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.cal-day-num { font-size: 24rpx; color: #4A2C3A; }
+.cal-today .cal-day-num { color: #FF8FB8; font-weight: 700; }
+.cal-dot {
+  position: absolute;
+  bottom: 4rpx;
+  font-size: 18rpx;
+  color: #fff;
+  border-radius: 999rpx;
+  min-width: 28rpx;
+  height: 28rpx;
+  line-height: 28rpx;
+  text-align: center;
+  padding: 0 6rpx;
+}
+.heat-1 { background: #F8C8DC; }
+.heat-2 { background: #FFB0CE; }
+.heat-3 { background: #FF8FB8; }
+.cal-empty-tip {
+  text-align: center;
+  font-size: 24rpx;
+  color: #C9A8B8;
+  padding: 16rpx 0 4rpx;
+}
+
+/* 分类占比条形图 */
+.cat-stats { margin-top: 20rpx; border-top: 1rpx solid #F8E3EC; padding-top: 16rpx; }
+.cat-stats-title { font-size: 26rpx; font-weight: 600; color: #4A2C3A; margin-bottom: 12rpx; }
+.cat-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 10rpx;
+}
+.cat-bar-label {
+  width: 160rpx;
+  font-size: 22rpx;
+  color: #9C7B8C;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cat-bar-track {
+  flex: 1;
+  height: 16rpx;
+  background: #FCEFF5;
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+.cat-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FFB3D1, #FF8FB8);
+  border-radius: 8rpx;
+}
+.cat-bar-count { font-size: 22rpx; color: #D96C99; width: 48rpx; text-align: right; }
+
+/* ==================== 弹层（导入/当日吃历） ==================== */
+.import-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(74, 44, 58, 0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.import-panel {
+  width: 620rpx;
+  background: #FFFFFF;
+  border-radius: 28rpx;
+  padding: 32rpx;
+  box-shadow: 0 12rpx 48rpx rgba(217, 108, 153, 0.25);
+}
+.import-title { font-size: 32rpx; font-weight: 700; color: #4A2C3A; margin-bottom: 12rpx; }
+.import-tip { font-size: 22rpx; color: #9C7B8C; line-height: 1.6; margin-bottom: 16rpx; }
+.import-textarea {
+  width: 100%;
+  height: 280rpx;
+  background: #FDF5F9;
+  border: 1rpx solid #FFD6E7;
+  border-radius: 16rpx;
+  padding: 16rpx;
+  font-size: 22rpx;
+  color: #4A2C3A;
+  box-sizing: border-box;
+}
+.import-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+.import-btn-ghost {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  border-radius: 999rpx;
+  border: 1rpx solid #FFD6E7;
+  color: #D96C99;
+  font-size: 26rpx;
+}
+.import-btn-primary {
+  flex: 1.4;
+  text-align: center;
+  padding: 16rpx 0;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #FFB3D1, #FF8FB8);
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+.day-panel { max-height: 70vh; overflow-y: auto; }
+.day-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid #FCEFF5;
+}
+.day-thumb {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 16rpx;
+  background: #FFEAF2;
+  flex-shrink: 0;
+}
+.day-thumb-ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+}
+.day-info { display: flex; flex-direction: column; gap: 4rpx; }
+.day-name { font-size: 26rpx; color: #4A2C3A; font-weight: 600; }
+.day-note { font-size: 22rpx; color: #9C7B8C; }

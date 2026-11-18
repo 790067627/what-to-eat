@@ -1,0 +1,121 @@
+<custom-navbar title="菜品详情" />
+
+<view class="page" wx:if="{{!loading && dish}}" style="padding-top: {{navbarHeight}}px;">
+  <!-- 头图 -->
+  <image
+    wx:if="{{dish.coverImage}}"
+    class="cover"
+    src="{{dish.coverImageUrl || dish.coverImage}}"
+    mode="aspectFill"
+    data-url="{{dish.coverImageUrl || dish.coverImage}}"
+    bindtap="previewImage"
+  />
+  <view wx:else class="cover cover-ph"><text class="bi"></text></view>
+
+  <!-- 基本信息 -->
+  <view class="card info-card">
+    <view class="name-row">
+      <view class="name">{{dish.name}}</view>
+      <view class="edit-btn" bindtap="goEdit"><text class="bi"></text> 编辑</view>
+    </view>
+    <view class="meta">
+      <text wx:if="{{categoryName}}" class="chip chip-plain">{{categoryName}}</text>
+      <text wx:if="{{priceYuan}}" class="chip">¥{{priceYuan}}</text>
+      <text wx:if="{{lastEatenText}}" class="last-eaten">{{lastEatenText}}</text>
+    </view>
+
+    <!-- 评分 -->
+    <view class="rate-row">
+      <text class="rate-label">我的评分</text>
+      <view class="stars">
+        <text
+          wx:for="{{stars}}"
+          wx:key="*this"
+          class="star {{item <= dish.rating ? 'on' : ''}}"
+          data-star="{{item}}"
+          bindtap="onRate"
+        >★</text>
+      </view>
+    </view>
+
+    <!-- 状态切换 -->
+    <view class="status-row">
+      <view
+        wx:for="{{statusList}}"
+        wx:key="key"
+        class="status-btn {{dish.status === item.key ? 'on' : ''}}"
+        data-status="{{item.key}}"
+        bindtap="onStatusTap"
+      ><text class="bi">{{item.icon}}</text> {{item.text}}</view>
+    </view>
+  </view>
+
+  <!-- 介绍/笔记 -->
+  <view class="card" wx:if="{{dish.description}}">
+    <view class="section-title">介绍 / 做法笔记</view>
+    <view class="desc">{{dish.description}}</view>
+  </view>
+
+  <!-- 标签 -->
+  <view class="card" wx:if="{{dish.tags.length}}">
+    <view class="section-title">标签</view>
+    <view>
+      <text wx:for="{{dish.tags}}" wx:key="*this" class="chip">{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 更多图片 -->
+  <view class="card" wx:if="{{dish.images.length}}">
+    <view class="section-title">图片</view>
+    <view class="img-grid">
+      <image
+        wx:for="{{dish.imagesUrl || dish.images}}"
+        wx:key="*this"
+        class="grid-img"
+        src="{{item}}"
+        mode="aspectFill"
+        data-url="{{item}}"
+        bindtap="previewImage"
+        lazy-load
+      />
+    </view>
+  </view>
+
+  <!-- 操作按钮区 -->
+  <view wx:if="{{!isShared}}" class="action-section">
+    <!-- 第一行：记一笔 -->
+    <button class="btn-primary log-btn" bindtap="onLogEat">
+      <text class="bi"></text> 记一笔「今天吃了」
+    </button>
+    
+    <!-- 第二行：生成分享海报 + 分享给好友 -->
+    <view class="share-row">
+      <button class="btn-ghost share-btn" bindtap="onPoster">
+        <text class="bi"></text> 生成分享海报
+      </button>
+      <button class="btn-ghost share-btn" open-type="share">
+        <text class="bi"></text> 分享给好友
+      </button>
+    </view>
+    
+    <!-- 第三行：删除 -->
+    <view class="delete-link" bindtap="onDelete">删除这道菜</view>
+  </view>
+
+  <!-- 别人分享的菜：保存到我的菜单 -->
+  <view wx:if="{{isShared}}" class="action-section">
+    <button class="btn-primary log-btn" bindtap="onCopyToMyMenu">
+      <text class="bi"></text> 保存到我的菜单
+    </button>
+  </view>
+
+  <poster id="poster" dish="{{dish}}" cover-image-url="{{dish.coverImageUrl || ''}}" category-name="{{categoryName}}" />
+
+  <view style="height: 60rpx"></view>
+</view>
+
+<!-- 骨架 -->
+<view wx:elif="{{loading}}" class="page" style="padding-top: {{navbarHeight}}px;">
+  <view class="skeleton-item" style="height: 300rpx"></view>
+  <view class="skeleton-item"><view style="flex:1"><view class="skeleton-line" style="width:50%"></view><view class="skeleton-line" style="width:80%"></view></view></view>
+</view>

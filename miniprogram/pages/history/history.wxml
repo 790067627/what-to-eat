@@ -1,0 +1,36 @@
+<view class="page">
+  <view class="summary" wx:if="{{total}}">共记录 {{total}} 次「今天吃了」<text class="bi"></text></view>
+
+  <view class="timeline">
+    <view
+      wx:for="{{logs}}"
+      wx:key="_id"
+      class="log-item"
+      data-id="{{item.dishId}}"
+      bindtap="goDish"
+    >
+      <view class="log-dot"></view>
+      <view class="log-line" wx:if="{{index < logs.length - 1}}"></view>
+      <view class="card log-card">
+        <image wx:if="{{item.coverImage}}" class="log-img" src="{{item.coverImage}}" mode="aspectFill" lazy-load />
+        <view wx:else class="log-img log-img-ph"><text class="bi"></text></view>
+        <view class="log-info">
+          <view class="log-name ellipsis">{{item.dishName}}</view>
+          <view class="log-date">{{item.dateText}}</view>
+          <view wx:if="{{item.note}}" class="log-note ellipsis-2">{{item.note}}</view>
+        </view>
+        <view class="log-arrow">›</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载/空态 -->
+  <view wx:if="{{loading}}" class="loading-tip">加载中…</view>
+  <view wx:elif="{{!logs.length}}" class="empty-state">
+    <view class="empty-icon"><text class="bi"></text></view>
+    <view class="empty-text">还没有记录，抽中啥就记一笔吧</view>
+  </view>
+  <view wx:elif="{{!hasMore}}" class="loading-tip">— 到底啦 —</view>
+
+  <view style="height: 60rpx"></view>
+</view>
