@@ -284,6 +284,9 @@ input, textarea { font-family: inherit; color: inherit; }
 
 /* ---------- 页面容器 ---------- */
 .page-host { position: absolute; inset: 0; z-index: 1; }
+.fx-layer { position: absolute; inset: 0; z-index: 90; pointer-events: none; }
+.fx-layer > * { pointer-events: auto; }
+.deco-layer { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
 .page {
   position: absolute;
   inset: 0;

@@ -1,8 +1,10 @@
 // pages/mine/mine.js - 我的：统计、分类管理、时间线、数据导出
 const api = require('../../services/db');
+const { getNavMetrics } = require('../../utils/util');
 
 Page({
   data: {
+    navHeight: 88,
     stats: { dishCount: 0, categoryCount: 0, eatCount: 0 },
     loading: true,
     // 吃历
@@ -18,6 +20,10 @@ Page({
     // 导入
     showImport: false,
     importText: ''
+  },
+
+  onLoad() {
+    this.setData({ navHeight: getNavMetrics().headerHeight });
   },
 
   onShow() {

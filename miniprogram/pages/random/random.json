@@ -1,6 +1,8 @@
 {
   "usingComponents": {
-    "poster": "/components/poster/index"
+    "poster": "/components/poster/index",
+    "immersive-nav": "/components/immersive-nav/index"
   },
-  "navigationBarTitleText": "抽一抽"
+  "navigationBarTitleText": "抽一抽",
+  "navigationStyle": "custom"
 }

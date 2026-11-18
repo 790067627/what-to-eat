@@ -1,4 +1,5 @@
-<view class="page">
+<immersive-nav title="我的" />
+<view class="page" style="padding-top: {{navHeight}}px">
   <!-- 统计卡 -->
   <view class="card stats-card">
     <view class="stats-title">我的小厨房 </view>

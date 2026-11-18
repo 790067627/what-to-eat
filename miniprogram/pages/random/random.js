@@ -1,9 +1,11 @@
 // pages/random/random.js - 随机抽卡：核心决策页
 const api = require('../../services/db');
+const { getNavMetrics } = require('../../utils/util');
 const { fenToYuan, timeAgo } = require('../../utils/util');
 
 Page({
   data: {
+    navHeight: 88,
     // 筛选条件
     excludeDays: 3,          // 排除最近 N 天吃过的（0 = 不排除）
     onlyWant: false,         // 只从"想吃"里抽
@@ -21,6 +23,10 @@ Page({
   },
 
   _rollTimer: null,
+
+  onLoad() {
+    this.setData({ navHeight: getNavMetrics().headerHeight });
+  },
 
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {

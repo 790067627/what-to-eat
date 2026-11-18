@@ -1,4 +1,5 @@
-<view class="page">
+<immersive-nav title="菜品库" />
+<view class="page" style="padding-top: {{navHeight}}px">
   <!-- 搜索栏 -->
   <view class="search-bar">
     <text class="search-icon"><text class="bi"></text></text>

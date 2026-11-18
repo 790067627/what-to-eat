@@ -1,16 +1,8 @@
 <sakura-bg />
 
-<!-- 沉浸式插画导航区：背景图延伸至状态栏，底部渐隐融入页面底色 -->
-<view class="hero-header" style="height: {{headerHeight}}px">
-  <image wx:if="{{headerUrl}}" class="hero-header-img" src="{{headerUrl}}" mode="aspectFill" binderror="onHeaderError" />
-  <view class="hero-header-veil"></view>
-  <view class="hero-header-fade"></view>
-  <view class="hero-header-bar" style="padding-top: {{statusBarHeight}}px">
-    <view class="hero-header-title" style="height: {{contentHeight}}px; line-height: {{contentHeight}}px">Yuki小厨房</view>
-  </view>
-</view>
+<immersive-nav title="Yuki小厨房" />
 
-<view class="page">
+<view class="page" style="padding-top: {{navHeight}}px">
   <!-- 骨架屏 -->
   <block wx:if="{{loading}}">
     <view class="skeleton-item"><view class="skeleton-img"></view>

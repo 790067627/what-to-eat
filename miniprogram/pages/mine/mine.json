@@ -1,4 +1,7 @@
 {
-  "usingComponents": {},
-  "navigationBarTitleText": "我的"
+  "usingComponents": {
+    "immersive-nav": "/components/immersive-nav/index"
+  },
+  "navigationBarTitleText": "我的",
+  "navigationStyle": "custom"
 }

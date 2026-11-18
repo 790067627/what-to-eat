@@ -1,4 +1,7 @@
 {
-  "usingComponents": {},
-  "navigationBarTitleText": "菜品库"
+  "usingComponents": {
+    "immersive-nav": "/components/immersive-nav/index"
+  },
+  "navigationBarTitleText": "菜品库",
+  "navigationStyle": "custom"
 }

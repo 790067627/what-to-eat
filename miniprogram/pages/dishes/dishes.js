@@ -1,11 +1,13 @@
 // pages/dishes/dishes.js - 菜品库：分类侧栏 + 列表 + 搜索
 const api = require('../../services/db');
+const { getNavMetrics } = require('../../utils/util');
 const { fenToYuan, timeAgo } = require('../../utils/util');
 
 const STATUS_TEXT = { want: '想吃', often: '常吃', never: '不想再吃' };
 
 Page({
   data: {
+    navHeight: 88,
     loading: true,
     fabSheetVisible: false,  // FAB 添加方式面板
     categories: [],          // [{ _id, name, icon }]，首项为"全部"
@@ -18,6 +20,10 @@ Page({
 
   // 搜索节流定时器
   _searchTimer: null,
+
+  onLoad() {
+    this.setData({ navHeight: getNavMetrics().headerHeight });
+  },
 
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {

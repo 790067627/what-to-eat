@@ -53,4 +53,17 @@ function toast(title, icon = 'none') {
   wx.showToast({ title, icon, duration: 1800 });
 }
 
-module.exports = { formatDate, timeAgo, fenToYuan, yuanToFen, shuffle, toast };
+/** 沉浸式导航度量（单一事实源）：
+ *  只依赖胶囊矩形的屏幕绝对坐标（全机型最可靠锚点），不依赖 statusBarHeight 做定位，
+ *  避免不同机型状态栏高度差异导致的重复计算/错位。
+ *  - titleTop/titleHeight：标题与胶囊垂直对齐
+ *  - headerHeight：胶囊底 + 24px 插画延伸带 */
+function getNavMetrics() {
+  const mb = wx.getMenuButtonBoundingClientRect();
+  const titleTop = mb.top;
+  const titleHeight = mb.height;
+  const headerHeight = mb.top + mb.height + 24;
+  return { titleTop, titleHeight, headerHeight };
+}
+
+module.exports = { formatDate, timeAgo, fenToYuan, yuanToFen, shuffle, toast, getNavMetrics };

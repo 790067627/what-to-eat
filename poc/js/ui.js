@@ -251,6 +251,7 @@
   }
 
   function mountPage(name, params, animCls) {
+    if (current && current.ctx.onHide) { try { current.ctx.onHide(); } catch (e) {} }
     var built = buildPageEl(name, params, animCls);
     hostEl().innerHTML = '';
     hostEl().appendChild(built.el);
@@ -283,7 +284,6 @@
     if (!prev) { switchTab('index'); return; }
     var ctx = mountPage(prev.name, prev.params, 'page-anim-pop');
     ctx.el.scrollTop = prev.scrollTop || 0;
-    if (ctx.onShow) ctx.onShow();
   }
 
   function switchTab(path) {
