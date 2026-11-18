@@ -520,12 +520,12 @@ async function initDemo({ openid }) {
   return ok({ categories: defaults.length, dishes: demoDishes.length });
 }
 
-/** 背景图：云函数以管理员身份从云存储下载并返回 base64（免费环境不可设公开读；
- *  临时链接有有效期会过期，base64 + 端侧本地缓存可彻底避免过期问题） */
-const BG_FILE_ID = 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/bg-sakura.jpg';
+/** 首页装饰图（Hello Kitty 透明 webp）：云函数以管理员身份从云存储下载并返回 base64
+ *  （免费环境不可设公开读；临时链接有有效期会过期，base64 + 端侧本地缓存可彻底避免过期问题） */
+const DECO_FILE_ID = 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/kitty-deco.webp';
 async function getBgUrl() {
-  const res = await cloud.downloadFile({ fileID: BG_FILE_ID });
-  if (!res.fileContent) throw new Error('下载背景图失败');
+  const res = await cloud.downloadFile({ fileID: DECO_FILE_ID });
+  if (!res.fileContent) throw new Error('下载装饰图失败');
   return ok({ base64: res.fileContent.toString('base64') });
 }
 

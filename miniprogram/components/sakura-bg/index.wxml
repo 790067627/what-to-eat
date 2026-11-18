@@ -1,2 +1,8 @@
-<image wx:if="{{url}}" class="sakura-bg" src="{{url}}" mode="aspectFill" binderror="onBgError" />
-<view wx:if="{{url}}" class="sakura-veil"></view>
+<!-- 首页装饰图：Hello Kitty 透明 webp，widthFix 保持原始宽高比不变形 -->
+<image
+  wx:if="{{url}}"
+  class="kitty-deco"
+  src="{{url}}"
+  mode="widthFix"
+  binderror="onBgError"
+/>
