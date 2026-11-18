@@ -2,6 +2,8 @@
   <view wx:if="{{loading}}" class="skeleton-item"><view style="flex:1"><view class="skeleton-line"></view><view class="skeleton-line" style="width:50%"></view></view></view>
 
   <block wx:else>
+    <!-- 列表区独立滚动：新增按钮固定底部不随之滚动 -->
+    <scroll-view class="cat-scroll" scroll-y enhanced show-scrollbar="{{true}}">
     <view class="tip">分类用于归置菜品，排序影响菜品库侧栏顺序。删除前需清空分类下的菜品。</view>
 
     <view wx:for="{{categories}}" wx:key="_id" class="card cat-row">
@@ -22,7 +24,13 @@
       <view class="empty-text">还没有分类</view>
     </view>
 
-    <view class="btn-primary add-btn" bindtap="openAdd">＋ 新增分类</view>
+    <view style="height: 24rpx"></view>
+    </scroll-view>
+
+    <!-- 固定底部操作区 -->
+    <view class="add-bar">
+      <view class="btn-primary add-btn" bindtap="openAdd">＋ 新增分类</view>
+    </view>
   </block>
 
   <!-- 新增/编辑弹层 -->
@@ -55,5 +63,4 @@
     </view>
   </view>
 
-  <view style="height: 60rpx"></view>
 </view>

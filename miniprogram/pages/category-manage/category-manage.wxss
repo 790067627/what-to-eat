@@ -1,4 +1,20 @@
-.page { padding: 24rpx; }
+.page {
+  padding: 24rpx;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+/* 分类列表滚动区：占满剩余高度，独立滚动 */
+.cat-scroll {
+  flex: 1;
+  min-height: 0;
+}
+/* 底部固定操作区：不随列表滚动 */
+.add-bar {
+  flex-shrink: 0;
+  padding-top: 20rpx;
+}
 
 .tip {
   font-size: 22rpx;
@@ -32,7 +48,7 @@
 }
 .op-del { font-size: 26rpx; }
 
-.add-btn { margin-top: 20rpx; }
+.add-btn { margin-top: 0; }
 
 /* 弹层 */
 .mask {

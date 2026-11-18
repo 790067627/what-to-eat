@@ -113,8 +113,8 @@
   --tabbar-blur: blur(28px) saturate(1.6);
   --tab-text: rgba(74, 44, 58, 0.60);
   --tab-active: #C22E6B;
-  --center-btn-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.85), rgba(255, 178, 208, 0.55) 55%, rgba(255, 92, 151, 0.45));
-  --center-btn-ring: rgba(255, 255, 255, 0.75);
+  --center-btn-bg: linear-gradient(145deg, rgba(255, 122, 170, 0.92), rgba(255, 92, 151, 0.88));
+  --center-btn-ring: rgba(255, 255, 255, 0.8);
   --center-btn-shadow:
     0 1px 0 rgba(255, 255, 255, 0.9) inset,
     0 8px 20px rgba(194, 46, 107, 0.35);
@@ -257,9 +257,9 @@ input, textarea { font-family: inherit; color: inherit; }
   font-size: 16px; font-weight: 600; color: var(--nav-text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%;
 }
-.nav-right { width: 44px; display: flex; justify-content: flex-end; padding-right: 2px; }
+.nav-right { width: 95px; display: flex; justify-content: flex-end; padding-right: 7px; }
 .capsule {
-  width: 87px; height: 32px; margin-right: -44px;
+  width: 87px; height: 32px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.5);
   border: 1px solid rgba(0, 0, 0, 0.06);

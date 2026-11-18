@@ -45,20 +45,12 @@
 [data-theme="glass"] .elev-2 { box-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 10px 26px rgba(120,40,80,.16); }
 [data-theme="glass"] .elev-3 { box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 22px 54px rgba(80,20,50,.26); }
 
-/* ---- TabBar 玻璃：底部"液面"折射带 ---- */
+/* ---- TabBar 玻璃：顶部折射亮线（底部液面光带会洗白文字，故不采用） ---- */
 [data-theme="glass"] .tabbar::before {
   content: '';
   position: absolute;
   left: 0; right: 0; top: 0; height: 1px;
   background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.9) 20%, rgba(255,255,255,.9) 80%, rgba(255,255,255,0));
-  pointer-events: none;
-}
-[data-theme="glass"] .tabbar::after {
-  content: '';
-  position: absolute;
-  left: 6%; right: 6%; bottom: 26px; height: 34px;
-  border-radius: 20px;
-  background: radial-gradient(60% 100% at 50% 100%, rgba(255,255,255,.35), rgba(255,255,255,0));
   pointer-events: none;
 }
 
