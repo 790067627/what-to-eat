@@ -203,22 +203,31 @@ async function fetchUserCategories(openid) {
   return results.reduce((acc, r) => acc.concat(r.data), []);
 }
 
-/** AI 拍照识别菜品：入参 { fileID } */
+/** AI 拍照识别菜品：入参 { fileID, base64? }
+ *  base64 由前端与上传并行读取后直传，省掉云端二次下载；缺失时回退 downloadFile */
 async function recognizeDish({ openid, event }) {
-  const { fileID } = event;
+  const { fileID, base64 } = event;
   if (!fileID || typeof fileID !== 'string' || fileID.indexOf('cloud://') !== 0) {
     return fail('缺少图片文件ID');
   }
 
   const models = getAiModels();
 
-  // 并行：下载图片 + 拉用户现有分类（服务端自查，不信任前端传参）
-  const [dlRes, categories] = await Promise.all([
-    cloud.downloadFile({ fileID }),
+  // 并行：取图片字节（直传优先）+ 拉用户现有分类（服务端自查，不信任前端传参）
+  const [imgBuf, categories] = await Promise.all([
+    (async () => {
+      if (base64 && typeof base64 === 'string') {
+        const bytes = Math.floor(base64.length * 0.75);
+        if (bytes > AI_MAX_IMAGE_BYTES) return null;   // 超限走回退
+        return Buffer.from(base64, 'base64');
+      }
+      const dlRes = await cloud.downloadFile({ fileID });
+      return (dlRes && dlRes.fileContent) || null;
+    })(),
     fetchUserCategories(openid)
   ]);
-  if (!dlRes || !dlRes.fileContent || !dlRes.fileContent.length) return fail('图片读取失败');
-  if (dlRes.fileContent.length > AI_MAX_IMAGE_BYTES) return fail('图片过大，请换一张');
+  if (!imgBuf || !imgBuf.length) return fail('图片读取失败');
+  if (imgBuf.length > AI_MAX_IMAGE_BYTES) return fail('图片过大，请换一张');
 
   const categoryNames = categories.map(c => c.name);
 
@@ -229,7 +238,7 @@ async function recognizeDish({ openid, event }) {
   const extMatch = fileID.match(/\.(jpe?g|png|webp|gif)(\?|$)/i);
   const ext = extMatch ? extMatch[1].toLowerCase().replace('jpeg', 'jpg') : 'jpg';
   const mime = ext === 'jpg' ? 'image/jpeg' : 'image/' + ext;
-  const dataUrl = `data:${mime};base64,${dlRes.fileContent.toString('base64')}`;
+  const dataUrl = `data:${mime};base64,${imgBuf.toString('base64')}`;
 
   const systemPrompt = buildSystemPrompt(categoryNames);
 
@@ -244,6 +253,7 @@ async function recognizeDish({ openid, event }) {
         resp = await httpsPostJson(model.url, {
           model: model.name,
           temperature: 0.2,
+          enable_thinking: false,   // 结构化抽取无需思考链，显著降低首字延迟
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: [
