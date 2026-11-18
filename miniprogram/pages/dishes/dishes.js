@@ -7,6 +7,9 @@ const STATUS_TEXT = { want: '想吃', often: '常吃', never: '不想再吃' };
 
 Page({
   data: {
+    sideMaxH: 0,          // 分类栏最大高度（px，运行时测量）
+    sideScrollMaxH: 0,    // 内层滚动区最大高度（px）
+    sideScrollInto: '',   // 选中分类自动滚动锚点
     navHeight: 88,
     loading: true,
     fabSheetVisible: false,  // FAB 添加方式面板
@@ -26,6 +29,7 @@ Page({
   },
 
   onShow() {
+    this.layoutSide();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 1 });
     }
@@ -96,10 +100,37 @@ Page({
   },
 
   // 切换分类
+  /** 分类栏高度上限：视口高 - 内容区顶 - TabBar - 安全区，运行时测量不写死机型 */
+  layoutSide() {
+    const win = wx.getWindowInfo();
+    const safeBottom = win.safeArea ? Math.max(0, win.screenHeight - win.safeArea.bottom) : 0;
+    const rpx = win.windowWidth / 750;
+    const tabbarPx = 110 * rpx;              // TabBar 高 110rpx
+    this.createSelectorQuery()
+      .select('.content').boundingClientRect()
+      .select('.side-all').boundingClientRect()
+      .exec(res => {
+        const contentRect = res && res[0];
+        const allRect = res && res[1];
+        if (!contentRect) return;
+        // 上限：内容区顶到 TabBar 顶之间的可用高度（再留 8px 呼吸）
+        const sideMaxH = Math.max(160, win.windowHeight - contentRect.top - tabbarPx - safeBottom - 8);
+        // 内层滚动区 = 上限 - 「全部」项 - 侧栏上下 padding(24rpx)
+        const allH = allRect ? allRect.height : 40;
+        const sideScrollMaxH = Math.max(80, sideMaxH - allH - 24 * rpx);
+        this.setData({ sideMaxH, sideScrollMaxH });
+      });
+  },
+
   async onCategoryTap(e) {
     const { id, name } = e.currentTarget.dataset;
     if (id === this.data.activeCategoryId) return;
-    this.setData({ activeCategoryId: id || '', activeCategoryName: name || '' });
+    const idx = id ? this.data.categories.findIndex(c => c._id === id) : -1;
+    this.setData({
+      activeCategoryId: id || '',
+      activeCategoryName: name || '',
+      sideScrollInto: idx >= 0 ? 'cat-' + idx : ''
+    });
     this.refreshDishes();
   },
 

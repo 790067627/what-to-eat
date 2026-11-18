@@ -48,11 +48,18 @@
 .side {
   width: 170rpx;
   flex-shrink: 0;
+  /* 不被 flex 拉伸：高度随内容自然撑开，max-height 由 JS 动态注入 */
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
   background: #FBEFF5;
   border-radius: var(--radius-md);
   padding: 12rpx 8rpx;
-  max-height: 50vh;
-  overflow-y: auto;
+  overflow: hidden;
+}
+/* 内层分类滚动区：仅列表滚动，「全部」不随之移动 */
+.side-scroll {
+  width: 100%;
 }
 .side-item {
   font-size: 24rpx;

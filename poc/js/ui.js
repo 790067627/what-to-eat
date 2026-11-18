@@ -174,6 +174,21 @@
     if (navigator.vibrate) navigator.vibrate(30);
   }
 
+  // ---------- 页面级弹层（挂到 overlayHost，相对屏幕定位、盖住 TabBar、不随内容滚动） ----------
+  function mountOverlay(html) {
+    clearOverlay();
+    var wrap = el('div');
+    wrap.setAttribute('data-owner', '1');
+    wrap.style.cssText = 'position:absolute;inset:0;pointer-events:auto';
+    wrap.innerHTML = html;
+    overlay().appendChild(wrap);
+    return wrap;
+  }
+  function clearOverlay() {
+    var host = overlay();
+    if (host) host.querySelectorAll('[data-owner]').forEach(function (n) { n.remove(); });
+  }
+
   // ---------- 路由 ----------
   var TABS = [
     { path: 'index', title: 'Yuki小厨房' },
@@ -253,6 +268,9 @@
 
   function mountPage(name, params, animCls) {
     if (current && current.ctx.onHide) { try { current.ctx.onHide(); } catch (e) {} }
+    // 清理上一页遗留的页面级弹层
+    var ov = $('#overlayHost');
+    if (ov) ov.querySelectorAll('[data-owner]').forEach(function (n) { n.remove(); });
     var built = buildPageEl(name, params, animCls);
     hostEl().innerHTML = '';
     hostEl().appendChild(built.el);
@@ -366,6 +384,7 @@
     theme: { get: getTheme, apply: applyTheme, onChange: onTheme },
     toast: showToast, loading: showLoading, hideLoading: hideLoading,
     modal: showModal, actionSheet: showActionSheet, previewImage: previewImage,
+    mountOverlay: mountOverlay, clearOverlay: clearOverlay,
     clipboard: setClipboardData, vibrate: vibrateShort,
     router: { navigateTo: navigateTo, navigateBack: navigateBack, switchTab: switchTab, backOrHome: backOrHome, stackLen: function () { return stack.length; }, current: function () { return current; } },
     globalData: globalData,

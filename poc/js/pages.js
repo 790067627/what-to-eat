@@ -262,7 +262,7 @@
       };
       var searchTimer = null;
 
-      ctx.body.style.cssText = 'position:absolute;top:91px;left:0;right:0;bottom:76px;padding:10px 12px 0;display:flex;flex-direction:column;overflow:hidden';
+      ctx.body.style.cssText = 'height:100%;padding:10px 12px 0;display:flex;flex-direction:column;overflow:hidden;min-height:0';
       var inner = ctx.body;
 
       function decorate(dishes, categories) {
@@ -354,11 +354,10 @@
           fx.innerHTML = '';
         }
 
-        // FAB 面板
-        var oldSheet = inner.querySelector('.fab-mask');
+        // FAB 面板（挂到 overlayHost：盖住 TabBar、不随列表滚动）
         if (d.fabSheetVisible) {
-          var mask = el('div', 'fab-mask');
-          mask.innerHTML =
+          var wrap = UI.mountOverlay(
+            '<div class="fab-mask">' +
             '<div class="fab-sheet">' +
             '<div class="fab-handle"></div>' +
             '<div class="fab-ai-card" data-act="sheetAi">' +
@@ -371,11 +370,14 @@
             '<div class="fab-manual-icon"><span class="bi">\uf4cb</span></div>' +
             '<div class="fab-manual-txt"><div class="fab-manual-t1">手动添加</div><div class="fab-manual-t2">自己填写菜品信息</div></div>' +
             '</div>' +
-            '<div class="fab-cancel" data-act="sheetClose">取消</div></div>';
-          inner.appendChild(mask);
+            '<div class="fab-cancel" data-act="sheetClose">取消</div></div></div>');
+          var mask = wrap.firstElementChild;
           mask.addEventListener('click', function (e) {
-            if (e.target === mask) { d.fabSheetVisible = false; ctx._render(); }
+            if (e.target === mask) { d.fabSheetVisible = false; UI.clearOverlay(); }
           });
+          mask.querySelector('[data-act="sheetAi"]').addEventListener('click', function () { d.fabSheetVisible = false; UI.clearOverlay(); R.navigateTo('dish-edit?ai=1'); });
+          mask.querySelector('[data-act="sheetManual"]').addEventListener('click', function () { d.fabSheetVisible = false; UI.clearOverlay(); R.navigateTo('dish-edit'); });
+          mask.querySelector('[data-act="sheetClose"]').addEventListener('click', function () { d.fabSheetVisible = false; UI.clearOverlay(); });
         }
       };
 
@@ -723,28 +725,6 @@
         h += '<div class="footer">Yuki小厨房 · 个人点菜灵感工具</div>';
         h += '<div style="height:80px"></div>';
 
-        // 导入弹层
-        if (d.showImport) {
-          h += '<div class="import-mask" data-act="closeImport"><div class="import-panel" data-noop>' +
-            '<div class="import-title">导入数据</div>' +
-            '<div class="import-tip">粘贴之前「导出数据」复制的 JSON，已存在的内容会自动跳过，不会覆盖现有数据。</div>' +
-            '<textarea class="import-textarea" placeholder=\'{"categories":[...],"dishes":[...],"eatLogs":[...]}\'></textarea>' +
-            '<div class="import-actions"><div class="import-btn-ghost" data-act="closeImport">取消</div>' +
-            '<div class="import-btn-primary" data-act="doImport">开始导入</div></div></div></div>';
-        }
-        // 当日吃历弹层
-        if (d.dayDetail.length) {
-          h += '<div class="import-mask" data-act="closeDay"><div class="import-panel day-panel" data-noop>' +
-            '<div class="import-title">' + esc(d.dayDetailTitle) + '</div>';
-          d.dayDetail.forEach(function (item) {
-            h += '<div class="day-item">' +
-              (item.coverImage ? '<img class="day-thumb" src="' + esc(item.coverImage) + '">' : '<div class="day-thumb day-thumb-ph"><span class="bi">\uf312</span></div>') +
-              '<div class="day-info"><span class="day-name">' + esc(item.dishName) + '</span>' +
-              (item.note ? '<span class="day-note">' + esc(item.note) + '</span>' : '') + '</div></div>';
-          });
-          h += '<div class="import-actions"><div class="import-btn-primary" data-act="closeDay">关闭</div></div></div></div>';
-        }
-
         ctx.body.innerHTML = h;
         // 绑定慢网络开关
         var slowItem = ctx.body.querySelector('[data-act="slow"] .wx-switch');
@@ -756,6 +736,42 @@
             slowItem.querySelector('.sw-knob').style.transform = on ? 'translateX(20px)' : '';
             MockDB.setPref('slow', on);
             UI.toast(on ? '已开启慢网络模拟' : '已关闭慢网络模拟');
+          });
+        }
+
+        // 弹层统一挂到 overlayHost（盖住 TabBar、不随内容滚动）
+        if (d.showImport) {
+          var iw = UI.mountOverlay(
+            '<div class="import-mask"><div class="import-panel" data-noop>' +
+            '<div class="import-title">导入数据</div>' +
+            '<div class="import-tip">粘贴之前「导出数据」复制的 JSON，已存在的内容会自动跳过，不会覆盖现有数据。</div>' +
+            '<textarea class="import-textarea" placeholder=\'{"categories":[...],"dishes":[...],"eatLogs":[...]}\'></textarea>' +
+            '<div class="import-actions"><div class="import-btn-ghost" data-act="closeImport">取消</div>' +
+            '<div class="import-btn-primary" data-act="doImport">开始导入</div></div></div></div>');
+          var imask = iw.querySelector('.import-mask');
+          imask.addEventListener('click', function (e) {
+            if (e.target === imask) { d.showImport = false; UI.clearOverlay(); return; }
+            var t = e.target.closest('[data-act]');
+            if (t) handleMineAction(t.dataset.act, t, iw);
+          });
+          var ta = iw.querySelector('.import-textarea');
+          if (ta) ta.addEventListener('input', function () { d.importText = ta.value; });
+        } else if (d.dayDetail.length) {
+          var dh = '<div class="import-mask"><div class="import-panel day-panel" data-noop>' +
+            '<div class="import-title">' + esc(d.dayDetailTitle) + '</div>';
+          d.dayDetail.forEach(function (item) {
+            dh += '<div class="day-item">' +
+              (item.coverImage ? '<img class="day-thumb" src="' + esc(item.coverImage) + '">' : '<div class="day-thumb day-thumb-ph"><span class="bi">\uf312</span></div>') +
+              '<div class="day-info"><span class="day-name">' + esc(item.dishName) + '</span>' +
+              (item.note ? '<span class="day-note">' + esc(item.note) + '</span>' : '') + '</div></div>';
+          });
+          dh += '<div class="import-actions"><div class="import-btn-primary" data-act="closeDay">关闭</div></div></div></div>';
+          var dw = UI.mountOverlay(dh);
+          var dmask = dw.querySelector('.import-mask');
+          dmask.addEventListener('click', function (e) {
+            if (e.target === dmask) { d.dayDetail = []; UI.clearOverlay(); return; }
+            var t = e.target.closest('[data-act]');
+            if (t) handleMineAction(t.dataset.act, t, dw);
           });
         }
       };
@@ -799,6 +815,39 @@
       }
 
       ctx.onShow = function () { loadStats(); loadMonth(); };
+
+      /** 弹层内按钮（导入 / 当日吃历）统一处理 */
+      function handleMineAction(act, t, wrap) {
+        if (act === 'closeImport') { d.showImport = false; UI.clearOverlay(); }
+        else if (act === 'closeDay') { d.dayDetail = []; UI.clearOverlay(); }
+        else if (act === 'doImport') {
+          var ta = wrap.querySelector('.import-textarea');
+          var text = (ta.value || '').trim();
+          if (!text) { UI.toast('先粘贴导出的 JSON'); return; }
+          var data;
+          try { data = JSON.parse(text); } catch (err) { UI.toast('JSON 格式不合法'); return; }
+          var cats = Array.isArray(data.categories) ? data.categories : [];
+          var dishes = Array.isArray(data.dishes) ? data.dishes : [];
+          var logs = Array.isArray(data.eatLogs) ? data.eatLogs : [];
+          if (!cats.length && !dishes.length && !logs.length) { UI.toast('没有可导入的数据'); return; }
+          UI.modal({
+            title: '确认导入',
+            content: '将合并导入 ' + cats.length + ' 个分类、' + dishes.length + ' 道菜、' + logs.length + ' 条记录；已存在的自动跳过，不会覆盖现有数据。',
+            confirmColor: '#FF8FB8'
+          }).then(function (m) {
+            if (!m.confirm) return;
+            UI.loading({ title: '导入中', mask: true });
+            api.importData(data).then(function (stat) {
+              UI.hideLoading();
+              d.showImport = false;
+              UI.clearOverlay();
+              ctx._render();
+              UI.toast('新增 ' + stat.categories + ' 分类 ' + stat.dishes + ' 菜 ' + stat.eatLogs + ' 记录，跳过 ' + stat.skipped, 3000);
+              loadStats(); loadMonth();
+            }).catch(function (err) { UI.hideLoading(); api.handleErr(err, '导入失败'); });
+          });
+        }
+      }
 
       ctx.body.addEventListener('click', function (e) {
         if (e.target.closest('[data-noop]')) return;
@@ -861,33 +910,6 @@
             }).catch(function () {});
           }).catch(function (err) { UI.hideLoading(); api.handleErr(err, '导出失败'); });
         } else if (act === 'import') { d.showImport = true; d.importText = ''; ctx._render(); }
-        else if (act === 'closeImport') { d.showImport = false; ctx._render(); }
-        else if (act === 'doImport') {
-          var ta = ctx.body.querySelector('.import-textarea');
-          var text = (ta.value || '').trim();
-          if (!text) { UI.toast('先粘贴导出的 JSON'); return; }
-          var data;
-          try { data = JSON.parse(text); } catch (err) { UI.toast('JSON 格式不合法'); return; }
-          var cats = Array.isArray(data.categories) ? data.categories : [];
-          var dishes = Array.isArray(data.dishes) ? data.dishes : [];
-          var logs = Array.isArray(data.eatLogs) ? data.eatLogs : [];
-          if (!cats.length && !dishes.length && !logs.length) { UI.toast('没有可导入的数据'); return; }
-          UI.modal({
-            title: '确认导入',
-            content: '将合并导入 ' + cats.length + ' 个分类、' + dishes.length + ' 道菜、' + logs.length + ' 条记录；已存在的自动跳过，不会覆盖现有数据。',
-            confirmColor: '#FF8FB8'
-          }).then(function (m) {
-            if (!m.confirm) return;
-            UI.loading({ title: '导入中', mask: true });
-            api.importData(data).then(function (stat) {
-              UI.hideLoading();
-              d.showImport = false;
-              ctx._render();
-              UI.toast('新增 ' + stat.categories + ' 分类 ' + stat.dishes + ' 菜 ' + stat.eatLogs + ' 记录，跳过 ' + stat.skipped, 3000);
-              loadStats(); loadMonth();
-            }).catch(function (err) { UI.hideLoading(); api.handleErr(err, '导入失败'); });
-          });
-        } else if (act === 'closeDay') { d.dayDetail = []; ctx._render(); }
         else if (act === 'reset') {
           UI.modal({ title: '重置数据', content: '将恢复为初始示例数据（8 道菜 + 5 分类 + 吃历样本），当前修改会丢失。', confirmColor: '#FF8FB8' }).then(function (m) {
             if (!m.confirm) return;
@@ -1176,18 +1198,28 @@
           (d.submitting ? '保存中…' : (d.isEdit ? '保存修改' : '保存菜品')) + '</div>';
         h += '<div style="height:30px"></div>';
 
-        // 全屏扫描层
+        inner.innerHTML = h;
+
+        // 全屏扫描层（挂 overlayHost，覆盖整屏含 TabBar）
         if (d.aiScanning) {
-          h += '<div class="scan-overlay"><div class="scan-box">' +
+          var sw = UI.mountOverlay(
+            '<div class="scan-overlay"><div class="scan-box">' +
             '<div class="scan-corner tl"></div><div class="scan-corner tr"></div>' +
             '<div class="scan-corner bl"></div><div class="scan-corner br"></div>' +
             '<div class="scan-line"></div></div>' +
             '<div class="scan-title">AI 正在识别…</div>' +
             '<div class="scan-steps">' + ['正在上传图片…', 'AI 识别中，一般 10 秒内…', '快好了，整理信息…'][d.aiScanStep] + '</div>' +
-            '<div class="scan-cancel" data-act="cancelScan">取消识别</div></div>';
+            '<div class="scan-cancel" data-act="cancelScan">取消识别</div></div>');
+          sw.querySelector('.scan-cancel').addEventListener('click', function () {
+            aiCancelled = true;
+            if (scanTimer) clearInterval(scanTimer);
+            scanTimer = null;
+            d.aiScanning = false;
+            UI.clearOverlay();
+            ctx._render();
+            UI.toast('已取消识别');
+          });
         }
-
-        inner.innerHTML = h;
         // 输入框绑定（局部事件，不重绘避免失焦）
         inner.querySelectorAll('[data-field]').forEach(function (inp) {
           inp.addEventListener('input', function () {
@@ -1249,7 +1281,7 @@
         ctx._render();
         scanTimer = setInterval(function () {
           d.aiScanStep = Math.min(2, d.aiScanStep + 1);
-          var s = inner.querySelector('.scan-steps');
+          var s = UI.$('#overlayHost .scan-steps');
           if (s) s.textContent = ['正在上传图片…', 'AI 识别中，一般 10 秒内…', '快好了，整理信息…'][d.aiScanStep];
         }, 4000);
 
@@ -1282,6 +1314,7 @@
           scanTimer = null;
           d.aiScanning = false;
           d.aiMode = false;
+          UI.clearOverlay();
           ctx._render();
         });
       }
@@ -1443,23 +1476,6 @@
         showModal: false, editingId: '', inputName: '', inputIcon: ICONS[0], submitting: false
       };
 
-      function renderModal() {
-        if (!d.showModal) return '';
-        var h = '<div class="mask" data-act="closeModal"><div class="modal" data-noop>' +
-          '<div class="modal-title">' + (d.editingId ? '编辑分类' : '新增分类') + '</div>' +
-          '<div class="field"><span class="field-label">名称</span>' +
-          '<input class="form-input field-input" placeholder="如：家常菜" maxlength="10" data-field="catName" value="' + esc(d.inputName) + '"></div>' +
-          '<div class="field-col"><span class="field-label">图标</span><div class="icon-grid">';
-        ICONS.forEach(function (ic) {
-          h += '<div class="icon-cell bi' + (d.inputIcon === ic ? ' on' : '') + '" data-icon="' + ic + '">' + esc(ic) + '</div>';
-        });
-        h += '</div></div><div class="modal-btns">' +
-          '<div class="modal-btn cancel" data-act="closeModal">取消</div>' +
-          '<div class="modal-btn confirm" data-act="saveCat">' + (d.submitting ? '保存中' : '保存') + '</div>' +
-          '</div></div></div>';
-        return h;
-      }
-
       ctx._render = function () {
         var h = '';
         if (d.loading) {
@@ -1483,43 +1499,48 @@
           h += '<div class="btn-primary add-btn" data-act="addCat">＋ 新增分类</div>';
         }
         h += '<div style="height:30px"></div>';
-        h += renderModal();
         ctx.body.innerHTML = h;
-        var inp = ctx.body.querySelector('[data-field="catName"]');
-        if (inp) {
-          inp.addEventListener('input', function () { d.inputName = inp.value; });
-          setTimeout(function () { inp.focus(); }, 50);
+
+        // 弹层挂到 overlayHost（盖住 TabBar、不随内容滚动）
+        if (d.showModal) {
+          var mh = '<div class="mask"><div class="modal" data-noop>' +
+            '<div class="modal-title">' + (d.editingId ? '编辑分类' : '新增分类') + '</div>' +
+            '<div class="field"><span class="field-label">名称</span>' +
+            '<input class="form-input field-input" placeholder="如：家常菜" maxlength="10" data-field="catName" value="' + esc(d.inputName) + '"></div>' +
+            '<div class="field-col"><span class="field-label">图标</span><div class="icon-grid">';
+          ICONS.forEach(function (ic) {
+            mh += '<div class="icon-cell bi' + (d.inputIcon === ic ? ' on' : '') + '" data-icon="' + ic + '">' + esc(ic) + '</div>';
+          });
+          mh += '</div></div><div class="modal-btns">' +
+            '<div class="modal-btn cancel" data-act="closeModal">取消</div>' +
+            '<div class="modal-btn confirm" data-act="saveCat">' + (d.submitting ? '保存中' : '保存') + '</div>' +
+            '</div></div></div>';
+          var mwrap = UI.mountOverlay(mh);
+          var inp = mwrap.querySelector('[data-field="catName"]');
+          if (inp) {
+            inp.addEventListener('input', function () { d.inputName = inp.value; });
+            setTimeout(function () { inp.focus(); }, 50);
+          }
+          mwrap.querySelector('.icon-grid').addEventListener('click', function (e) {
+            var cell = e.target.closest('.icon-cell');
+            if (cell) { d.inputIcon = cell.dataset.icon; ctx._render(); }
+          });
+          var cmask = mwrap.querySelector('.mask');
+          cmask.addEventListener('click', function (e) {
+            if (e.target === cmask) { handleCatAction('closeModal'); return; }
+            var t = e.target.closest('[data-act]');
+            if (t) handleCatAction(t.dataset.act, t);
+          });
         }
       };
 
-      function load() {
-        d.loading = true;
-        ctx._render();
-        api.listCategories().then(function (cats) {
-          d.categories = cats;
-          d.loading = false;
-          ctx._render();
-        }).catch(function (err) { api.handleErr(err); d.loading = false; ctx._render(); });
-      }
-
-      ctx.onShow = function () { load(); };
-
-      ctx.body.addEventListener('click', function (e) {
-        if (e.target.closest('[data-noop]')) {
-          // 图标选择
-          var cell = e.target.closest('.icon-cell');
-          if (cell) { d.inputIcon = cell.dataset.icon; ctx._render(); }
-          return;
-        }
-        var t = e.target.closest('[data-act]');
-        if (!t) return;
-        var act = t.dataset.act;
+      function handleCatAction(act, t) {
         if (act === 'addCat') { d.showModal = true; d.editingId = ''; d.inputName = ''; d.inputIcon = ICONS[0]; d.submitting = false; ctx._render(); }
         else if (act === 'editCat') {
           var c = d.categories[Number(t.dataset.i)];
           d.showModal = true; d.editingId = c._id; d.inputName = c.name; d.inputIcon = c.icon || ICONS[0]; d.submitting = false;
           ctx._render();
-        } else if (act === 'closeModal') { d.showModal = false; ctx._render(); }
+        } else if (act === 'closeModal') { d.showModal = false; UI.clearOverlay(); }
         else if (act === 'saveCat') {
           var name = (d.inputName || '').trim();
           if (!name) return UI.toast('分类名不能为空');
@@ -1531,6 +1552,7 @@
             : api.addCategory({ name: name, icon: d.inputIcon });
           p.then(function () {
             d.showModal = false; d.submitting = false;
+            UI.clearOverlay();
             UI.toast({ title: '已保存', icon: 'success' });
             load();
           }).catch(function (err) { d.submitting = false; ctx._render(); api.handleErr(err); });
@@ -1558,6 +1580,24 @@
             api.updateCategory(b._id, { sortOrder: tmpSort })
           ]).then(load).catch(api.handleErr);
         }
+      }
+
+      function load() {
+        d.loading = true;
+        ctx._render();
+        api.listCategories().then(function (cats) {
+          d.categories = cats;
+          d.loading = false;
+          ctx._render();
+        }).catch(function (err) { api.handleErr(err); d.loading = false; ctx._render(); });
+      }
+
+      ctx.onShow = function () { load(); };
+
+      ctx.body.addEventListener('click', function (e) {
+        var t = e.target.closest('[data-act]');
+        if (!t) return;
+        handleCatAction(t.dataset.act, t);
       });
     }
   });

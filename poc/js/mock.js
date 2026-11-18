@@ -435,13 +435,19 @@
       var r = pool[Math.floor(Math.random() * pool.length)];
       var out = { isFood: true, mock: true };
       Object.keys(r).forEach(function (k) { out[k] = r[k]; });
-      return ok(out);
+      return { code: 0, data: out };
     }
   };
 
+  /** AI 识别专用长延迟（真实识别需数秒，扫描动画要可感知） */
+  var AI_DELAY = 2200;
+
   /** 统一入口：模拟 wx.cloud.callFunction({ name:'dish', data }) */
   function call(action, payload) {
+    var wait = action === 'recognizeDish' ? AI_DELAY + Math.random() * 800 : 0;
     return delay().then(function () {
+      if (wait) return new Promise(function (r) { setTimeout(r, wait); });
+    }).then(function () {
       load();
       var fn = actions[action];
       if (!fn) return fail('未知操作: ' + action);
