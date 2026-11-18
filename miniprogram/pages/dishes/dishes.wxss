@@ -107,11 +107,9 @@
 .dish-tags { margin-top: auto; }
 .dish-tags .chip { font-size: 20rpx; padding: 4rpx 14rpx; margin-bottom: 0; margin-right: 8rpx; }
 
-/* 悬浮添加按钮 */
+/* 悬浮添加按钮：left/top 由 JS 控制（可拖动），不再写死 right/bottom */
 .fab {
   position: fixed;
-  right: 40rpx;
-  bottom: 200rpx;
   width: 100rpx;
   height: 100rpx;
   border-radius: 50%;
@@ -123,6 +121,13 @@
   justify-content: center;
   box-shadow: 0 8rpx 24rpx rgba(255, 143, 184, 0.4);
   z-index: 100;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+/* 拖动中：轻微放大 + 加深投影，跟手无延迟 */
+.fab.dragging {
+  transform: scale(1.1);
+  box-shadow: 0 12rpx 32rpx rgba(255, 143, 184, 0.55);
+  transition: none;
 }
 
 /* AI 拍照识别主按钮（空态） */

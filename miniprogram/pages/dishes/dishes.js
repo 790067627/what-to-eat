@@ -16,14 +16,22 @@ Page({
     activeCategoryName: '',
     keyword: '',
     dishes: [],              // 渲染用（含 priceYuan 等派生字段）
-    statusFilter: ''         // '' | want | often | never
+    statusFilter: '',        // '' | want | often | never
+    fabX: 0,                 // 悬浮添加按钮 left（px，可拖动）
+    fabY: 0,                 // 悬浮添加按钮 top（px，可拖动）
+    fabDragging: false       // 拖动中（放大反馈 + 抑制点击）
   },
 
   // 搜索节流定时器
   _searchTimer: null,
+  // FAB 拖动状态（实例级，不进 data）
+  _fabSize: 50,              // 按钮边长 px（100rpx）
+  _fabStart: null,           // { x, y, left, top, moved }
+  _fabBounds: null,          // { minX, minY, maxX, maxY }
 
   onLoad() {
     this.setData({ navHeight: getNavMetrics().headerHeight });
+    this.initFabPos();
   },
 
   onShow() {
@@ -143,9 +151,70 @@ Page({
     wx.navigateTo({ url: '/pages/dish-edit/dish-edit?ai=1' });
   },
 
-  /** FAB：弹自绘添加方式面板（AI 卡片 + 手动行） */
-  onFabTap() {
-    this.setData({ fabSheetVisible: true });
+  /** FAB 初始位置：优先读记忆位置，越界或无记忆则回落到默认右下角 */
+  initFabPos() {
+    const win = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
+    const rpx2px = win.windowWidth / 750;
+    this._fabSize = 100 * rpx2px;
+    // 自定义 tabbar：110rpx 高 + 底部安全区
+    const tabBarH = 110 * rpx2px + (win.safeArea ? win.windowHeight - win.safeArea.bottom : 0);
+    const pad = 12;
+    this._fabBounds = {
+      minX: pad,
+      minY: this.data.navHeight + pad,
+      maxX: win.windowWidth - this._fabSize - pad,
+      maxY: win.windowHeight - tabBarH - this._fabSize - pad
+    };
+    const saved = wx.getStorageSync('dishesFabPos');
+    let left = null;
+    let top = null;
+    if (saved && typeof saved.left === 'number' && typeof saved.top === 'number') {
+      const b = this._fabBounds;
+      // 记忆位置在当前屏幕范围内才采用（换机型/转屏后自动回落）
+      if (saved.left >= b.minX - 1 && saved.left <= b.maxX + 1 && saved.top >= b.minY - 1 && saved.top <= b.maxY + 1) {
+        left = saved.left;
+        top = saved.top;
+      }
+    }
+    if (left === null) {
+      left = win.windowWidth - this._fabSize - 40 * rpx2px;  // 原 right: 40rpx
+      top = win.windowHeight - tabBarH - this._fabSize - 90 * rpx2px; // 原 bottom 视觉位
+    }
+    this.setData({ fabX: left, fabY: top });
+  },
+
+  /** FAB 拖动：touchstart 记录起点 */
+  onFabTouchStart(e) {
+    const t = e.touches[0];
+    this._fabStart = { x: t.clientX, y: t.clientY, left: this.data.fabX, top: this.data.fabY, moved: false };
+  },
+
+  /** FAB 拖动：跟手移动，限制在屏幕内（避开导航栏与 tabbar） */
+  onFabTouchMove(e) {
+    const s = this._fabStart;
+    if (!s) return;
+    const t = e.touches[0];
+    const dx = t.clientX - s.x;
+    const dy = t.clientY - s.y;
+    if (!s.moved && Math.abs(dx) < 5 && Math.abs(dy) < 5) return; // 死区，防误触
+    s.moved = true;
+    const b = this._fabBounds;
+    const left = Math.min(Math.max(s.left + dx, b.minX), b.maxX);
+    const top = Math.min(Math.max(s.top + dy, b.minY), b.maxY);
+    this.setData({ fabX: left, fabY: top, fabDragging: true });
+  },
+
+  /** FAB 拖动：松手——位移小视为点击弹面板，否则记忆新位置 */
+  onFabTouchEnd() {
+    const s = this._fabStart;
+    this._fabStart = null;
+    if (!s) return;
+    if (!s.moved) {
+      this.setData({ fabSheetVisible: true });
+      return;
+    }
+    this.setData({ fabDragging: false });
+    wx.setStorageSync('dishesFabPos', { left: this.data.fabX, top: this.data.fabY });
   },
   closeFabSheet() {
     this.setData({ fabSheetVisible: false });

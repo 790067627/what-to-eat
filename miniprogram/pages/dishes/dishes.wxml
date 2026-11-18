@@ -107,8 +107,15 @@
     </scroll-view>
   </view>
 
-  <!-- 悬浮添加按钮 -->
-  <view class="fab" bindtap="onFabTap">＋</view>
+  <!-- 悬浮添加按钮：可任意拖动，松手记忆位置；轻点仍弹添加面板 -->
+  <view
+    class="fab {{fabDragging ? 'dragging' : ''}}"
+    style="left: {{fabX}}px; top: {{fabY}}px"
+    catchtouchstart="onFabTouchStart"
+    catchtouchmove="onFabTouchMove"
+    catchtouchend="onFabTouchEnd"
+    catchtouchcancel="onFabTouchEnd"
+  >＋</view>
 
   <!-- 添加方式面板（自绘：AI 选项科技风卡片） -->
   <view wx:if="{{fabSheetVisible}}" class="fab-mask" bindtap="closeFabSheet">
