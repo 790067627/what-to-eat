@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Yuki小厨房 · 高保真交互原型 POC</title>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/pages.css">
+<link rel="stylesheet" href="css/glass.css">
+</head>
+<body>
+<div class="stage">
+  <div class="stage-head">
+    <div class="stage-title">Yuki小厨房 · 可交互高保真原型（POC）</div>
+    <div class="stage-sub">基于 main 分支 v1.2.6 源码还原 · 双主题：樱花粉 / iOS Liquid Glass · 主题切换入口在「我的」页 · 全部数据为本地 Mock</div>
+  </div>
+
+  <div class="phone" id="phone">
+    <div class="screen" id="screen" data-theme="sakura">
+      <!-- 环境背景层（Liquid Glass 极光 / 樱花底色） -->
+      <div class="ambient" aria-hidden="true">
+        <div class="blob b1"></div>
+        <div class="blob b2"></div>
+        <div class="blob b3"></div>
+      </div>
+
+      <!-- 顶部：状态栏 + 导航栏（模拟微信） -->
+      <div class="chrome-top" id="chromeTop">
+        <div class="statusbar">
+          <span class="sb-time">19:21</span>
+          <span class="sb-icons">
+            <svg viewBox="0 0 18 12" class="sb-svg"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="4.5" y="5" width="3" height="7" rx="1"/><rect x="9" y="2.5" width="3" height="9.5" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+            <svg viewBox="0 0 16 12" class="sb-svg"><path d="M8 9.6 5.2 6.8a4 4 0 0 1 5.6 0L8 9.6Zm-4.2-4.2-1.4-1.4a8 8 0 0 1 11.2 0l-1.4 1.4a6 6 0 0 0-8.4 0Z"/></svg>
+            <svg viewBox="0 0 25 12" class="sb-svg"><rect x="0.5" y="0.5" width="21" height="11" rx="3" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="1.6"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4Z"/></svg>
+          </span>
+        </div>
+        <div class="navbar" id="navbar">
+          <div class="nav-left" id="navBack"><span class="bi nav-back-icon">&#xf284;</span></div>
+          <div class="nav-title" id="navTitle">Yuki小厨房</div>
+          <div class="nav-right"><div class="capsule"><span class="cap-dot">•••</span><span class="cap-div"></span><span class="cap-ring"></span></div></div>
+        </div>
+      </div>
+
+      <!-- 页面容器（模拟 webview） -->
+      <div class="page-host" id="pageHost"></div>
+
+      <!-- 页面级 fixed 元素层（FAB / Kitty 装饰等） -->
+      <div class="fx-layer" id="fxLayer"></div>
+
+      <!-- 自定义 TabBar -->
+      <div class="tabbar safe-bottom" id="tabbar"></div>
+
+      <!-- 全局浮层（toast/modal/loading/sheet/海报/预览） -->
+      <div class="overlay-host" id="overlayHost"></div>
+
+      <!-- Home 指示条 -->
+      <div class="home-indicator" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <div class="stage-foot">提示：原型仅用于演示，不连接微信云开发 / 数据库 / AI 服务；Mock 数据存于浏览器 localStorage，可在「我的 → 演示控制」重置或清空。</div>
+</div>
+
+<script src="js/mock.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/poster.js"></script>
+<script src="js/pages.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

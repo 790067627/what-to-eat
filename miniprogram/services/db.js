@@ -50,7 +50,7 @@ module.exports = {
   getStats: () => call('getStats'),
   initDemo: () => call('initDemo'),
   exportData: () => call('exportData'),
-  getBgUrl: () => call('getBgUrl'),
+  getBgUrl: (key) => call('getBgUrl', { key }),
   listEatLogsByMonth: (yearMonth) => call('listEatLogsByMonth', { yearMonth }),
   importData: (data) => call('importData', { data }),
   

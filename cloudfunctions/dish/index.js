@@ -43,7 +43,7 @@ exports.main = async (event, context) => {
       case 'getStats': return await getStats(ctx);
       case 'initDemo': return await initDemo(ctx);
       case 'exportData': return await exportData(ctx);
-      case 'getBgUrl': return await getBgUrl();
+      case 'getBgUrl': return await getBgUrl(ctx);
       case 'listEatLogsByMonth': return await listEatLogsByMonth(ctx);
       case 'importData': return await importData(ctx);
       
@@ -520,12 +520,18 @@ async function initDemo({ openid }) {
   return ok({ categories: defaults.length, dishes: demoDishes.length });
 }
 
-/** 首页装饰图（Hello Kitty 透明 webp）：云函数以管理员身份从云存储下载并返回 base64
+/** 云端图片资源表：云函数以管理员身份下载并返回 base64
  *  （免费环境不可设公开读；临时链接有有效期会过期，base64 + 端侧本地缓存可彻底避免过期问题） */
-const DECO_FILE_ID = 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/kitty-deco.webp';
-async function getBgUrl() {
-  const res = await cloud.downloadFile({ fileID: DECO_FILE_ID });
-  if (!res.fileContent) throw new Error('下载装饰图失败');
+const CLOUD_ASSETS = {
+  kitty: 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/kitty-deco.webp',
+  header: 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/header-kitchen.jpg'
+};
+async function getBgUrl(ctx) {
+  const key = (ctx && ctx.event && ctx.event.key) || 'kitty';
+  const fileID = CLOUD_ASSETS[key];
+  if (!fileID) return fail('未知图片资源');
+  const res = await cloud.downloadFile({ fileID });
+  if (!res.fileContent) throw new Error('下载图片失败');
   return ok({ base64: res.fileContent.toString('base64') });
 }
 

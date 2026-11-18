@@ -1,9 +1,17 @@
 // pages/index/index.js - 首页：随机入口 + 今日推荐 + 分类速览
 const api = require('../../services/db');
+const fs = wx.getFileSystemManager();
+
+const HEADER_LOCAL = `${wx.env.USER_DATA_PATH}/header-kitchen.jpg`;
+const HEADER_FLAG = 'header_kitchen_saved';
 const { fenToYuan, shuffle } = require('../../utils/util');
 
 Page({
   data: {
+    headerUrl: '',
+    statusBarHeight: 20,
+    contentHeight: 44,
+    headerHeight: 84,
     loading: true,
     inited: false,        // 是否已有数据
     todayDish: null,      // 今日推荐
@@ -12,7 +20,49 @@ Page({
   },
 
   onLoad() {
+    // 沉浸式导航：状态栏 + 胶囊内容高 + 40rpx 插画延伸带
+    const sys = wx.getWindowInfo();
+    const statusBarHeight = sys.statusBarHeight || 20;
+    const mb = wx.getMenuButtonBoundingClientRect();
+    const contentHeight = mb.height + (mb.top - statusBarHeight) * 2;
+    this.setData({
+      statusBarHeight,
+      contentHeight,
+      headerHeight: statusBarHeight + contentHeight + 20
+    });
+    this.loadHeader();
+
     this.setData({ greeting: this.buildGreeting() });
+  },
+
+  /** 头图：本地缓存优先，缺失回源云函数 base64（与 kitty 装饰图同一套缓存机制） */
+  loadHeader() {
+    try {
+      if (wx.getStorageSync(HEADER_FLAG)) {
+        fs.accessSync(HEADER_LOCAL);
+        this.setData({ headerUrl: HEADER_LOCAL });
+        return;
+      }
+    } catch (e) { /* 无缓存或损坏，回源 */ }
+    api.getBgUrl('header').then(res => {
+      if (!res.base64) throw new Error('empty');
+      fs.writeFile({
+        filePath: HEADER_LOCAL,
+        data: res.base64,
+        encoding: 'base64',
+        success: () => {
+          try { wx.setStorageSync(HEADER_FLAG, 1); } catch (e) { /* 忽略 */ }
+          this.setData({ headerUrl: HEADER_LOCAL });
+        },
+        fail: () => this.setData({ headerUrl: '' })
+      });
+    }).catch(() => this.setData({ headerUrl: '' }));
+  },
+
+  /** 头图加载失败：静默降级为渐变底 */
+  onHeaderError() {
+    try { wx.removeStorageSync(HEADER_FLAG); } catch (e) { /* 忽略 */ }
+    this.setData({ headerUrl: '' });
   },
 
   onShow() {

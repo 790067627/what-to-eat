@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 262" width="380" height="262">
+  <!-- POC 复刻版首页装饰：厨师帽 Hello Kitty + Cakebaker 手写体（对应云存储 kitty-deco.webp） -->
+  <defs>
+    <linearGradient id="apron" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#fdeef4"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 厨师帽 -->
+  <g>
+    <circle cx="168" cy="30" r="17" fill="#ffffff" stroke="#2b2b2b" stroke-width="3"/>
+    <circle cx="190" cy="22" r="20" fill="#ffffff" stroke="#2b2b2b" stroke-width="3"/>
+    <circle cx="212" cy="30" r="17" fill="#ffffff" stroke="#2b2b2b" stroke-width="3"/>
+    <rect x="163" y="34" width="54" height="22" rx="8" fill="#ffffff" stroke="#2b2b2b" stroke-width="3"/>
+    <rect x="163" y="46" width="54" height="10" fill="#ffffff"/>
+    <path d="M170 50h40" stroke="#e8c9d6" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <!-- 头部 -->
+  <g>
+    <path d="M148 78 L138 52 L166 64 Z" fill="#ffffff" stroke="#2b2b2b" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M232 78 L242 52 L214 64 Z" fill="#ffffff" stroke="#2b2b2b" stroke-width="3" stroke-linejoin="round"/>
+    <ellipse cx="190" cy="102" rx="52" ry="42" fill="#ffffff" stroke="#2b2b2b" stroke-width="3"/>
+    <!-- 蝴蝶结 -->
+    <g>
+      <path d="M214 66c-8-10 2-20 12-14 3-8 16-6 16 3 8 1 9 12 1 15-1 8-13 9-16 2-6 4-12 0-13-6Z" fill="#f26d9c" stroke="#2b2b2b" stroke-width="3" stroke-linejoin="round"/>
+      <circle cx="228" cy="63" r="5" fill="#f9a8c4" stroke="#2b2b2b" stroke-width="2.5"/>
+    </g>
+    <!-- 眼睛/鼻子/胡须 -->
+    <ellipse cx="172" cy="98" rx="4.6" ry="6" fill="#2b2b2b"/>
+    <ellipse cx="208" cy="98" rx="4.6" ry="6" fill="#2b2b2b"/>
+    <ellipse cx="190" cy="108" rx="5.4" ry="4.2" fill="#f5c33c" stroke="#2b2b2b" stroke-width="2.4"/>
+    <g stroke="#2b2b2b" stroke-width="2.6" stroke-linecap="round">
+      <path d="M136 92h-22M138 104h-23M140 116l-21 6"/>
+      <path d="M244 92h22M242 104h23M240 116l21 6"/>
+    </g>
+  </g>
+
+  <!-- 身体与围裙 -->
+  <g>
+    <path d="M156 140c-6 26-8 44-6 62h80c2-18 0-36-6-62-10 8-58 8-68 0Z" fill="url(#apron)" stroke="#2b2b2b" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M162 150h56" stroke="#d9e6f2" stroke-width="5"/>
+    <path d="M160 168h60" stroke="#f6c9da" stroke-width="5"/>
+    <circle cx="176" cy="186" r="3.4" fill="#f26d9c"/>
+    <circle cx="190" cy="190" r="3.4" fill="#f26d9c"/>
+    <circle cx="204" cy="186" r="3.4" fill="#f26d9c"/>
+    <!-- 左臂+打蛋器 -->
+    <path d="M156 148c-14 4-24 10-30 18" fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="124" cy="168" r="7" fill="#ffffff" stroke="#2b2b2b" stroke-width="3"/>
+    <g stroke="#8a8a8a" stroke-width="2.4" fill="none" stroke-linecap="round">
+      <path d="M120 162 L104 140"/>
+      <ellipse cx="100" cy="132" rx="7" ry="11" transform="rotate(-35 100 132)"/>
+      <ellipse cx="100" cy="132" rx="3" ry="11" transform="rotate(-35 100 132)"/>
+    </g>
+    <!-- 右臂+隔热手套 -->
+    <path d="M224 148c14 4 24 10 30 18" fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="256" cy="168" r="7" fill="#ffffff" stroke="#2b2b2b" stroke-width="3"/>
+    <g>
+      <rect x="252" y="170" width="26" height="30" rx="9" fill="#c0392b" stroke="#2b2b2b" stroke-width="3"/>
+      <path d="M252 180h26M252 190h26" stroke="#8e2b20" stroke-width="2.4"/>
+      <circle cx="248" cy="182" r="7" fill="#c0392b" stroke="#2b2b2b" stroke-width="3"/>
+    </g>
+  </g>
+
+  <!-- Cakebaker 手写体 -->
+  <g transform="rotate(-4 190 236)">
+    <text x="190" y="242" text-anchor="middle" font-family="'Brush Script MT','Segoe Script','Snell Roundhand',cursive" font-size="44" fill="#f26d9c" stroke="#ffffff" stroke-width="6" paint-order="stroke">Cakebaker</text>
+  </g>
+</svg>

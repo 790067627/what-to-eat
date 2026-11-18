@@ -2,5 +2,6 @@
   "usingComponents": {
     "sakura-bg": "/components/sakura-bg/index"
   },
-  "navigationBarTitleText": "Yuki小厨房"
+  "navigationBarTitleText": "Yuki小厨房",
+  "navigationStyle": "custom"
 }

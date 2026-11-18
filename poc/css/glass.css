@@ -1,0 +1,121 @@
+/* =====================================================================
+   glass.css —— iOS Liquid Glass 概念主题的材质层
+   设计原则：
+   1) 材质分层：环境光斑(ambient) → 磨砂玻璃(card/tabbar/nav) → 高光描边(spec)
+      → 折射亮线(refraction) → 层次化阴影(elevation)，而非全局无差别 blur。
+   2) blur 只用在"浮于内容之上"的层（导航/TabBar/弹窗/卡片），
+      页面滚动内容本身不加 blur，保证文字对比度与低端设备性能。
+   3) 不支持 backdrop-filter 的环境自动降级为半透明实色 + 阴影。
+   ===================================================================== */
+
+/* 不支持 backdrop-filter 时的降级：玻璃层改为高不透明度实色 */
+@supports not ((backdrop-filter: blur(4px)) or (-webkit-backdrop-filter: blur(4px))) {
+  [data-theme="glass"] .card,
+  [data-theme="glass"] .skeleton-item { background: rgba(255, 255, 255, 0.82); }
+  [data-theme="glass"] .navbar { background: rgba(255, 240, 247, 0.92); }
+  [data-theme="glass"] .tabbar { background: rgba(255, 240, 247, 0.92); }
+  [data-theme="glass"] .wx-modal,
+  [data-theme="glass"] .wx-sheet,
+  [data-theme="glass"] .import-panel,
+  [data-theme="glass"] .modal,
+  [data-theme="glass"] .fab-sheet { background: rgba(255, 252, 253, 0.96); }
+  [data-theme="glass"] .search-bar { background: rgba(255, 255, 255, 0.85); }
+  [data-theme="glass"] .roll-card,
+  [data-theme="glass"] .result-card { background: rgba(255, 255, 255, 0.9); }
+}
+
+/* 低端设备 / 省电模式：关闭环境光斑动画与扫光，仅保留静态材质 */
+@media (prefers-reduced-motion: reduce) {
+  .blob, .fab-ai-glow, .fab-ai-dot, .dice, .scan-line { animation: none !important; }
+  .screen.theme-anim *, .screen.theme-anim *::before, .screen.theme-anim *::after { transition: none !important; }
+}
+
+/* ---- 折射亮线：玻璃上缘的"透镜高光"，用伪元素实现，避免额外 blur ---- */
+[data-theme="glass"] .refract-top { position: relative; }
+[data-theme="glass"] .refract-top::after {
+  content: '';
+  position: absolute;
+  left: 10%; right: 10%; top: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .95), transparent);
+  pointer-events: none;
+}
+
+/* ---- 层次化阴影：玻璃层越高，投影越软越大 ---- */
+[data-theme="glass"] .elev-1 { box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 4px 12px rgba(120,40,80,.10); }
+[data-theme="glass"] .elev-2 { box-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 10px 26px rgba(120,40,80,.16); }
+[data-theme="glass"] .elev-3 { box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 22px 54px rgba(80,20,50,.26); }
+
+/* ---- TabBar 玻璃：底部"液面"折射带 ---- */
+[data-theme="glass"] .tabbar::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 0; height: 1px;
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.9) 20%, rgba(255,255,255,.9) 80%, rgba(255,255,255,0));
+  pointer-events: none;
+}
+[data-theme="glass"] .tabbar::after {
+  content: '';
+  position: absolute;
+  left: 6%; right: 6%; bottom: 26px; height: 34px;
+  border-radius: 20px;
+  background: radial-gradient(60% 100% at 50% 100%, rgba(255,255,255,.35), rgba(255,255,255,0));
+  pointer-events: none;
+}
+
+/* ---- 导航栏玻璃：下缘柔和折射 ---- */
+[data-theme="glass"] .navbar::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -6px; height: 6px;
+  background: linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,0));
+  pointer-events: none;
+}
+
+/* ---- 胶囊按钮玻璃化 ---- */
+[data-theme="glass"] .capsule {
+  background: rgba(255, 255, 255, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 1px 0 rgba(255,255,255,.85) inset, 0 4px 12px rgba(120,40,80,.18);
+  -webkit-backdrop-filter: blur(16px) saturate(1.6);
+  backdrop-filter: blur(16px) saturate(1.6);
+}
+[data-theme="glass"] .screen.nav-transparent .capsule {
+  background: rgba(255, 255, 255, 0.30);
+  border-color: rgba(255, 255, 255, 0.55);
+  color: #fff;
+}
+
+/* ---- 中间凸起按钮：液态玻璃球 ---- */
+[data-theme="glass"] .center-btn { overflow: hidden; }
+[data-theme="glass"] .center-btn::before {
+  content: '';
+  position: absolute;
+  left: 12%; right: 12%; top: 6%; height: 42%;
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,0));
+  pointer-events: none;
+}
+[data-theme="glass"] .center-btn::after {
+  content: '';
+  position: absolute;
+  left: 20%; right: 20%; bottom: 8%; height: 26%;
+  border-radius: 50%;
+  background: radial-gradient(50% 100% at 50% 100%, rgba(255,255,255,.55), rgba(255,255,255,0));
+  pointer-events: none;
+}
+
+/* ---- FAB 玻璃球 ---- */
+[data-theme="glass"] .fab::before {
+  content: '';
+  position: absolute;
+  left: 14%; right: 14%; top: 8%; height: 40%;
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,0));
+  pointer-events: none;
+}
+
+/* ---- 文字对比度保护：玻璃层上的次级文字加深 ---- */
+[data-theme="glass"] .chip-plain { color: rgba(74, 44, 58, 0.78); }
+[data-theme="glass"] .empty-text,
+[data-theme="glass"] .loading-tip,
+[data-theme="glass"] .cal-empty-tip { color: rgba(74, 44, 58, 0.55); }
