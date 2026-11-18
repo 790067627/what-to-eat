@@ -32,7 +32,7 @@
 
   <view class="content">
     <!-- 分类侧栏：「全部」固定顶部，其余分类内层滚动；高度自适应+动态上限 -->
-    <view class="side" style="max-height: {{sideMaxH > 0 ? sideMaxH + 'px' : 'none'}}">
+    <view class="side">
       <view
         class="side-item side-all {{!activeCategoryId ? 'on' : ''}}"
         data-id="" data-name="" bindtap="onCategoryTap"
@@ -42,7 +42,6 @@
         scroll-y
         scroll-with-animation
         scroll-into-view="{{sideScrollInto}}"
-        style="max-height: {{sideScrollMaxH > 0 ? sideScrollMaxH + 'px' : 'none'}}"
       >
         <view
           wx:for="{{categories}}"

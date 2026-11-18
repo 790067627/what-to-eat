@@ -48,8 +48,7 @@
 .side {
   width: 170rpx;
   flex-shrink: 0;
-  /* 不被 flex 拉伸：高度随内容自然撑开，max-height 由 JS 动态注入 */
-  align-self: flex-start;
+  /* 与右侧列表等高：默认 stretch 撑满行高，两侧底边对齐 */
   display: flex;
   flex-direction: column;
   background: #FBEFF5;
@@ -57,9 +56,15 @@
   padding: 12rpx 8rpx;
   overflow: hidden;
 }
-/* 内层分类滚动区：仅列表滚动，「全部」不随之移动 */
+/* 「全部」固定项：不可被压缩，保证文字完整显示 */
+.side-all {
+  flex-shrink: 0;
+}
+/* 内层分类滚动区：填满剩余高度，仅列表滚动 */
 .side-scroll {
   width: 100%;
+  flex: 1;
+  min-height: 0;
 }
 .side-item {
   font-size: 24rpx;
