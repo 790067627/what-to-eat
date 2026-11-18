@@ -5,11 +5,11 @@
   overflow: hidden;
   padding: 24rpx 24rpx 0;
 }
-/* 筛选+抽卡区独立滚动；底部留白避让 TabBar 与中间凸起按钮 */
+/* 筛选+抽卡区独立滚动（注意：留白放在滚动内容内的占位节点，
+   scroll-view 元素自身的 padding 会压缩可视窗口导致内容被裁） */
 .rand-scroll {
   flex: 1;
   min-height: 0;
-  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
 }
 
 /* 筛选卡：行高统一 92rpx，行间细分割线，控件右缘对齐 */

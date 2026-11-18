@@ -72,6 +72,8 @@
     </view>
   </view>
 
+  <!-- 底部留白：避让 TabBar 与中间凸起按钮（必须在滚动内容内） -->
+  <view style="height: calc(160rpx + env(safe-area-inset-bottom))"></view>
   </scroll-view>
 
   <!-- 操作区（固定底部，仅结果态显示） -->
