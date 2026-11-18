@@ -44,7 +44,7 @@
     <view class="cat-stats" wx:if="{{categoryStats.length}}">
       <view class="cat-stats-title">本月分类占比</view>
       <view wx:for="{{categoryStats}}" wx:key="categoryId" class="cat-bar-row">
-        <text class="cat-bar-label">{{item.icon}} {{item.name}}</text>
+        <text class="cat-bar-label"><text class="bi">{{item.icon}}</text> {{item.name}}</text>
         <view class="cat-bar-track">
           <view class="cat-bar-fill" style="width: {{item.percent}}%"></view>
         </view>
