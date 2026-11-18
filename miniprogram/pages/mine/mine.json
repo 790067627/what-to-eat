@@ -1,6 +1,4 @@
 {
-  "usingComponents": {
-    "sakura-bg": "/components/sakura-bg/index"
-  },
+  "usingComponents": {},
   "navigationBarTitleText": "我的"
 }

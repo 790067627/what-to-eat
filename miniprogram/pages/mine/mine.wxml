@@ -1,4 +1,3 @@
-<sakura-bg />
 <view class="page">
   <!-- 统计卡 -->
   <view class="card stats-card">

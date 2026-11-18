@@ -11,8 +11,10 @@
   left: 0;
   right: 0;
   height: 110rpx;
-  /* 全透明：让樱花背景图（含底部 Kitty）直接透出 */
-  background: transparent;
+  /* 独立粉色底（取背景波浪带主色 #F8A0C0），不再依赖背景图透出；
+     顶部圆角与页面 #FFF7FA 底衔接，各页样式统一 */
+  background: #F8A0C0;
+  border-radius: 24rpx 24rpx 0 0;
   display: flex;
   z-index: 999;
 }
@@ -36,8 +38,6 @@
   font-size: 20rpx;
   color: #4A2C3A;
   margin-top: 4rpx;
-  /* 深色文字保证在透明底上清晰可读 */
-  text-shadow: 0 1rpx 4rpx rgba(255, 255, 255, 0.8);
 }
 
 .tab-item.active .tab-icon {
@@ -59,7 +59,7 @@
   align-items: center;
   justify-content: center;
   margin-top: -48rpx;
-  border: 6rpx solid #FFF7FA;
+  border: 6rpx solid #F8A0C0;  /* 与 tabbar 底色同色，形成挖空环 */
 }
 
 .center-icon {
@@ -69,7 +69,6 @@
 
 .center-text {
   color: #FF8FB8;
-  text-shadow: 0 1rpx 8rpx rgba(255, 255, 255, 0.9);
 }
 
 .tab-item.active .center-text {
