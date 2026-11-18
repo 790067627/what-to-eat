@@ -1,6 +1,7 @@
 <custom-navbar title="菜品详情" />
 
 <view class="page" wx:if="{{!loading && dish}}" style="padding-top: {{navbarHeight}}px;">
+  <scroll-view class="detail-scroll" scroll-y>
   <!-- 头图 -->
   <image
     wx:if="{{dish.coverImage}}"
@@ -81,7 +82,9 @@
     </view>
   </view>
 
-  <!-- 操作按钮区 -->
+  </scroll-view>
+
+  <!-- 操作按钮区（固定底部，不随内容滚动） -->
   <view wx:if="{{!isShared}}" class="action-section">
     <!-- 第一行：记一笔 -->
     <button class="btn-primary log-btn" bindtap="onLogEat">
@@ -110,8 +113,6 @@
   </view>
 
   <poster id="poster" dish="{{dish}}" cover-image-url="{{dish.coverImageUrl || ''}}" category-name="{{categoryName}}" />
-
-  <view style="height: 60rpx"></view>
 </view>
 
 <!-- 骨架 -->

@@ -1,5 +1,6 @@
 <immersive-nav />
 <view class="page" style="padding-top: {{navHeight}}px">
+  <scroll-view class="rand-scroll" scroll-y>
   <!-- 筛选条件 -->
   <view class="card filters">
     <view class="filter-row">
@@ -67,8 +68,10 @@
     </view>
   </view>
 
-  <!-- 操作区 -->
-  <view class="actions safe-bottom">
+  </scroll-view>
+
+  <!-- 操作区（固定底部，不随内容滚动） -->
+  <view class="actions">
     <block wx:if="{{phase === 'result'}}">
       <view class="action-row">
         <view class="btn-ghost action-reject" bindtap="onReject"><text class="bi"></text> 不想吃，换一个</view>

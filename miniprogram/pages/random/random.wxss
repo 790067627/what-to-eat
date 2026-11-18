@@ -1,9 +1,12 @@
 .page {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   padding: 24rpx 24rpx 0;
 }
+/* 筛选+抽卡区独立滚动 */
+.rand-scroll { flex: 1; min-height: 0; }
 
 /* 筛选卡 */
 .filters { padding: 28rpx; }
@@ -106,7 +109,12 @@
 .result-link { font-size: 24rpx; color: #FF8FB8; margin-top: 16rpx; }
 
 /* 操作区 */
-.actions { padding: 24rpx 0 180rpx; }
+.actions {
+  flex-shrink: 0;
+  /* 110rpx TabBar + 44rpx 中间凸起超出量 + 安全区 */
+  padding: 24rpx 0 calc(154rpx + env(safe-area-inset-bottom));
+  background: #FFF7FA;
+}
 .action-row { display: flex; gap: 20rpx; }
 .action-reject {
   flex: 1;

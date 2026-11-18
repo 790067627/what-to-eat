@@ -1,4 +1,12 @@
-.page { padding: 24rpx; }
+.page {
+  padding: 24rpx;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+/* 详情内容区独立滚动 */
+.detail-scroll { flex: 1; min-height: 0; }
 
 /* 头图 */
 .cover {
@@ -60,7 +68,10 @@
 
 /* 操作按钮区 */
 .action-section {
-  margin-top: 16rpx;
+  flex-shrink: 0;
+  padding-top: 16rpx;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: #FFF7FA;   /* 实底：内容滚过按钮区时不透出 */
 }
 
 /* 记一笔按钮 - 独占一行 */

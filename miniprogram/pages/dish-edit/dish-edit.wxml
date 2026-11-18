@@ -1,4 +1,5 @@
 <view class="page">
+  <scroll-view class="form-scroll" scroll-y>
   <!-- 图片区 -->
   <view class="card">
     <view class="section-title">菜品图片 <text class="title-hint">（第一张为封面，最多{{maxImages}}张）</text></view>
@@ -143,7 +144,9 @@
     <text class="bi ai-banner-close" bindtap="closeAiBanner"></text>
   </view>
 
-  <!-- 提交 -->
+  </scroll-view>
+
+  <!-- 提交（固定底部，不随内容滚动） -->
   <view class="btn-primary submit-btn {{submitting ? 'btn-disabled' : ''}}" bindtap="onSubmit">
     {{submitting ? '保存中…' : (isEdit ? '保存修改' : '保存菜品')}}
   </view>
