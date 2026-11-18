@@ -3,10 +3,12 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  padding: 24rpx 24rpx 0;
+  /* border-box：100vh 含 padding，顶部让位导航(内联)、底部让位 TabBar+凸起，无重复占位 */
+  padding: 0 24rpx calc(154rpx + env(safe-area-inset-bottom));
 }
-/* 筛选+抽卡区独立滚动（注意：留白放在滚动内容内的占位节点，
-   scroll-view 元素自身的 padding 会压缩可视窗口导致内容被裁） */
+/* 筛选区：自然高度不滚动 */
+.filters { flex-shrink: 0; }
+/* 中间抽卡区：独占剩余空间，内容不超时居中、超时才内部滚动 */
 .rand-scroll {
   flex: 1;
   min-height: 0;
@@ -34,12 +36,15 @@
   padding: 8rpx 28rpx;
 }
 
-/* 舞台区：紧跟筛选卡自然排布，不再撑满全屏居中 */
+/* 舞台区：撑满中间滚动区并垂直居中；内容超高时自然撑开触发滚动 */
 .stage {
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 56rpx 0 40rpx;
+  justify-content: center;
+  padding: 24rpx 0;
+  box-sizing: border-box;
 }
 
 /* 初始态：骰子+标题+说明+按钮为一个整体 */
@@ -124,13 +129,15 @@
 .result-desc { font-size: 26rpx; color: #9C7B8C; line-height: 1.6; padding: 0 20rpx; }
 .result-link { font-size: 24rpx; color: #FF8FB8; margin-top: 16rpx; }
 
-/* 操作区 */
+/* 操作区：固定底部（TabBar 避让由 page padding 承担），独立背景不遮卡片 */
 .actions {
   flex-shrink: 0;
-  /* 110rpx TabBar + 44rpx 中间凸起超出量 + 安全区 */
-  padding: 24rpx 0 calc(154rpx + env(safe-area-inset-bottom));
+  padding-top: 20rpx;
   background: #FFF7FA;
 }
+/* 海报按钮居中 */
+.poster-row { display: flex; justify-content: center; margin-top: 16rpx; }
+.poster-btn { width: auto; padding: 20rpx 48rpx; }
 .action-row { display: flex; gap: 20rpx; }
 .action-reject {
   flex: 1;

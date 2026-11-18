@@ -1,6 +1,6 @@
 <immersive-nav />
 <view class="page" style="padding-top: {{navHeight}}px">
-  <scroll-view class="rand-scroll" scroll-y>
+  <!-- ① 顶部筛选区：自然高度，不滚动 -->
   <!-- 筛选条件 -->
   <view class="card filters">
     <view class="filter-row">
@@ -33,7 +33,8 @@
     </view>
   </view>
 
-  <!-- 抽卡区域 -->
+  <!-- ② 中间抽卡区：独占剩余空间，仅内容超高时内部滚动 -->
+  <scroll-view class="rand-scroll" scroll-y>
   <view class="stage">
     <!-- 初始态：骰子+标题+说明+开始抽整合为一个操作区域 -->
     <view wx:if="{{phase === 'idle'}}" class="idle">
@@ -71,9 +72,6 @@
       </view>
     </view>
   </view>
-
-  <!-- 底部留白：避让 TabBar 与中间凸起按钮（必须在滚动内容内） -->
-  <view style="height: calc(160rpx + env(safe-area-inset-bottom))"></view>
   </scroll-view>
 
   <!-- 操作区（固定底部，仅结果态显示） -->
@@ -82,7 +80,9 @@
       <view class="btn-ghost action-reject" bindtap="onReject"><text class="bi"></text> 不想吃，换一个</view>
       <view class="btn-primary action-accept" bindtap="onAccept">✓ 就它了，记一笔</view>
     </view>
-    <view class="btn-ghost poster-btn" bindtap="onPoster"><text class="bi"></text> 生成分享海报</view>
+    <view class="poster-row">
+      <view class="btn-ghost poster-btn" bindtap="onPoster"><text class="bi"></text> 生成分享海报</view>
+    </view>
   </view>
 </view>
 <poster id="poster" dish="{{result.dish}}" category-name="{{result.categoryName}}" />
