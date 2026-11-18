@@ -1,4 +1,13 @@
-// services/db.js - 数据服务层（统一走云函数 dish，前端不直连数据库，权限收敛在服务端）
+// services/db.js
+/** icon 清洗：仅接受 PUA 码位（U+E000~U+F8FF，图标字体子集范围），其余一律换 apple 字形 */
+function sanitizeIcon(icon) {
+  if (typeof icon === 'string' && icon.length === 1) {
+    const cp = icon.charCodeAt(0);
+    if (cp >= 0xE000 && cp <= 0xF8FF) return icon;
+  }
+  return '\uf65b';
+}
+// - 数据服务层（统一走云函数 dish，前端不直连数据库，权限收敛在服务端）
 const { toast } = require('../utils/util');
 
 /** 调用云函数统一入口 */
@@ -26,7 +35,19 @@ function handleErr(err, fallbackMsg = '网络异常，请稍后再试') {
 
 module.exports = {
   // ---- 分类 ----
-  listCategories: () => call('listCategories'),
+  /** 分类列表：icon 统一清洗——非图标字体码位（汉字/emoji 等历史脏数据）替换为 apple 字形。
+   *  原因：CJK 区码位（如「奈」U+5948）在真机渲染时系统汉字字体优先于 web 字体 cmap，
+   *  字体层映射不生效，故在数据层兜底 */
+  listCategories: async () => {
+    const res = await call('listCategories');
+    if (res && Array.isArray(res.categories)) {
+      res.categories = res.categories.map(c => ({
+        ...c,
+        icon: sanitizeIcon(c.icon)
+      }));
+    }
+    return res;
+  },
   addCategory: (data) => call('addCategory', { data }),
   updateCategory: (id, data) => call('updateCategory', { id, data }),
   deleteCategory: (id) => call('deleteCategory', { id }),
