@@ -19,7 +19,8 @@ Component({
   data: {
     visible: false,
     posterUrl: '',
-    saving: false
+    saving: false,
+    canvasH: 500   // 动态画布高度（px）
   },
 
   methods: {
@@ -39,9 +40,34 @@ Component({
       try {
         const canvas = await this.getCanvas();
         const dpr = (wx.getWindowInfo && wx.getWindowInfo().pixelRatio) || 2;
-        const W = 375, H = 500;
+        const W = 375;
+
+        // 先加载图片，再按内容动态算高（画布高度 = 各区块实际高度之和，消除中部空白）
+        const imgSrc = this.properties.coverImageUrl || dish.coverImage;
+        const cover = await this.loadImage(canvas, imgSrc);
+
+        // 预排描述行数（用于计算总高）
+        const probeCtx = canvas.getContext('2d');
+        probeCtx.font = '13px -apple-system, "PingFang SC", sans-serif';
+        const desc = (dish.description || '').replace(/\n/g, ' ').trim();
+        const descLines = desc ? this.wrapText(probeCtx, desc, W - 40, 3) : [];
+        const descLineCount = Math.max(1, descLines.length); // 无描述时 slogan 占 1 行
+
+        // 布局常量（px）：图→名 12，名→类 10，类→描述 10，描述→品牌区 28
+        const L = {
+          coverTop: 46, coverH: 210,
+          gapImgName: 12, nameH: 26,
+          gapNameChip: 10, chipH: 22,
+          gapChipDesc: 10, descLineH: 20,
+          gapDescFooter: 28, footerH: 58
+        };
+        const infoH = L.gapImgName + L.nameH + L.gapNameChip + L.chipH
+          + L.gapChipDesc + descLineCount * L.descLineH;
+        const H = L.coverTop + L.coverH + infoH + L.gapDescFooter + L.footerH;
+
         canvas.width = W * dpr;
         canvas.height = H * dpr;
+        this.setData({ canvasH: H });
         const ctx = canvas.getContext('2d');
         ctx.scale(dpr, dpr);
 
@@ -52,16 +78,14 @@ Component({
         // 2. 品牌头部
         this.drawHeader(ctx, W);
 
-        // 3. 加载并绘制菜品大图
-        const imgSrc = this.properties.coverImageUrl || dish.coverImage;
-        const cover = await this.loadImage(canvas, imgSrc);
+        // 3. 菜品大图（比例/圆角不变）
         this.drawCover(ctx, cover, W);
 
-        // 4. 菜品信息
-        this.drawInfo(ctx, dish, W);
+        // 4. 菜品信息（返回内容底部 y，供品牌区定位）
+        const infoBottom = this.drawInfo(ctx, dish, W, L, descLines);
 
-        // 5. 底部分割线 + 品牌引导
-        this.drawFooter(ctx, W, H);
+        // 5. 底部品牌区（紧跟内容，无大面积空白）
+        this.drawFooter(ctx, W, infoBottom + L.gapDescFooter);
 
         // 6. 导出
         const posterUrl = await new Promise((resolve, reject) => {
@@ -163,65 +187,60 @@ Component({
       }
     },
 
-    // ③ 菜品信息：菜名 + 分类/价格 + 描述
-    drawInfo(ctx, dish, W) {
+    // ③ 菜品信息：菜名 + 分类/价格 + 描述（最多 3 行），返回内容底部 y
+    drawInfo(ctx, dish, W, L, descLines) {
       const left = 20;
-      let y = 276;
+      const contentTop = L.coverTop + L.coverH;   // 图底 = 256
 
       ctx.textAlign = 'left';
       ctx.textBaseline = 'alphabetic';
 
-      // 菜名（深色加粗）
+      // 菜名：图→名间距 12
+      let y = contentTop + L.gapImgName;
       ctx.fillStyle = TEXT_PRIMARY;
       ctx.font = 'bold 21px -apple-system, "PingFang SC", "Helvetica Neue", sans-serif';
       const name = String(dish.name || '').slice(0, 16);
-      ctx.fillText(name, left, y);
-      y += 28;
+      ctx.fillText(name, left, y + 19);           // 基线 ≈ 顶部 + 字号*0.9
+      y += L.nameH + L.gapNameChip;               // 名→类间距 10
 
       // 分类标签 + 价格（同一行）
       const cat = this.properties.categoryName;
       let chipX = left;
+      ctx.font = '12px -apple-system, "PingFang SC", sans-serif';
       if (cat) {
-        ctx.font = '12px -apple-system, "PingFang SC", sans-serif';
         const tw = ctx.measureText(cat).width + 16;
-        this.roundRect(ctx, chipX, y - 13, tw, 22, 11);
+        this.roundRect(ctx, chipX, y, tw, L.chipH, L.chipH / 2);
         ctx.fillStyle = BRAND_LIGHT;
         ctx.fill();
         ctx.fillStyle = BRAND;
-        ctx.fillText(cat, chipX + 8, y + 2);
+        ctx.fillText(cat, chipX + 8, y + 15);
         chipX += tw + 8;
       }
       if (dish.priceYuan) {
         ctx.fillStyle = BRAND;
         ctx.font = 'bold 13px -apple-system, "PingFang SC", sans-serif';
-        ctx.fillText(`¥${dish.priceYuan}`, chipX, y + 2);
+        ctx.fillText(`¥${dish.priceYuan}`, chipX, y + 15);
       }
-      y += 24;
+      y += L.chipH + L.gapChipDesc;               // 类→描述间距 10
 
-      // 描述（浅灰色，最多 2 行）
-      const desc = (dish.description || '').replace(/\n/g, ' ').trim();
-      if (desc) {
+      // 描述（浅灰，最多 3 行超出省略；无描述时展示 slogan）
+      ctx.font = '13px -apple-system, "PingFang SC", sans-serif';
+      if (descLines && descLines.length) {
         ctx.fillStyle = TEXT_SECONDARY;
-        ctx.font = '13px -apple-system, "PingFang SC", sans-serif';
-        const maxW = W - 40;
-        const lines = this.wrapText(ctx, desc, maxW, 2);
-        const lineH = 20;
-        lines.forEach((line, i) => {
-          ctx.fillText(line, left, y + i * lineH);
+        descLines.forEach((line, i) => {
+          ctx.fillText(line, left, y + 12 + i * L.descLineH);
         });
-        y += lines.length * lineH + 4;
+        y += descLines.length * L.descLineH;
       } else {
         ctx.fillStyle = '#BBBBBB';
-        ctx.font = '13px -apple-system, "PingFang SC", sans-serif';
-        ctx.fillText(this.properties.slogan, left, y);
-        y += 22;
+        ctx.fillText(this.properties.slogan, left, y + 12);
+        y += L.descLineH;
       }
+      return y;
     },
 
-    // ④ 底部分割线 + 品牌引导
-    drawFooter(ctx, W, H) {
-      const fy = H - 68;
-
+    // ④ 底部品牌区：浅灰分割线 + 左对齐两行文字（无厨师帽图标）
+    drawFooter(ctx, W, fy) {
       // 细分割线
       ctx.strokeStyle = DIVIDER;
       ctx.lineWidth = 0.5;
@@ -230,7 +249,6 @@ Component({
       ctx.lineTo(W - 20, fy);
       ctx.stroke();
 
-      // 左侧文字
       ctx.textAlign = 'left';
       ctx.textBaseline = 'alphabetic';
       ctx.fillStyle = TEXT_SECONDARY;
@@ -238,34 +256,7 @@ Component({
       ctx.fillText('发现更多家常美味', 20, fy + 22);
 
       ctx.fillStyle = BRAND;
-      ctx.font = '12px -apple-system, "PingFang SC", sans-serif';
       ctx.fillText('微信搜索「Yuki 小厨房」', 20, fy + 42);
-
-      // 右侧厨师帽线性图标
-      this.drawChefHat(ctx, W - 44, fy + 10);
-    },
-
-    // 简约厨师帽（线性）
-    drawChefHat(ctx, x, y) {
-      ctx.strokeStyle = '#D0D0D0';
-      ctx.lineWidth = 1.2;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      ctx.arc(x + 12, y + 8, 9, Math.PI, 0, false);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x + 3, y + 8);
-      ctx.lineTo(x + 4, y + 17);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x + 21, y + 8);
-      ctx.lineTo(x + 20, y + 17);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x + 2, y + 17);
-      ctx.lineTo(x + 22, y + 17);
-      ctx.stroke();
     },
 
     wrapText(ctx, text, maxW, maxLines) {

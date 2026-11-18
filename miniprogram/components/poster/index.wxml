@@ -1,10 +1,12 @@
 <!-- components/poster/index.wxml - 分享海报弹窗 -->
 <!-- canvas 移出可视区绘制，导出后用 image 预览 -->
-<canvas type="2d" id="posterCanvas" class="poster-canvas"></canvas>
+<canvas type="2d" id="posterCanvas" class="poster-canvas" style="height: {{canvasH}}px"></canvas>
 
 <view wx:if="{{visible}}" class="poster-mask" bindtap="onClose">
   <view class="poster-box" catchtap="noop">
-    <image class="poster-preview" src="{{posterUrl}}" mode="widthFix" show-menu-by-longpress="{{true}}" />
+    <scroll-view class="poster-preview-scroll" scroll-y>
+      <image class="poster-preview" src="{{posterUrl}}" mode="widthFix" show-menu-by-longpress="{{true}}" />
+    </scroll-view>
 
     <!-- 第一行：分享给好友 + 保存到相册 -->
     <view class="poster-actions">
