@@ -50,7 +50,8 @@ Component({
         const probeCtx = canvas.getContext('2d');
         probeCtx.font = '13px -apple-system, "PingFang SC", sans-serif';
         const desc = (dish.description || '').replace(/\n/g, ' ').trim();
-        const descLines = desc ? this.wrapText(probeCtx, desc, W - 40, 3) : [];
+        // 介绍完整展示：不限行数、无省略号，海报高度随实际行数增长
+        const descLines = desc ? this.wrapText(probeCtx, desc, W - 40, Infinity) : [];
         const descLineCount = Math.max(1, descLines.length); // 无描述时 slogan 占 1 行
 
         // 布局常量（px）：图→名 12，名→类 10，类→描述 10，描述→品牌区 28
@@ -223,7 +224,7 @@ Component({
       }
       y += L.chipH + L.gapChipDesc;               // 类→描述间距 10
 
-      // 描述（浅灰，最多 3 行超出省略；无描述时展示 slogan）
+      // 描述（浅灰，完整换行不限行数；无描述时展示 slogan）
       ctx.font = '13px -apple-system, "PingFang SC", sans-serif';
       if (descLines && descLines.length) {
         ctx.fillStyle = TEXT_SECONDARY;
@@ -278,7 +279,7 @@ Component({
           else lines.push(line);
         }
       }
-      if (lines.length > maxLines) {
+      if (lines.length > maxLines && maxLines !== Infinity) {
         const last = lines[maxLines - 1];
         let truncated = last;
         while (ctx.measureText(truncated + '…').width > maxW && truncated.length > 0) {

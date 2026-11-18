@@ -27,13 +27,34 @@
   box-sizing: border-box;
 }
 
-/* 弹窗容器 */
+/* 弹窗容器：相对定位承载右上角关闭按钮 */
 .poster-box {
+  position: relative;
   width: 100%;
   max-width: 600rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+/* 右上角圆形关闭按钮：半透明白底 + 深色图标，属弹窗操作层不进海报 */
+.poster-close-btn {
+  position: absolute;
+  top: -16rpx;
+  right: -8rpx;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.18);
+}
+.poster-close-btn .bi {
+  font-size: 28rpx;
+  color: #4A2C3A;
 }
 
 /* 预览区：限高可滚动，保证小屏不超安全区 */
@@ -68,11 +89,11 @@
   justify-content: center;
   padding: 22rpx 0;
   border-radius: 999rpx;
-  background: linear-gradient(135deg, #E894B0, #D4779A);
+  background: #E85D91;
   color: #fff;
   font-size: 28rpx;
   font-weight: 600;
-  box-shadow: 0 4rpx 16rpx rgba(212, 119, 154, 0.35);
+  box-shadow: 0 4rpx 16rpx rgba(232, 93, 145, 0.35);
   border: 2rpx solid transparent;   /* 与保存按钮同盒模型，保证等高 */
   line-height: 1.4;
   margin: 0;
@@ -96,10 +117,11 @@
   justify-content: center;
   padding: 22rpx 0;
   border-radius: 999rpx;
-  border: 2rpx solid rgba(255, 255, 255, 0.85);
-  color: #fff;
+  border: 2rpx solid #E85D91;
+  color: #E85D91;
   font-size: 28rpx;
-  background: transparent;
+  font-weight: 600;
+  background: #FFFFFF;
   box-sizing: border-box;
 }
 
@@ -109,21 +131,6 @@
 }
 
 .poster-btn-disabled { opacity: 0.5; }
-
-/* 第二行：关闭按钮（文字样式） */
-.poster-close {
-  margin-top: 24rpx;
-  font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.7);
-  padding: 8rpx 32rpx;
-}
-
-.poster-hint {
-  margin-top: 16rpx;
-  font-size: 22rpx;
-  color: rgba(255, 255, 255, 0.5);
-  text-align: center;
-}
 
 .bi {
   font-family: 'bi' !important;

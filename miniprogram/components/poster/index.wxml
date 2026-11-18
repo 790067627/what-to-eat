@@ -1,27 +1,26 @@
 <!-- components/poster/index.wxml - 分享海报弹窗 -->
 <!-- canvas 移出可视区绘制，导出后用 image 预览 -->
-<canvas type="2d" id="posterCanvas" class="poster-canvas" style="height: {{canvasH}}px"></canvas>
+<canvas type="2d" id="posterCanvas" class="poster-canvas" style="height: {canvasH}px"></canvas>
 
-<view wx:if="{{visible}}" class="poster-mask" bindtap="onClose">
+<view wx:if="{visible}" class="poster-mask" bindtap="onClose">
   <view class="poster-box" catchtap="noop">
+    <!-- 右上角圆形关闭按钮（弹窗操作层，不进海报图） -->
+    <view class="poster-close-btn" bindtap="onClose"><text class="bi"></text></view>
+
+    <!-- 海报预览：长内容仅此区域滚动，按钮始终可见 -->
     <scroll-view class="poster-preview-scroll" scroll-y>
-      <image class="poster-preview" src="{{posterUrl}}" mode="widthFix" show-menu-by-longpress="{{true}}" />
+      <image class="poster-preview" src="{posterUrl}" mode="widthFix" show-menu-by-longpress="{true}" />
     </scroll-view>
 
-    <!-- 第一行：分享给好友 + 保存到相册 -->
+    <!-- 操作区：分享（粉填充）+ 保存（白底粉描边） -->
     <view class="poster-actions">
       <button class="poster-btn-share" open-type="share">
         <text class="bi"></text> 分享给好友
       </button>
-      <view class="poster-btn-save {{saving ? 'poster-btn-disabled' : ''}}" bindtap="onSave">
-        <text wx:if="{{!saving}}" class="bi"></text>
-        <text>{{saving ? '保存中…' : '保存到相册'}}</text>
+      <view class="poster-btn-save {saving ? 'poster-btn-disabled' : ''}" bindtap="onSave">
+        <text wx:if="{!saving}" class="bi"></text>
+        <text>{saving ? '保存中…' : '保存到相册'}</text>
       </view>
     </view>
-
-    <!-- 第二行：关闭（文字按钮） -->
-    <view class="poster-close" bindtap="onClose">关闭</view>
-
-    <view class="poster-hint">长按图片也可保存</view>
   </view>
 </view>
