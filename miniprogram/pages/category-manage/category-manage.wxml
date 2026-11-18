@@ -45,15 +45,17 @@
 
       <view class="field-col">
         <text class="field-label">图标</text>
-        <view class="icon-grid">
-          <view
-            wx:for="{{iconOptions}}"
-            wx:key="*this"
-            class="icon-cell bi {{inputIcon === item ? 'on' : ''}}"
-            data-icon="{{item}}"
-            bindtap="onIconChoose"
-          >{{item}}</view>
-        </view>
+        <scroll-view class="icon-scroll" scroll-y enhanced show-scrollbar="{{true}}">
+          <view class="icon-grid">
+            <view
+              wx:for="{{iconOptions}}"
+              wx:key="*this"
+              class="icon-cell bi {{inputIcon === item ? 'on' : ''}}"
+              data-icon="{{item}}"
+              bindtap="onIconChoose"
+            >{{item}}</view>
+          </view>
+        </scroll-view>
       </view>
 
       <view class="modal-btns">

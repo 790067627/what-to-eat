@@ -89,6 +89,10 @@
 }
 .ph { color: #D8BAC9; }
 
+/* 图标选择区：限高内部滚动，取消/保存按钮在滚动区外固定 */
+.icon-scroll {
+  max-height: 400rpx;
+}
 .icon-grid { display: flex; flex-wrap: wrap; gap: 14rpx; }
 .icon-cell {
   width: 88rpx;
