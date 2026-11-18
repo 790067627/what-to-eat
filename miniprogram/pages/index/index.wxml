@@ -1,8 +1,8 @@
-<sakura-bg />
+<sakura-bg id="kitty" />
 
 <immersive-nav />
 
-<view class="page" style="padding-top: {{navHeight}}px">
+<view class="page" style="padding-top: {{navHeight}}px" bindtap="onPageTap">
   <!-- 骨架屏 -->
   <block wx:if="{{loading}}">
     <view class="skeleton-item"><view class="skeleton-img"></view>

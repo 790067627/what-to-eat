@@ -1,8 +1,13 @@
-<!-- 首页装饰图：Hello Kitty 透明 webp，widthFix 保持原始宽高比不变形 -->
-<image
-  wx:if="{{url}}"
-  class="kitty-deco"
-  src="{{url}}"
-  mode="widthFix"
-  binderror="onBgError"
-/>
+<!-- 首页 Hello Kitty 装饰：漂浮+摇摆动效；widthFix 保持原始宽高比 -->
+<view wx:if="{{url}}" class="kitty-wrap {{paused ? 'paused' : ''}}">
+  <view class="kitty-float">
+    <view class="kitty-sway">
+      <image
+        class="kitty-deco {{bouncing ? 'kitty-bounce' : ''}}"
+        src="{{url}}"
+        mode="widthFix"
+        binderror="onBgError"
+      />
+    </view>
+  </view>
+</view>

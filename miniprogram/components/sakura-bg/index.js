@@ -12,16 +12,41 @@ const OLD_LOCAL_PATH = `${wx.env.USER_DATA_PATH}/sakura-bg.jpg`; // 旧整图背
 const OLD_FLAG_KEY = 'sakura_bg_saved';
 
 Component({
-  data: { url: '' },
+  data: { url: '', paused: false, bouncing: false },
 
   lifetimes: {
     attached() {
       this.cleanupOld();
       this.load();
+    },
+    detached() {
+      clearTimeout(this._bounceTimer);
     }
   },
 
+  /** 页面显隐联动：切走暂停动画，回来恢复（省资源也符合系统动效习惯）。
+   *  注：小程序暂无「系统减少动态效果」设置项 API，能力缺失时默认常开 */
+  pageLifetimes: {
+    show() { this.setData({ paused: false }); },
+    hide() { this.setData({ paused: true }); }
+  },
+
   methods: {
+    /** 页面级 tap 命中检测：坐标落在 Kitty 矩形内则触发一次弹跳（组件自身 pointer-events:none 不可点） */
+    tryTapBounce(clientX, clientY) {
+      if (this.data.bouncing || this.data.paused || !this.data.url) return;
+      this.createSelectorQuery().select('.kitty-wrap').boundingClientRect(rect => {
+        if (!rect) return;
+        if (clientX >= rect.left && clientX <= rect.right &&
+            clientY >= rect.top && clientY <= rect.bottom) {
+          this.setData({ bouncing: true });
+          // 动画 400ms，稍放宽后摘除 class 以便可重复触发
+          clearTimeout(this._bounceTimer);
+          this._bounceTimer = setTimeout(() => this.setData({ bouncing: false }), 450);
+        }
+      }).exec();
+    },
+
     /** 清理旧版整张背景图的本地缓存，释放用户目录空间 */
     cleanupOld() {
       try {

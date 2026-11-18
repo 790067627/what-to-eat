@@ -20,6 +20,14 @@ Page({
     this.setData({ greeting: this.buildGreeting() });
   },
 
+  /** 页面级 tap：坐标命中 Kitty 区域时触发弹跳（Kitty 本体 pointer-events:none 不挡点击） */
+  onPageTap(e) {
+    const t = e.changedTouches && e.changedTouches[0];
+    if (!t) return;
+    const kitty = this.selectComponent('#kitty');
+    if (kitty) kitty.tryTapBounce(t.clientX, t.clientY);
+  },
+
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0 });

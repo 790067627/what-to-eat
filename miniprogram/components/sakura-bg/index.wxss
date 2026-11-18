@@ -1,25 +1,54 @@
 /* 首页 Hello Kitty 装饰图
-   - 独立可调参数集中在 :host 变量：宽度 / 距底 / 透明度
-   - z-index:-1 位于页面内容之下；TabBar(fixed,z-999) 之上不受影响
-   - pointer-events:none 保证不阻挡任何点击 */
-:host {
-  /* 装饰图宽度（原图 1536x1024，widthFix 自动等比，高≈宽×2/3）
-     380rpx：顶部不再伸入分类卡区域 */
+   - 可调参数集中在 .kitty-wrap 变量：宽度 / 距底 / 透明度
+   - z-index:-1 位于页面内容之下，pointer-events:none 不挡任何点击
+     （点击弹跳由页面级 tap 坐标命中检测触发，见 index.js onPageTap）
+   - 三层嵌套分离 transform：wrap 定位 / float 漂浮 / sway 摇摆 / image 弹跳 */
+.kitty-wrap {
+  /* 装饰图宽度（原图 1536x1024，widthFix 自动等比，高≈宽×2/3） */
   --kitty-width: 380rpx;
-  /* 底部留白 = TabBar 高 110rpx + 中间凸起按钮超出 44rpx + 呼吸间距 6rpx + 安全区
-     （再低就会与「抽一抽」凸起按钮重叠，此为下限） */
+  /* 底部留白：TabBar 之上，不与凸起按钮重叠 */
   --kitty-bottom: calc(110rpx + constant(safe-area-inset-bottom));
   --kitty-bottom: calc(110rpx + env(safe-area-inset-bottom));
   --kitty-opacity: 0.92;
-}
 
-.kitty-deco {
   position: fixed;
   left: 50%;
   bottom: var(--kitty-bottom);
   transform: translateX(-50%);
   width: var(--kitty-width);
-  opacity: var(--kitty-opacity);
   z-index: -1;
   pointer-events: none;
 }
+
+.kitty-deco {
+  width: 100%;
+  display: block;
+  opacity: var(--kitty-opacity);
+}
+
+/* ① 漂浮：3s 周期上下 6rpx，ease-in-out 无限循环 */
+.kitty-float { animation: kittyFloat 3s ease-in-out infinite; }
+@keyframes kittyFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6rpx); }
+}
+
+/* ② 摇摆：4s 周期 ±2°，与漂浮周期错开更自然 */
+.kitty-sway { animation: kittySway 4s ease-in-out infinite; }
+@keyframes kittySway {
+  0%, 100% { transform: rotate(-2deg); }
+  50%      { transform: rotate(2deg); }
+}
+
+/* ③ 点击弹跳：一次性 400ms 缩放，由 JS 加/摘 class 触发 */
+.kitty-bounce { animation: kittyBounce 0.4s ease; }
+@keyframes kittyBounce {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.08); }
+  60%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
+/* 页面隐藏时暂停动画（pageLifetimes.hide 挂 .paused） */
+.paused .kitty-float,
+.paused .kitty-sway { animation-play-state: paused; }
