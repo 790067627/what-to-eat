@@ -1,3 +1,6 @@
+/* 页面边距：左右 24rpx 与菜单页一致；顶部让位由 wxml 内联 padding-top 控制 */
+.page { padding: 24rpx; }
+
 /* 顶部问候卡 */
 .hero {
   background: linear-gradient(135deg, rgba(255,240,246,0.92), rgba(255,227,239,0.92));

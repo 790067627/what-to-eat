@@ -6,7 +6,7 @@
 (function (global) {
   'use strict';
 
-  var DB_KEY = 'yuki_poc_db_v1';
+  var DB_KEY = 'yuki_poc_db_v2';
   var PREF_KEY = 'yuki_poc_pref_v1';
 
   // ---------- 小工具 ----------
@@ -62,7 +62,7 @@
       return {
         _id: d[0], openid: 'mock_user', name: d[1], categoryId: d[2],
         coverImage: foodImg(d[8], d[9], d[10]), images: [],
-        description: d[3], price: d[4], tags: d[6], rating: d[5], status: d[7],
+        description: d[3], price: d[4], rating: d[5], status: d[6], tags: d[7],
         deleted: false, createdAt: daysAgoISO(28 - i), updatedAt: daysAgoISO(20 - i)
       };
     });

@@ -222,7 +222,8 @@
     var screen = $('#screen');
     screen.classList.toggle('nav-transparent', !!def.customNav);
     var isTab = TABS.some(function (t) { return t.path === name; });
-    $('#navBack').style.visibility = (isTab || stack.length <= 1) ? 'hidden' : 'visible';
+    // 非 Tab 页且栈中有可返回页面时才显示返回按钮
+    $('#navBack').style.visibility = (!isTab && stack.length > 0) ? 'visible' : 'hidden';
     $('#tabbar').style.display = isTab ? 'flex' : 'none';
     if (isTab) renderTabBar(TABS.findIndex(function (t) { return t.path === name; }));
   }
