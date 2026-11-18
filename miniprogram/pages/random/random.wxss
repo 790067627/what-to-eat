@@ -3,8 +3,10 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  /* border-box：100vh 含 padding，顶部让位导航(内联)、底部让位 TabBar+凸起，无重复占位 */
-  padding: 0 24rpx calc(154rpx + env(safe-area-inset-bottom));
+  /* border-box：100vh 含 padding，顶部让位导航(内联)、底部让位 TabBar，无重复占位。
+     110rpx = TabBar 高：操作区贴 TabBar 顶，中间凸起骰子落于两按钮中缝上方（不遮文字），
+     比预留凸起带多腾出 44rpx 给结果卡 */
+  padding: 0 24rpx calc(110rpx + env(safe-area-inset-bottom));
 }
 /* 筛选区：自然高度不滚动 */
 .filters { flex-shrink: 0; }
@@ -132,7 +134,7 @@
 /* 操作区：固定底部（TabBar 避让由 page padding 承担），独立背景不遮卡片 */
 .actions {
   flex-shrink: 0;
-  padding-top: 20rpx;
+  padding-top: 12rpx;
   background: #FFF7FA;
 }
 /* 海报按钮居中 */
