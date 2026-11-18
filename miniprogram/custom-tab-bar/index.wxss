@@ -12,8 +12,8 @@
   right: 0;
   height: 110rpx;
   /* 白底 + 顶部细分割线：不再依赖背景图透出，各页统一 */
-  background: #FFFFFF;
-  border-top: 1rpx solid #F3E4EB;
+  background: #F9D6E4;
+  border-top: 1rpx solid #F0C0D4;
   display: flex;
   z-index: 999;
 }
@@ -42,7 +42,7 @@
 }
 
 .tab-item.active .tab-text {
-  color: #E85D91;
+  color: #A73568;
   font-weight: 600;
 }
 
@@ -51,8 +51,8 @@
   width: 96rpx;
   height: 96rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #F58FB6, #E85D91);
-  box-shadow: 0 6rpx 16rpx rgba(232, 93, 145, 0.35);
+  background: #E85D91;
+  box-shadow: 0 6rpx 16rpx rgba(167, 53, 104, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -71,6 +71,6 @@
 }
 
 .tab-item.active .center-text {
-  color: #E85D91;
+  color: #A73568;
   font-weight: 600;
 }
