@@ -5,20 +5,27 @@
   overflow: hidden;
   padding: 24rpx 24rpx 0;
 }
-/* 筛选+抽卡区独立滚动 */
-.rand-scroll { flex: 1; min-height: 0; }
+/* 筛选+抽卡区独立滚动；底部留白避让 TabBar 与中间凸起按钮 */
+.rand-scroll {
+  flex: 1;
+  min-height: 0;
+  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
+}
 
-/* 筛选卡 */
-.filters { padding: 28rpx; }
+/* 筛选卡：行高统一 92rpx，行间细分割线，控件右缘对齐 */
+.filters { padding: 16rpx 28rpx; }
 .filter-row {
   display: flex;
   align-items: center;
-  margin-bottom: 20rpx;
+  height: 92rpx;
 }
-.filter-row:last-child { margin-bottom: 0; }
+.filter-row + .filter-row { border-top: 1rpx solid #FCEFF5; }
 .filter-label { font-size: 26rpx; color: #4A2C3A; width: 260rpx; flex-shrink: 0; }
 .filter-slider { flex: 1; margin: 0 20rpx; }
 .filter-value { font-size: 26rpx; color: #FF8FB8; font-weight: 600; width: 100rpx; text-align: right; }
+/* switch/picker 靠右对齐，与滑块行右侧区域对齐 */
+.filter-row switch { transform: scale(0.84); transform-origin: right center; }
+.filter-row picker { margin-left: auto; }
 .filter-picker {
   font-size: 26rpx;
   color: #FF8FB8;
@@ -27,19 +34,25 @@
   padding: 8rpx 28rpx;
 }
 
-/* 舞台区 */
+/* 舞台区：紧跟筛选卡自然排布，不再撑满全屏居中 */
 .stage {
-  flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 40rpx 0;
-  min-height: 520rpx;
+  padding: 56rpx 0 40rpx;
 }
 
-/* 初始态 */
-.idle { text-align: center; }
+/* 初始态：骰子+标题+说明+按钮为一个整体 */
+.idle { text-align: center; width: 100%; }
 .dice { font-size: 120rpx; margin-bottom: 20rpx; animation: float 2.4s ease-in-out infinite; }
+/* 开始抽按钮：距说明 56rpx（48~64 区间） */
+.roll-btn { width: 70%; margin: 56rpx auto 0; }
+.add-hint {
+  margin-top: 24rpx;
+  font-size: 24rpx;
+  color: #C9A8B8;
+  text-align: center;
+}
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-16rpx); }
@@ -57,9 +70,12 @@
 }
 
 /* 滚动中 */
+.rolling { width: 100%; }
+.rolling .roll-btn { margin-top: 56rpx; }
 .roll-card {
   width: 420rpx;
   height: 240rpx;
+  margin: 0 auto;
   background: #fff;
   border-radius: var(--radius-lg);
   display: flex;
@@ -124,12 +140,7 @@
   color: #9C7B8C;
 }
 .action-accept { flex: 1.4; }
-.add-hint {
-  text-align: center;
-  font-size: 24rpx;
-  color: #C9A8B8;
-  margin-top: 24rpx;
-}
+
 
 /* 海报按钮 */
 .poster-btn {

@@ -22,7 +22,7 @@
       <switch checked="{{onlyWant}}" color="#FF8FB8" bindchange="toggleWant" />
     </view>
     <view class="filter-row">
-      <text class="filter-label">高分优先 <text class="bi"></text></text>
+      <text class="filter-label">高分优先</text>
       <switch checked="{{weightByRating}}" color="#FF8FB8" bindchange="toggleWeight" />
     </view>
     <view class="filter-row">
@@ -35,12 +35,14 @@
 
   <!-- 抽卡区域 -->
   <view class="stage">
-    <!-- 初始态 -->
+    <!-- 初始态：骰子+标题+说明+开始抽整合为一个操作区域 -->
     <view wx:if="{{phase === 'idle'}}" class="idle">
       <view class="dice bi"><text class="bi"></text></view>
       <view class="idle-title">今天吃啥？</view>
       <view class="idle-sub">让命运替你决定</view>
       <view wx:if="{{errorMessage}}" class="error-tip">{{errorMessage}}</view>
+      <view class="btn-primary roll-btn" bindtap="onRoll"> 开始抽</view>
+      <view class="add-hint" bindtap="goAdd">菜品库不够丰富？去加几道 ›</view>
     </view>
 
     <!-- 滚动中 -->
@@ -48,6 +50,8 @@
       <view class="roll-card shake">
         <text class="roll-name">{{rollingName}}</text>
       </view>
+      <view class="btn-primary roll-btn btn-disabled">抽取中…</view>
+      <view class="add-hint" bindtap="goAdd">菜品库不够丰富？去加几道 ›</view>
     </view>
 
     <!-- 结果 -->
@@ -70,21 +74,13 @@
 
   </scroll-view>
 
-  <!-- 操作区（固定底部，不随内容滚动） -->
-  <view class="actions">
-    <block wx:if="{{phase === 'result'}}">
-      <view class="action-row">
-        <view class="btn-ghost action-reject" bindtap="onReject"><text class="bi"></text> 不想吃，换一个</view>
-        <view class="btn-primary action-accept" bindtap="onAccept">✓ 就它了，记一笔</view>
-      </view>
-      <view class="btn-ghost poster-btn" bindtap="onPoster"><text class="bi"></text> 生成分享海报</view>
-    </block>
-    <block wx:else>
-      <view class="btn-primary {{phase === 'rolling' ? 'btn-disabled' : ''}}" bindtap="onRoll">
-        {{phase === 'rolling' ? '抽取中…' : ' 开始抽'}}
-      </view>
-      <view class="add-hint" bindtap="goAdd">菜品库不够丰富？去加几道 ›</view>
-    </block>
+  <!-- 操作区（固定底部，仅结果态显示） -->
+  <view wx:if="{{phase === 'result'}}" class="actions">
+    <view class="action-row">
+      <view class="btn-ghost action-reject" bindtap="onReject"><text class="bi"></text> 不想吃，换一个</view>
+      <view class="btn-primary action-accept" bindtap="onAccept">✓ 就它了，记一笔</view>
+    </view>
+    <view class="btn-ghost poster-btn" bindtap="onPoster"><text class="bi"></text> 生成分享海报</view>
   </view>
 </view>
 <poster id="poster" dish="{{result.dish}}" category-name="{{result.categoryName}}" />
