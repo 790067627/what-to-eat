@@ -61,8 +61,8 @@ module.exports = {
   saveSharedDish: (dishId) => call('saveSharedDish', { dishId }),
 
   // ---- AI 识别（独立云函数 airec，长超时，与 dish CRUD 解耦）----
-  recognizeDish: async (fileID, base64) => {
-    const res = await wx.cloud.callFunction({ name: 'airec', data: { fileID, base64 } });
+  recognizeDish: async (fileID) => {
+    const res = await wx.cloud.callFunction({ name: 'airec', data: { fileID } });
     const result = res.result || {};
     if (result.code !== 0) throw new Error(result.msg || '识别失败');
     return result.data;

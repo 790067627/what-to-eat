@@ -242,19 +242,11 @@ Page({
     try {
       const ext = (localPath.match(/\.(\w+)$/) || [, 'jpg'])[1];
       const cloudPath = `ai-tmp/${Date.now()}-${Math.floor(Math.random() * 10000)}.${ext}`;
-      // 并行：上传云存储（封面需要 fileID）+ 本地读 base64（识别直传，省云端二次下载）
-      const [up, b64] = await Promise.all([
-        wx.cloud.uploadFile({ cloudPath, filePath: localPath }),
-        new Promise((resolve, reject) => {
-          wx.getFileSystemManager().readFile({
-            filePath: localPath,
-            success: r => resolve(wx.arrayBufferToBase64(r.data)),
-            fail: reject
-          });
-        })
-      ]);
+      // 上传云存储（封面需要 fileID）；识别走 fileID，云函数侧下载
+      // 注意：base64 直传 callFunction 会超数据包上限（全分辨率原图 base64 数 MB），不可用
+      const up = await wx.cloud.uploadFile({ cloudPath, filePath: localPath });
       tmpFileID = up.fileID;
-      const result = await api.recognizeDish(tmpFileID, b64);
+      const result = await api.recognizeDish(tmpFileID);
 
       // 用户已取消：忽略迟到结果并清理临时图
       if (this._aiCancelled) {
