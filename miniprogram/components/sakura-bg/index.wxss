@@ -8,8 +8,8 @@
   --kitty-width: 380rpx;
   /* 底部留白 = TabBar 高 110rpx + 中间凸起按钮超出 44rpx + 呼吸间距 6rpx + 安全区
      （再低就会与「抽一抽」凸起按钮重叠，此为下限） */
-  --kitty-bottom: calc(160rpx + constant(safe-area-inset-bottom));
-  --kitty-bottom: calc(160rpx + env(safe-area-inset-bottom));
+  --kitty-bottom: calc(110rpx + constant(safe-area-inset-bottom));
+  --kitty-bottom: calc(110rpx + env(safe-area-inset-bottom));
   --kitty-opacity: 0.92;
 }
 

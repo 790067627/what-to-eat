@@ -69,7 +69,7 @@
       var br = w / h;
       var sx = 0, sy = 0, sw = cover.width, sh = cover.height;
       if (ir > br) { sw = cover.height * br; sx = (cover.width - sw) / 2; }
-      else { sh = cover.width / br; sy = (cover.height - sh) / br * 0 + (cover.height - cover.width / br) / 2; }
+      else { sh = cover.width / br; sy = (cover.height - sh) / 2; }
       roundRect(ctx, x, y, w, h, 14);
       ctx.save();
       ctx.clip();
