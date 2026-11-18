@@ -57,7 +57,7 @@
   // ---------- Toast / Loading / Modal / ActionSheet / Preview ----------
   var overlay = function () { return $('#overlayHost'); };
   var toastTimer = null;
-  function showToast(o) {
+  function showToast(o, duration) {
     if (typeof o === 'string') o = { title: o };
     var host = overlay();
     var old = host.querySelector('.wx-toast');
@@ -67,7 +67,7 @@
     var icon = o.icon === 'success' ? '<span class="t-ico">✓</span>' : '';
     box.innerHTML = icon + esc(o.title || '');
     host.appendChild(box);
-    toastTimer = setTimeout(function () { box.remove(); }, o.duration || 1800);
+    toastTimer = setTimeout(function () { box.remove(); }, duration || o.duration || 1800);
   }
 
   var loadingBox = null;

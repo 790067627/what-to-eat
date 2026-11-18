@@ -1,4 +1,4 @@
-<immersive-nav title="抽一抽" />
+<immersive-nav />
 <view class="page" style="padding-top: {{navHeight}}px">
   <!-- 筛选条件 -->
   <view class="card filters">

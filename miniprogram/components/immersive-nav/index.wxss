@@ -34,15 +34,3 @@
   height: 56rpx;
   background: linear-gradient(180deg, rgba(255, 247, 250, 0), #FFF7FA);
 }
-
-/* 内容层：绝对定位，与背景分层 */
-.imm-nav-title {
-  position: absolute;
-  left: 0;
-  right: 0;
-  text-align: center;
-  font-size: 34rpx;
-  font-weight: 600;
-  color: #4A2C3A;
-  text-shadow: 0 1rpx 6rpx rgba(255, 255, 255, 0.75);
-}

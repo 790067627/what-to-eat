@@ -6,6 +6,4 @@
   <view class="imm-nav-veil"></view>
   <!-- 底部渐隐：融入页面底色 #FFF7FA -->
   <view class="imm-nav-fade"></view>
-  <!-- 内容层：标题与胶囊垂直对齐，水平居中 -->
-  <view class="imm-nav-title" style="top: {{m.titleTop}}px; height: {{m.titleHeight}}px; line-height: {{m.titleHeight}}px">{{title}}</view>
 </view>

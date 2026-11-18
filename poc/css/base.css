@@ -303,7 +303,7 @@ input, textarea { font-family: inherit; color: inherit; }
 .tabbar {
   position: absolute;
   left: 0; right: 0; bottom: 0;
-  height: 55px;
+  height: calc(55px + 21px); /* 110rpx 内容高 + 底部安全区 */
   padding-bottom: 21px; /* 模拟 safe-area-inset-bottom */
   display: flex;
   background: var(--tabbar-bg);

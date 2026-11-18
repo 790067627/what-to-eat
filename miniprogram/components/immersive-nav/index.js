@@ -8,10 +8,6 @@ const LOCAL_PATH = `${wx.env.USER_DATA_PATH}/header-kitchen.jpg`;
 const FLAG_KEY = 'header_kitchen_saved';
 
 Component({
-  properties: {
-    title: { type: String, value: '' }
-  },
-
   data: {
     m: null,
     headerUrl: ''

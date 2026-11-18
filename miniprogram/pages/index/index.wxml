@@ -1,6 +1,6 @@
 <sakura-bg />
 
-<immersive-nav title="Yuki小厨房" />
+<immersive-nav />
 
 <view class="page" style="padding-top: {{navHeight}}px">
   <!-- 骨架屏 -->

@@ -327,7 +327,7 @@
           });
           if (!d.dishes.length) {
             var filtered = d.keyword || d.activeCategoryId || d.statusFilter;
-            h += '<div class="empty-state"><div class="empty-icon">🍽</div>' +
+            h += '<div class="empty-state"><div class="empty-icon"></div>' +
               '<div class="empty-text">' + (filtered ? '没有符合条件的菜品' : '这个分类还空着') + '</div>';
             if (!filtered) {
               h += '<div class="btn-ai-main" data-act="addAi" style="width:80%"><span class="bi">\uf46d</span> AI 识别添加</div>' +
@@ -518,7 +518,7 @@
             '<div class="btn-ghost poster-btn" data-act="poster"><span class="bi">\uf3cd</span> 生成分享海报</div>';
         } else {
           h += '<div class="btn-primary' + (d.phase === 'rolling' ? ' btn-disabled' : '') + '" data-act="roll">' +
-            (d.phase === 'rolling' ? '抽取中…' : '<span class="bi">\uf562</span> 开始抽') + '</div>' +
+            (d.phase === 'rolling' ? '抽取中…' : ' 开始抽') + '</div>' +
             '<div class="add-hint" data-act="add">菜品库不够丰富？去加几道 ›</div>';
         }
         return h + '</div>';
@@ -994,6 +994,7 @@
           d.isShared = false; // Mock：全部视为本人菜品
           ctx._render();
         }).catch(function (err) {
+          console.error('[dish-detail] load fail:', err);
           api.handleErr(err);
           d.loading = false; d.dish = null;
           ctx._render();
