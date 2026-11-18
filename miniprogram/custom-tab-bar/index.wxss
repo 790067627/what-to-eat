@@ -11,10 +11,9 @@
   left: 0;
   right: 0;
   height: 110rpx;
-  /* 独立粉色底（取背景波浪带主色 #F8A0C0），不再依赖背景图透出；
-     顶部圆角与页面 #FFF7FA 底衔接，各页样式统一 */
-  background: #F8A0C0;
-  border-radius: 24rpx 24rpx 0 0;
+  /* 白底 + 顶部细分割线：不再依赖背景图透出，各页统一 */
+  background: #FFFFFF;
+  border-top: 1rpx solid #F3E4EB;
   display: flex;
   z-index: 999;
 }
@@ -25,52 +24,53 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding-top: 8rpx;
+  padding-top: 4rpx;
 }
 
+/* 图标 22~24px -> 44~48rpx，取 46rpx */
 .tab-icon {
-  width: 40rpx;
-  height: 40rpx;
-  margin-bottom: 4rpx;
+  width: 46rpx;
+  height: 46rpx;
 }
 
+/* 文字 11~12px -> 22~24rpx，取 22rpx；图标与文字间距 4px -> 8rpx */
 .tab-text {
-  font-size: 20rpx;
-  color: #4A2C3A;
-  margin-top: 4rpx;
-}
-
-.tab-item.active .tab-icon {
-  color: #FF8FB8;
+  font-size: 22rpx;
+  color: #6B5360;
+  margin-top: 8rpx;
+  line-height: 1;
 }
 
 .tab-item.active .tab-text {
-  color: #FF8FB8;
+  color: #E85D91;
   font-weight: 600;
 }
 
-/* 中间凸起按钮 */
+/* 中间凸起按钮：保留圆形粉色，白图标，白描边环融入白底 */
 .center-btn {
   width: 96rpx;
   height: 96rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #FFB3D1, #FF8FB8);
+  background: linear-gradient(135deg, #F58FB6, #E85D91);
+  box-shadow: 0 6rpx 16rpx rgba(232, 93, 145, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: -48rpx;
-  border: 6rpx solid #F8A0C0;  /* 与 tabbar 底色同色，形成挖空环 */
+  margin-top: -44rpx;
+  border: 6rpx solid #FFFFFF;
 }
 
 .center-icon {
-  width: 44rpx;
-  height: 44rpx;
+  width: 46rpx;
+  height: 46rpx;
 }
 
+/* 中间按钮文字在白色 tabbar 上，与常规项同规则，清晰可读 */
 .center-text {
-  color: #FF8FB8;
+  color: #6B5360;
 }
 
 .tab-item.active .center-text {
+  color: #E85D91;
   font-weight: 600;
 }
