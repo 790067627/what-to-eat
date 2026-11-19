@@ -49,6 +49,11 @@
       setTimeout(function () { veil.remove(); screen.classList.remove('theme-anim'); }, 700);
     }
     screen.setAttribute('data-theme', t);
+    // TabBar 图标体系随主题切换（PNG 粉色图标 ↔ 线性字形）
+    if (current) {
+      var idx = TABS.findIndex(function (x) { return x.path === current.name; });
+      if (idx >= 0) renderTabBar(idx);
+    }
     themeListeners.forEach(function (fn) { try { fn(t); } catch (e) {} });
   }
   function getTheme() { return theme; }
@@ -86,12 +91,15 @@
     return new Promise(function (resolve) {
       var mask = el('div', 'wx-mask');
       var modal = el('div', 'wx-modal');
+      // Liquid Glass 下不使用樱花粉确认色，映射为系统蓝（保持两套主题零污染）
+      var confirmColor = o.confirmColor || '#FF8FB8';
+      if (theme === 'glass' && /FF8FB8|D4779A|E85D91/i.test(confirmColor)) confirmColor = '#007AFF';
       var html = '';
       if (o.title) html += '<div class="wx-modal-title">' + esc(o.title) + '</div>';
       if (o.content) html += '<div class="wx-modal-content">' + esc(o.content) + '</div>';
       html += '<div class="wx-modal-btns">';
       if (o.showCancel !== false) html += '<div class="wx-modal-btn cancel">' + esc(o.cancelText || '取消') + '</div>';
-      html += '<div class="wx-modal-btn confirm" style="color:' + (o.confirmColor || '#FF8FB8') + '">' + esc(o.confirmText || '确定') + '</div>';
+      html += '<div class="wx-modal-btn confirm" style="color:' + confirmColor + '">' + esc(o.confirmText || '确定') + '</div>';
       html += '</div>';
       modal.innerHTML = html;
       mask.appendChild(modal);
@@ -244,22 +252,40 @@
   }
 
   function renderTabBar(selected) {
-    var icons = [
-      ['home', '首页'], ['dishes', '菜品库'], ['dice', '抽一抽'], ['mine', '我的']
-    ];
+    var glass = theme === 'glass';
+    // 樱花粉：复用小程序 PNG 图标（竖排）；Liquid Glass：bi 线性字形（SF Symbols 风格，横排胶囊）
+    var items = glass
+      ? [
+          { bi: '\uf425', text: '首页' },
+          { bi: '\uf444', text: '菜品库' },
+          { bi: '\uf2fb', text: '抽一抽', center: true },
+          { bi: '\uf4e1', text: '我的' }
+        ]
+      : [
+          { png: 'home', text: '首页' },
+          { png: 'dishes', text: '菜品库' },
+          { png: 'dice', text: '抽一抽', center: true },
+          { png: 'mine', text: '我的' }
+        ];
     var bar = $('#tabbar');
     bar.innerHTML = '';
-    icons.forEach(function (ic, i) {
-      var item = el('div', 'tab-item' + (i === selected ? ' active' : ''));
-      if (i === 2) {
-        item.innerHTML =
-          '<div class="center-btn"><img class="center-icon" src="assets/icons/' + ic[0] + '_normal.png" alt=""></div>' +
-          '<span class="tab-text center-text">' + ic[1] + '</span>';
+    items.forEach(function (ic, i) {
+      var item = el('div', 'tab-item' + (i === selected ? ' active' : '') + (ic.center ? ' center-item' : ''));
+      if (ic.center) {
+        var inner = glass
+          ? '<span class="bi bi-dice">' + ic.bi + '</span>'
+          : '<img class="center-icon" src="assets/icons/' + ic.png + '_normal.png" alt="">';
+        item.innerHTML = '<div class="center-btn glass-raise">' + inner + '</div>' +
+          '<span class="tab-text center-text">' + ic.text + '</span>';
+      } else if (glass) {
+        item.innerHTML = '<span class="bi tab-bi" style="font-size:22px;color:' +
+          (i === selected ? 'var(--ios-blue)' : 'var(--ios-label-2)') + '">' + ic.bi + '</span>' +
+          '<span class="tab-text">' + ic.text + '</span>';
       } else {
         var suffix = i === selected ? 'active' : 'normal';
         item.innerHTML =
-          '<img class="tab-icon" src="assets/icons/' + ic[0] + '_' + suffix + '.png" alt="">' +
-          '<span class="tab-text">' + ic[1] + '</span>';
+          '<img class="tab-icon" src="assets/icons/' + ic.png + '_' + suffix + '.png" alt="">' +
+          '<span class="tab-text">' + ic.text + '</span>';
       }
       item.addEventListener('click', function () { switchTab(TABS[i].path); });
       bar.appendChild(item);

@@ -186,12 +186,6 @@
   position: relative;
 }
 [data-theme="glass"] .fab-sheet { background: rgba(255,255,255,.5); }
-[data-theme="glass"] .fab-sheet::before {
-  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
-  background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.1) 40%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
-}
 @keyframes fabSheetUp { from { transform: translateY(100%); } }
 .fab-handle { width: 32px; height: 4px; border-radius: 2px; background: var(--c-border); margin: 0 auto 12px; }
 [data-theme="glass"] .fab-handle { background: rgba(255,255,255,.8); }
@@ -483,13 +477,13 @@
 .theme-opt.on { border-color: var(--c-primary); }
 .theme-swatch { height: 46px; border-radius: 8px; margin-bottom: 8px; position: relative; overflow: hidden; }
 .sw-sakura { background: linear-gradient(135deg, #FFF7FA, #FFD6E7 60%, #FF8FB8); }
-.sw-glass { background: linear-gradient(150deg, #cfe0ff, #ffd9ea 55%, #ffeccb); }
+.sw-glass { background: linear-gradient(160deg, #F7F7FA, #E8E8ED 55%, #DCDCE2); }
 .sw-glass::after {
   content: ''; position: absolute; inset: 6px 8px;
   border-radius: 10px;
-  background: rgba(255,255,255,.4);
-  border: 1px solid rgba(255,255,255,.85);
-  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset;
+  background: rgba(255,255,255,.55);
+  border: 0.5px solid rgba(255,255,255,.9);
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 2px 6px rgba(0,0,0,.08);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
 }
@@ -517,12 +511,6 @@
   box-shadow: var(--modal-shadow);
   animation: modalIn .22s cubic-bezier(.34, 1.4, .64, 1);
   position: relative;
-}
-[data-theme="glass"] .import-panel::before {
-  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
-  background: linear-gradient(160deg, rgba(255,255,255,.9), rgba(255,255,255,.1) 45%, rgba(255,255,255,.35));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
 }
 .import-title { font-size: 16px; font-weight: 700; color: var(--c-text); margin-bottom: 6px; }
 .import-tip { font-size: 11px; color: var(--c-sub); line-height: 1.6; margin-bottom: 8px; }
@@ -849,3 +837,305 @@
 [data-theme="glass"] .poster-btn-share { background: linear-gradient(150deg, rgba(255,143,184,.95), rgba(255,92,151,.9)); box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 8px 20px rgba(214,65,124,.4); }
 [data-theme="glass"] .poster-btn-save { background: rgba(255,255,255,.8); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-color: rgba(255,255,255,.9); }
 .poster-btn-disabled { opacity: .6; pointer-events: none; }
+
+/* =====================================================================
+   Liquid Glass 页面级覆写（iOS 27 原生设计语言）
+   内容卡片=干净白底；交互层=玻璃；强调=系统蓝；文字=label 三级灰
+   ===================================================================== */
+
+/* ---- 通用：内容卡片去玻璃、去彩底 ---- */
+[data-theme="glass"] .card {
+  background: var(--ios-card);
+  border: none;
+  box-shadow: var(--card-shadow);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+[data-theme="glass"] .skeleton-item { background: var(--ios-card); box-shadow: var(--card-shadow); }
+[data-theme="glass"] .img-ph { background: var(--ios-fill); color: var(--ios-label-3); }
+
+/* ---- ① 首页 ---- */
+[data-theme="glass"] .hero {
+  background: var(--ios-card);
+  box-shadow: var(--card-shadow);
+  border-radius: 16px;
+}
+[data-theme="glass"] .hero-greeting { color: var(--ios-label); font-size: 18px; font-weight: 700; letter-spacing: .2px; }
+[data-theme="glass"] .hero-sub { color: var(--ios-label-2); }
+[data-theme="glass"] .hero-btn { border-radius: 12px; }
+[data-theme="glass"] .today-card { background: var(--ios-card); }
+[data-theme="glass"] .today-img { border-radius: 12px; }
+[data-theme="glass"] .today-name { color: var(--ios-label); }
+[data-theme="glass"] .today-desc { color: var(--ios-label-2); }
+[data-theme="glass"] .today-rating { color: var(--ios-orange); }
+[data-theme="glass"] .section-title { color: var(--ios-label); font-size: 15px; font-weight: 600; }
+[data-theme="glass"] .more-link { color: var(--ios-blue); }
+[data-theme="glass"] .cat-cell { background: var(--ios-card); box-shadow: var(--card-shadow); border-radius: 14px; }
+[data-theme="glass"] .cat-icon { color: var(--ios-label-2); font-size: 24px; }
+[data-theme="glass"] .cat-name { color: var(--ios-label); }
+[data-theme="glass"] .empty-hint { color: var(--ios-label-3); }
+[data-theme="glass"] .init-card .btn-ghost { width: 100%; }
+
+/* ---- ② 菜品库 ---- */
+[data-theme="glass"] .search-bar {
+  background: var(--ios-fill);
+  border-radius: 10px;
+  padding: 8px 12px;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border: none;
+}
+[data-theme="glass"] .search-icon { color: var(--ios-label-3); }
+[data-theme="glass"] .search-input { color: var(--ios-label); }
+[data-theme="glass"] .search-clear { color: var(--ios-label-3); }
+[data-theme="glass"] .status-chip {
+  background: var(--ios-fill);
+  color: var(--ios-label-2);
+  border: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  transition: background .2s ease, color .2s ease;
+}
+[data-theme="glass"] .status-chip.on {
+  background: var(--ios-blue);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 122, 255, 0.3);
+}
+[data-theme="glass"] .side {
+  background: transparent;
+  border: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  padding: 0 2px;
+}
+[data-theme="glass"] .side-item { color: var(--ios-label-2); border-radius: 10px; }
+[data-theme="glass"] .side-item.on {
+  background: var(--ios-card);
+  color: var(--ios-blue);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+[data-theme="glass"] .dish-card { background: var(--ios-card); box-shadow: var(--card-shadow); border-radius: 14px; }
+[data-theme="glass"] .dish-name { color: var(--ios-label); }
+[data-theme="glass"] .dish-sub { color: var(--ios-label-2); }
+[data-theme="glass"] .dish-rating { color: var(--ios-orange); }
+[data-theme="glass"] .btn-ai-main {
+  background: linear-gradient(135deg, #5E5CE6, #007AFF);
+  box-shadow: 0 4px 14px rgba(0, 122, 255, 0.28);
+}
+
+/* ---- ③ 抽一抽：iOS Settings 分组控件 ---- */
+[data-theme="glass"] .filters {
+  background: var(--ios-card);
+  box-shadow: var(--card-shadow);
+  border-radius: 12px;
+  padding: 0 14px;
+}
+[data-theme="glass"] .filter-row {
+  margin-bottom: 0;
+  padding: 11px 0;
+  border-bottom: 0.5px solid var(--ios-sep);
+}
+[data-theme="glass"] .filter-row:last-child { border-bottom: none; }
+[data-theme="glass"] .filter-label { color: var(--ios-label); font-size: 14px; width: auto; flex: 1; }
+[data-theme="glass"] .filter-value { color: var(--ios-label-2); font-weight: 400; width: auto; margin-left: 8px; }
+[data-theme="glass"] .filter-picker {
+  background: var(--ios-fill);
+  color: var(--ios-label);
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+}
+[data-theme="glass"] .sl-track { background: rgba(120, 120, 128, 0.26); }
+[data-theme="glass"] .sl-fill { background: var(--ios-blue); box-shadow: none; }
+[data-theme="glass"] .sl-block {
+  background: #fff;
+  border: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18), 0 0 1px rgba(0, 0, 0, 0.1);
+}
+[data-theme="glass"] .wx-switch { background: var(--ios-fill-2); border-color: transparent; }
+[data-theme="glass"] .wx-switch::before { background: var(--ios-green); }
+[data-theme="glass"] .wx-switch .sw-knob { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22); }
+[data-theme="glass"] .dice { color: var(--ios-label-3); filter: none; }
+[data-theme="glass"] .idle-title { color: var(--ios-label); font-weight: 700; }
+[data-theme="glass"] .idle-sub { color: var(--ios-label-2); }
+[data-theme="glass"] .error-tip { background: rgba(255, 59, 48, 0.08); color: var(--ios-red); border: none; }
+[data-theme="glass"] .roll-card {
+  background: var(--ios-card);
+  border: 0.5px solid var(--ios-sep);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+}
+[data-theme="glass"] .roll-name { color: var(--ios-label); font-weight: 700; }
+[data-theme="glass"] .result-card {
+  background: var(--ios-card);
+  border: 0.5px solid var(--ios-sep);
+  border-radius: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+[data-theme="glass"] .result-img { border: none; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.10); }
+[data-theme="glass"] .result-name { color: var(--ios-label); font-weight: 700; }
+[data-theme="glass"] .result-last { color: var(--ios-label-3); }
+[data-theme="glass"] .result-desc { color: var(--ios-label-2); }
+[data-theme="glass"] .result-link { color: var(--ios-blue); }
+[data-theme="glass"] .action-reject {
+  background: var(--ios-fill);
+  color: var(--ios-label);
+  border: none;
+  border-radius: 12px;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+[data-theme="glass"] .action-accept { border-radius: 12px; }
+[data-theme="glass"] .add-hint { color: var(--ios-label-3); }
+[data-theme="glass"] .poster-btn { border-radius: 12px; }
+
+/* ---- ④ 我的 ---- */
+[data-theme="glass"] .stats-card { background: var(--ios-card); box-shadow: var(--card-shadow); border-radius: 16px; }
+[data-theme="glass"] .stats-title { color: var(--ios-label); font-weight: 700; }
+[data-theme="glass"] .stat-num { color: var(--ios-label); font-weight: 700; }
+[data-theme="glass"] .stat-label { color: var(--ios-label-2); }
+[data-theme="glass"] .stat-divider { background: var(--ios-sep); }
+[data-theme="glass"] .calendar-card { background: var(--ios-card); box-shadow: var(--card-shadow); }
+[data-theme="glass"] .cal-title { color: var(--ios-label); font-weight: 600; }
+[data-theme="glass"] .cal-nav { background: var(--ios-fill); color: var(--ios-blue); border: none; }
+[data-theme="glass"] .cal-week-cell { color: var(--ios-label-3); }
+[data-theme="glass"] .cal-day-num { color: var(--ios-label); }
+[data-theme="glass"] .cal-today .cal-day-num { color: var(--ios-blue); }
+[data-theme="glass"] .heat-1 { background: rgba(120, 120, 128, 0.28); }
+[data-theme="glass"] .heat-2 { background: rgba(0, 122, 255, 0.45); }
+[data-theme="glass"] .heat-3 { background: var(--ios-blue); box-shadow: none; }
+[data-theme="glass"] .cat-stats { border-top-color: var(--ios-sep); }
+[data-theme="glass"] .cat-stats-title { color: var(--ios-label); }
+[data-theme="glass"] .cat-bar-label { color: var(--ios-label-2); }
+[data-theme="glass"] .cat-bar-track { background: var(--ios-fill); box-shadow: none; }
+[data-theme="glass"] .cat-bar-fill { background: var(--ios-blue); box-shadow: none; }
+[data-theme="glass"] .cat-bar-count { color: var(--ios-label-2); }
+[data-theme="glass"] .menu-card { background: var(--ios-card); box-shadow: var(--card-shadow); }
+[data-theme="glass"] .menu-item { border-bottom-color: var(--ios-sep); }
+[data-theme="glass"] .menu-icon { color: var(--ios-label-2); }
+[data-theme="glass"] .menu-text { color: var(--ios-label); }
+[data-theme="glass"] .menu-arrow { color: var(--ios-label-3); }
+[data-theme="glass"] .theme-card { background: var(--ios-card); box-shadow: var(--card-shadow); }
+[data-theme="glass"] .theme-opt { background: var(--ios-fill); border-radius: 12px; }
+[data-theme="glass"] .theme-opt.on { border-color: var(--ios-blue); }
+[data-theme="glass"] .theme-check { color: var(--ios-blue); }
+[data-theme="glass"] .theme-opt-name { color: var(--ios-label); }
+[data-theme="glass"] .theme-opt-sub { color: var(--ios-label-3); }
+[data-theme="glass"] .import-panel { border-radius: 16px; }
+[data-theme="glass"] .import-title { color: var(--ios-label); }
+[data-theme="glass"] .import-tip { color: var(--ios-label-2); }
+[data-theme="glass"] .day-name { color: var(--ios-label); }
+[data-theme="glass"] .day-note { color: var(--ios-label-2); }
+[data-theme="glass"] .day-item { border-bottom-color: var(--ios-sep); }
+
+/* ---- 详情页 ---- */
+[data-theme="glass"] .cover { border: none; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); border-radius: 14px; }
+[data-theme="glass"] .name { color: var(--ios-label); font-weight: 700; }
+[data-theme="glass"] .edit-btn { color: var(--ios-blue); }
+[data-theme="glass"] .last-eaten { color: var(--ios-label-3); }
+[data-theme="glass"] .rate-label { color: var(--ios-label-2); }
+[data-theme="glass"] .star { color: var(--ios-fill-2); text-shadow: none; }
+[data-theme="glass"] .star.on { color: var(--ios-orange); }
+[data-theme="glass"] .status-btn {
+  background: var(--ios-fill);
+  color: var(--ios-label-2);
+  border: none;
+  border-radius: 10px;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+[data-theme="glass"] .status-btn.on {
+  background: rgba(0, 122, 255, 0.10);
+  color: var(--ios-blue);
+  border: 0.5px solid rgba(0, 122, 255, 0.35);
+  box-shadow: none;
+  font-weight: 600;
+}
+[data-theme="glass"] .desc { color: var(--ios-label); }
+[data-theme="glass"] .share-btn {
+  background: var(--ios-fill);
+  color: var(--ios-blue);
+  border: none;
+  border-radius: 12px;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+[data-theme="glass"] .delete-link { color: var(--ios-red); }
+[data-theme="glass"] .log-btn { border-radius: 12px; }
+
+/* ---- 编辑页 ---- */
+[data-theme="glass"] .form-item { border-bottom-color: var(--ios-sep); }
+[data-theme="glass"] .form-label { color: var(--ios-label); }
+[data-theme="glass"] .required { color: var(--ios-red); }
+[data-theme="glass"] .form-picker { color: var(--ios-label); }
+[data-theme="glass"] .price-symbol { color: var(--ios-label-2); }
+[data-theme="glass"] .tag-input { background: var(--ios-fill); }
+[data-theme="glass"] .tag-add-btn { background: var(--ios-fill); color: var(--ios-blue); border: none; border-radius: 10px; }
+[data-theme="glass"] .form-textarea { background: var(--ios-fill); }
+[data-theme="glass"] .count { color: var(--ios-label-3); }
+[data-theme="glass"] .img-add { background: var(--ios-fill); border: 1px dashed var(--ios-label-3); }
+[data-theme="glass"] .add-icon, [data-theme="glass"] .add-text { color: var(--ios-label-3); }
+[data-theme="glass"] .cover-badge { background: rgba(0, 122, 255, 0.85); }
+[data-theme="glass"] .ai-guide {
+  background: rgba(94, 92, 230, 0.06);
+  border: 1px dashed rgba(94, 92, 230, 0.4);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+[data-theme="glass"] .ai-guide-icon { background: linear-gradient(135deg, #5E5CE6, #007AFF); box-shadow: 0 3px 10px rgba(0, 122, 255, 0.3); }
+[data-theme="glass"] .ai-guide-title { color: #5E5CE6; }
+[data-theme="glass"] .ai-guide-sub { color: var(--ios-label-2); }
+[data-theme="glass"] .ai-guide-arrow { color: #5E5CE6; }
+[data-theme="glass"] .ai-tag { background: linear-gradient(135deg, #5E5CE6, #007AFF); }
+[data-theme="glass"] .cat-suggest { background: rgba(94, 92, 230, 0.06); border-color: rgba(94, 92, 230, 0.45); }
+[data-theme="glass"] .cat-suggest-icon { color: #5E5CE6; }
+[data-theme="glass"] .cat-suggest-text { color: var(--ios-label); }
+[data-theme="glass"] .cat-suggest-btn { background: var(--ios-fill); color: var(--ios-label-2); border: none; }
+[data-theme="glass"] .cat-suggest-btn.primary { background: linear-gradient(135deg, #5E5CE6, #007AFF); color: #fff; }
+[data-theme="glass"] .ai-banner { background: var(--ios-fill); border-left-color: #5E5CE6; }
+[data-theme="glass"] .ai-banner .bi { color: #5E5CE6; }
+[data-theme="glass"] .ai-banner-text { color: var(--ios-label); }
+[data-theme="glass"] .fab-ai-card {
+  background: linear-gradient(135deg, #5E5CE6 0%, #3478F6 60%, #007AFF 100%);
+  border: none;
+  box-shadow: 0 6px 20px rgba(0, 122, 255, 0.3);
+}
+[data-theme="glass"] .fab-manual { background: var(--ios-fill); border: none; }
+[data-theme="glass"] .fab-manual-icon { background: #fff; border: 0.5px solid var(--ios-sep); }
+[data-theme="glass"] .fab-manual-icon .bi { color: var(--ios-label-2); }
+[data-theme="glass"] .fab-manual-t1 { color: var(--ios-label); }
+[data-theme="glass"] .fab-manual-t2 { color: var(--ios-label-3); }
+[data-theme="glass"] .fab-cancel { background: var(--ios-fill); color: var(--ios-label-2); }
+
+/* ---- 分类管理 ---- */
+[data-theme="glass"] .tip { color: var(--ios-label-3); }
+[data-theme="glass"] .cat-row { background: var(--ios-card); box-shadow: var(--card-shadow); }
+[data-theme="glass"] .cat-row .cat-icon { color: var(--ios-label-2); }
+[data-theme="glass"] .cat-row .cat-name { color: var(--ios-label); }
+[data-theme="glass"] .op { background: var(--ios-fill); color: var(--ios-label-2); border: none; }
+[data-theme="glass"] .op-del { color: var(--ios-red); }
+[data-theme="glass"] .op-del .bi { color: var(--ios-red); }
+[data-theme="glass"] .add-btn { border-radius: 12px; }
+[data-theme="glass"] .field-label { color: var(--ios-label-2); }
+[data-theme="glass"] .icon-cell { background: var(--ios-fill); color: var(--ios-label-2); }
+[data-theme="glass"] .icon-cell.on { background: rgba(0, 122, 255, 0.10); border-color: var(--ios-blue); color: var(--ios-blue); }
+[data-theme="glass"] .modal-title { color: var(--ios-label); }
+
+/* ---- 时间线 ---- */
+[data-theme="glass"] .summary { color: var(--ios-label-2); }
+[data-theme="glass"] .log-dot { background: var(--ios-blue); box-shadow: none; }
+[data-theme="glass"] .log-line { background: var(--ios-sep); }
+[data-theme="glass"] .log-card { background: var(--ios-card); box-shadow: var(--card-shadow); }
+[data-theme="glass"] .log-name { color: var(--ios-label); }
+[data-theme="glass"] .log-date { color: var(--ios-label-3); }
+[data-theme="glass"] .log-note { color: var(--ios-label-2); }
+[data-theme="glass"] .log-arrow { color: var(--ios-label-3); }
+
+/* ---- 悬浮胶囊 TabBar 下的内容避让（胶囊高 62+底距 10+Home 条） ---- */
+[data-theme="glass"] .pg-random .actions { padding-bottom: 116px; }
+[data-theme="glass"] .dishes-content { padding-bottom: 96px; }

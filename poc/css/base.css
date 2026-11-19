@@ -66,77 +66,92 @@
   --raise-shadow: 0 3px 12px rgba(217, 108, 153, 0.10);
 }
 
-/* ---------- 主题 Token：B iOS Liquid Glass（探索性概念主题） ---------- */
+/* ---------- 主题 Token：B iOS 27 Liquid Glass（苹果原生设计语言） ----------
+   色板：系统灰白底 #F2F2F7 / 卡片纯白 / 文字 label 三级灰 / 强调仅系统蓝 #007AFF
+   材质：玻璃只用于交互层（导航、TabBar 胶囊、悬浮钮、弹窗、筛选控件）
+        内容卡片为干净白底，不加 blur */
 [data-theme="glass"] {
-  --c-primary: #FF5C97;
-  --c-primary-light: rgba(255, 143, 184, 0.16);
-  --c-primary-dark: #D6417C;
-  --c-bg: transparent;
-  --c-card: rgba(255, 255, 255, 0.42);
-  --c-card-solid: rgba(255, 255, 255, 0.55);
-  --c-text: #33172A;
-  --c-sub: rgba(74, 44, 58, 0.72);
-  --c-hint: rgba(74, 44, 58, 0.46);
-  --c-border: rgba(255, 255, 255, 0.55);
-  --c-success: #4C7A18;
-  --c-success-bg: rgba(154, 205, 90, 0.22);
-  --c-star: #E8890C;
-  --c-chip-plain: rgba(255, 255, 255, 0.42);
-  --c-ph: rgba(255, 255, 255, 0.35);
-  --c-ph-text: rgba(214, 65, 124, 0.75);
-  --c-input: rgba(255, 255, 255, 0.40);
-  --c-side: rgba(255, 255, 255, 0.30);
-  --c-grad-hero-a: rgba(255, 255, 255, 0.50);
-  --c-grad-hero-b: rgba(255, 214, 232, 0.42);
-  --c-ai-a: #8B6CF0;
-  --c-ai-b: #F062A8;
+  --ios-blue: #007AFF;
+  --ios-green: #34C759;
+  --ios-orange: #FF9500;
+  --ios-red: #FF3B30;
+  --ios-fill: rgba(120, 120, 128, 0.12);   /* systemFill: 搜索框/输入底 */
+  --ios-fill-2: rgba(120, 120, 128, 0.16);
+  --ios-sep: rgba(60, 60, 67, 0.12);       /* separator */
+  --ios-label: #1C1C1E;
+  --ios-label-2: rgba(60, 60, 67, 0.60);   /* secondaryLabel */
+  --ios-label-3: rgba(60, 60, 67, 0.30);   /* tertiaryLabel */
+  --ios-bg: #F2F2F7;                       /* systemGroupedBackground */
+  --ios-card: #FFFFFF;                     /* secondaryGroupedBackground */
+  --ios-glass: rgba(255, 255, 255, 0.55);  /* 玻璃基色（交互层） */
+  --ios-glass-strong: rgba(255, 255, 255, 0.72);
+  --ios-glass-edge: rgba(255, 255, 255, 0.85);   /* 边缘高光（细腻、非粗描边） */
+  --ios-glass-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
+  --ios-blur: blur(24px) saturate(180%);
 
-  --radius-lg: 22px;
-  --radius-md: 16px;
-  --radius-sm: 12px;
+  --c-primary: var(--ios-blue);
+  --c-primary-light: rgba(0, 122, 255, 0.10);
+  --c-primary-dark: var(--ios-blue);
+  --c-bg: var(--ios-bg);
+  --c-card: var(--ios-card);
+  --c-card-solid: #FFFFFF;
+  --c-text: var(--ios-label);
+  --c-sub: var(--ios-label-2);
+  --c-hint: var(--ios-label-3);
+  --c-border: var(--ios-sep);
+  --c-success: var(--ios-green);
+  --c-success-bg: rgba(52, 199, 89, 0.12);
+  --c-star: var(--ios-orange);
+  --c-chip-plain: var(--ios-fill);
+  --c-ph: var(--ios-fill);
+  --c-ph-text: var(--ios-label-3);
+  --c-input: var(--ios-fill);
+  --c-side: var(--ios-fill);
+  --c-grad-hero-a: #FFFFFF;
+  --c-grad-hero-b: #FFFFFF;
+  --c-ai-a: #5E5CE6;   /* 系统靛蓝：AI 功能语义色 */
+  --c-ai-b: #007AFF;
 
-  --card-border: 1px solid rgba(255, 255, 255, 0.60);
-  --card-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.65) inset,
-    0 -1px 0 rgba(255, 255, 255, 0.25) inset,
-    0 10px 28px rgba(120, 40, 80, 0.14),
-    0 2px 6px rgba(120, 40, 80, 0.08);
-  --card-blur: blur(22px) saturate(1.5);
+  --radius-lg: 16px;   /* iOS continuous corner 观感 */
+  --radius-md: 12px;
+  --radius-sm: 10px;
 
-  --nav-bg: rgba(255, 255, 255, 0.34);
-  --nav-text: #33172A;
-  --nav-blur: blur(24px) saturate(1.6);
-  --statusbar-text: #33172A;
+  --card-border: none;
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --card-blur: none;   /* 内容卡片不用玻璃 */
 
-  --tabbar-bg: rgba(255, 255, 255, 0.38);
-  --tabbar-border: rgba(255, 255, 255, 0.55);
-  --tabbar-blur: blur(28px) saturate(1.6);
-  --tab-text: rgba(74, 44, 58, 0.60);
-  --tab-active: #C22E6B;
-  --center-btn-bg: linear-gradient(145deg, rgba(255, 122, 170, 0.92), rgba(255, 92, 151, 0.88));
-  --center-btn-ring: rgba(255, 255, 255, 0.8);
-  --center-btn-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 8px 20px rgba(194, 46, 107, 0.35);
+  --nav-bg: rgba(249, 249, 249, 0.72);
+  --nav-text: var(--ios-label);
+  --nav-blur: var(--ios-blur);
+  --statusbar-text: var(--ios-label);
 
-  --mask-bg: rgba(40, 18, 32, 0.30);
-  --mask-blur: blur(14px) saturate(1.2);
-  --modal-bg: rgba(255, 255, 255, 0.62);
-  --modal-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.8) inset,
-    0 24px 60px rgba(80, 20, 50, 0.28);
+  --tabbar-bg: rgba(255, 255, 255, 0.55);
+  --tabbar-border: rgba(255, 255, 255, 0.65);
+  --tabbar-blur: var(--ios-blur);
+  --tab-text: var(--ios-label-2);
+  --tab-active: var(--ios-blue);
+  --center-btn-bg: rgba(255, 255, 255, 0.62);
+  --center-btn-ring: rgba(255, 255, 255, 0.9);
+  --center-btn-shadow: var(--ios-glass-shadow);
 
-  --screen-bg: linear-gradient(165deg, #FFE3EF 0%, #F6E7F4 38%, #E8EEF9 72%, #FDEAF2 100%);
+  --mask-bg: rgba(0, 0, 0, 0.24);
+  --mask-blur: blur(12px) saturate(140%);
+  --modal-bg: rgba(255, 255, 255, 0.82);
+  --modal-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 24px 64px rgba(0, 0, 0, 0.18);
+
+  --screen-bg: var(--ios-bg);
   --ambient-opacity: 1;
-  --home-ind: rgba(51, 23, 42, 0.55);
+  --home-ind: rgba(0, 0, 0, 0.35);
 
-  --skel-a: rgba(255, 255, 255, 0.35);
-  --skel-b: rgba(255, 255, 255, 0.60);
+  --skel-a: rgba(120, 120, 128, 0.10);
+  --skel-b: rgba(120, 120, 128, 0.16);
 
   --glass-spec: 1;
-  --raise-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.7) inset,
-    0 6px 18px rgba(120, 40, 80, 0.16);
+  --raise-shadow: var(--ios-glass-shadow);
+
+  /* 动效 Token：轻量交互反馈 200~300ms，无夸张弹跳 */
+  --ios-dur: 0.25s;
+  --ios-ease: cubic-bezier(0.25, 0.8, 0.35, 1);
 }
 
 /* ---------- 基础 ---------- */
@@ -175,21 +190,21 @@ input, textarea { font-family: inherit; color: inherit; }
   gap: 10px;
   padding: 10px;
 }
+
 .stage-head { text-align: center; }
 .stage-title { font-size: 15px; font-weight: 600; color: #ffd7e6; letter-spacing: .5px; }
 .stage-sub { font-size: 11px; color: #9d8794; margin-top: 4px; }
 .stage-foot { font-size: 11px; color: #7d6b77; max-width: 420px; text-align: center; line-height: 1.6; }
 
-/* ---------- 手机壳 ---------- */
+/* ---------- 手机壳（响应式：屏幕宽 320~430pt、高 600~932pt 的 iPhone 机型自适应） ---------- */
 .phone {
-  width: 390px;
-  height: 844px;
+  width: clamp(340px, calc(100vw - 48px), 450px);
+  height: clamp(620px, calc(100vh - 116px), 952px);
   flex-shrink: 0;
   border-radius: 54px;
   padding: 10px;
   background: linear-gradient(160deg, #3a3340, #14101a 60%);
   box-shadow: 0 40px 90px rgba(0, 0, 0, .6), 0 0 0 1px rgba(255,255,255,.08) inset;
-  transform-origin: center center;
 }
 .screen {
   position: relative;
@@ -213,9 +228,13 @@ input, textarea { font-family: inherit; color: inherit; }
   z-index: 1500;
 }
 
-/* 环境光斑（Liquid Glass 主题显现） */
+/* 环境光斑：Liquid Glass 下为极柔和的中性光影（非糖果色渐变） */
 .ambient { position: absolute; inset: 0; opacity: var(--ambient-opacity); transition: opacity .6s ease; pointer-events: none; z-index: 0; }
-.blob { position: absolute; border-radius: 50%; filter: blur(46px); }
+.blob { position: absolute; border-radius: 50%; filter: blur(60px); }
+[data-theme="glass"] .blob { filter: blur(70px); opacity: .5; }
+[data-theme="glass"] .blob.b1 { background: radial-gradient(circle at 40% 40%, rgba(255,255,255,.9), rgba(226,229,236,.55) 60%, transparent 74%); }
+[data-theme="glass"] .blob.b2 { background: radial-gradient(circle at 40% 40%, rgba(214,222,235,.55), rgba(228,232,240,.35) 60%, transparent 74%); }
+[data-theme="glass"] .blob.b3 { background: radial-gradient(circle at 45% 45%, rgba(240,240,244,.7), rgba(228,228,233,.4) 60%, transparent 74%); }
 .blob.b1 { width: 300px; height: 300px; left: -70px; top: 60px; background: radial-gradient(circle at 35% 35%, #ffc2d9, #ff9ec4 60%, transparent 72%); animation: drift1 16s ease-in-out infinite alternate; }
 .blob.b2 { width: 260px; height: 260px; right: -60px; top: 300px; background: radial-gradient(circle at 40% 40%, #cdd9ff, #a9c0f5 60%, transparent 72%); animation: drift2 19s ease-in-out infinite alternate; }
 .blob.b3 { width: 240px; height: 240px; left: 40px; bottom: 40px; background: radial-gradient(circle at 45% 45%, #ffe9c9, #ffd0a8 60%, transparent 72%); animation: drift1 22s ease-in-out infinite alternate-reverse; }
@@ -366,27 +385,17 @@ input, textarea { font-family: inherit; color: inherit; }
   position: relative;
   transition: background .45s ease, border-color .45s ease, box-shadow .45s ease;
 }
-/* Liquid Glass：高光描边 + 顶部折射亮线（材质层级，而非全局 blur） */
-[data-theme="glass"] .card::before,
+/* Liquid Glass：细腻边缘高光仅用于交互层（.glass-raise），内容卡片保持干净白底 */
 [data-theme="glass"] .glass-raise::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(160deg, rgba(255,255,255,.95), rgba(255,255,255,.15) 32%, rgba(255,255,255,0) 55%, rgba(255,255,255,.35) 100%);
+  background: linear-gradient(170deg, rgba(255,255,255,.9), rgba(255,255,255,.25) 30%, rgba(255,255,255,.05) 60%, rgba(255,255,255,.45) 100%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  pointer-events: none;
-}
-[data-theme="glass"] .card::after {
-  content: '';
-  position: absolute;
-  left: 8%; right: 8%; top: 0;
-  height: 42%;
-  border-radius: inherit;
-  background: linear-gradient(180deg, rgba(255,255,255,.34), rgba(255,255,255,0));
   pointer-events: none;
 }
 
@@ -405,14 +414,16 @@ input, textarea { font-family: inherit; color: inherit; }
   position: relative;
 }
 [data-theme="glass"] .btn-primary {
-  background: linear-gradient(150deg, rgba(255,120,168,.92), rgba(255,92,151,.82));
-  box-shadow: 0 1px 0 rgba(255,255,255,.55) inset, 0 8px 20px rgba(214,65,124,.35);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  background: var(--ios-blue);
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 122, 255, 0.24);
+  transition: transform var(--ios-dur, .2s) var(--ios-ease, ease), filter var(--ios-dur, .2s) var(--ios-ease, ease);
 }
+[data-theme="glass"] .btn-primary:active { transform: scale(.97); filter: brightness(.94); opacity: 1; }
 .btn-primary:active { opacity: .85; }
 .btn-primary.btn-disabled { background: #F5C9DD; color: #FFF0F6; pointer-events: none; }
-[data-theme="glass"] .btn-primary.btn-disabled { background: rgba(245,201,221,.6); }
+[data-theme="glass"] .btn-primary.btn-disabled { background: var(--ios-fill-2); color: var(--ios-label-3); }
 
 .btn-ghost {
   background: var(--c-primary-light);
@@ -426,12 +437,17 @@ input, textarea { font-family: inherit; color: inherit; }
   user-select: none;
 }
 [data-theme="glass"] .btn-ghost {
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,.5);
-  box-shadow: 0 1px 0 rgba(255,255,255,.6) inset;
-  color: var(--c-primary-dark);
+  background: var(--ios-fill);
+  color: var(--ios-blue);
+  border-radius: 12px;
+  font-weight: 500;
+  border: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  transition: transform var(--ios-dur, .2s) var(--ios-ease, ease), background var(--ios-dur, .2s) var(--ios-ease, ease);
 }
+[data-theme="glass"] .btn-ghost:active { transform: scale(.97); background: var(--ios-fill-2); opacity: 1; }
 .btn-ghost:active { opacity: .8; }
 
 .chip {
@@ -443,7 +459,8 @@ input, textarea { font-family: inherit; color: inherit; }
   padding: 3px 10px;
   margin: 0 5px 5px 0;
 }
-[data-theme="glass"] .chip { color: var(--c-primary-dark); }
+[data-theme="glass"] .chip { color: var(--ios-blue); background: rgba(0, 122, 255, 0.08); }
+[data-theme="glass"] .chip-plain { color: var(--ios-label-2); background: var(--ios-fill); }
 .chip-plain { background: var(--c-chip-plain); color: var(--c-sub); }
 .chip-success { background: var(--c-success-bg); color: var(--c-success); }
 
@@ -514,11 +531,12 @@ input, textarea { font-family: inherit; color: inherit; }
   line-height: 1.5;
 }
 [data-theme="glass"] .wx-toast {
-  background: rgba(40, 20, 32, 0.55);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
-  backdrop-filter: blur(18px) saturate(1.4);
-  border: 1px solid rgba(255,255,255,.35);
-  box-shadow: 0 1px 0 rgba(255,255,255,.5) inset, 0 12px 30px rgba(0,0,0,.3);
+  background: rgba(28, 28, 30, 0.78);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
 }
 .wx-toast .t-ico { display: block; font-size: 26px; margin-bottom: 4px; }
 @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -46%) scale(.9); } }
@@ -539,11 +557,12 @@ input, textarea { font-family: inherit; color: inherit; }
   display: flex; flex-direction: column; align-items: center; gap: 10px;
 }
 [data-theme="glass"] .wx-loading-box {
-  background: rgba(40, 20, 32, 0.5);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,.4);
-  box-shadow: 0 1px 0 rgba(255,255,255,.55) inset;
+  background: rgba(28, 28, 30, 0.72);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
 }
 .wx-spin {
   width: 22px; height: 22px;
@@ -575,10 +594,14 @@ input, textarea { font-family: inherit; color: inherit; }
   animation: modalIn .22s cubic-bezier(.34, 1.4, .64, 1);
   position: relative;
 }
+[data-theme="glass"] .wx-modal {
+  animation: iosModalIn .26s cubic-bezier(.25, .8, .35, 1);
+}
+@keyframes iosModalIn { from { transform: scale(.94); opacity: 0; } }
 [data-theme="glass"] .wx-modal::before {
   content: '';
   position: absolute; inset: 0; border-radius: inherit; padding: 1px;
-  background: linear-gradient(160deg, rgba(255,255,255,.9), rgba(255,255,255,.1) 40%, rgba(255,255,255,.3));
+  background: linear-gradient(175deg, rgba(255,255,255,.85), rgba(255,255,255,.15) 45%, rgba(255,255,255,.35));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude;
   pointer-events: none;
@@ -641,7 +664,7 @@ input, textarea { font-family: inherit; color: inherit; }
   animation: veil .65s ease forwards;
 }
 [data-theme="glass"] .theme-veil {
-  background: radial-gradient(circle at var(--vx) var(--vy), rgba(255,255,255,.85), rgba(190,210,255,.4) 45%, transparent 72%);
+  background: radial-gradient(circle at var(--vx) var(--vy), rgba(255,255,255,.9), rgba(235,235,240,.5) 45%, transparent 72%);
 }
 @keyframes veil { from { opacity: 1; transform: scale(.4); } to { opacity: 0; transform: scale(2.6); } }
 
@@ -655,9 +678,38 @@ input, textarea { font-family: inherit; color: inherit; }
   color: var(--c-text);
 }
 [data-theme="glass"] .form-input, [data-theme="glass"] .form-textarea {
-  border: 1px solid rgba(255,255,255,.5);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  background: var(--ios-fill);
+  border: none;
+  border-radius: 10px;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  color: var(--ios-label);
 }
 .ph { color: var(--c-hint); }
 ::placeholder { color: var(--c-hint); }
+
+/* 窄屏真机：底部安全区交给 env()（刘海/灵动岛机型自动适配） */
+@media (max-width: 520px) {
+  .tabbar {
+    padding-bottom: env(safe-area-inset-bottom, 21px);
+    height: calc(55px + env(safe-area-inset-bottom, 21px));
+  }
+  [data-theme="glass"] .tabbar { bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+  .home-indicator { bottom: calc(4px + env(safe-area-inset-bottom, 0px) * 0.4); }
+}
+
+/* 窄屏（真机/手机尺寸窗口）：去掉手机壳装饰，全屏应用体验，精确匹配机型逻辑尺寸 */
+@media (max-width: 520px) {
+  .stage { padding: 0; gap: 0; }
+  .stage-head, .stage-foot { display: none; }
+  .phone {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+  .screen, .screen::after { border-radius: 0; }
+}

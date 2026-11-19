@@ -1,113 +1,223 @@
 /* =====================================================================
-   glass.css —— iOS Liquid Glass 概念主题的材质层
-   设计原则：
-   1) 材质分层：环境光斑(ambient) → 磨砂玻璃(card/tabbar/nav) → 高光描边(spec)
-      → 折射亮线(refraction) → 层次化阴影(elevation)，而非全局无差别 blur。
-   2) blur 只用在"浮于内容之上"的层（导航/TabBar/弹窗/卡片），
-      页面滚动内容本身不加 blur，保证文字对比度与低端设备性能。
-   3) 不支持 backdrop-filter 的环境自动降级为半透明实色 + 阴影。
+   glass.css —— iOS 27 Liquid Glass 材质层（苹果原生设计语言）
+   原则：
+   1) 玻璃只用于交互层：导航栏、悬浮胶囊 TabBar、FAB、弹窗、ActionSheet、扫描层。
+      内容卡片（.card）保持纯白/系统浅灰，不加 blur、不加彩色背景。
+   2) 边缘高光细腻（0.5-1px 渐变描边 + 顶部折射亮线），不用白色粗描边。
+   3) 阴影自然克制：近距硬阴影 + 远距软阴影两层，无彩色投影。
+   4) 强调色仅系统蓝 #007AFF；文字 label 三级灰；无粉/糖果色。
+   5) 降级：不支持 backdrop-filter 时玻璃层回退高不透明度实色；
+      prefers-reduced-motion 关闭全部动效。
    ===================================================================== */
 
-/* 不支持 backdrop-filter 时的降级：玻璃层改为高不透明度实色 */
+/* ---------- 降级：无 backdrop-filter 支持 ---------- */
 @supports not ((backdrop-filter: blur(4px)) or (-webkit-backdrop-filter: blur(4px))) {
-  [data-theme="glass"] .card,
-  [data-theme="glass"] .skeleton-item { background: rgba(255, 255, 255, 0.82); }
-  [data-theme="glass"] .navbar { background: rgba(255, 240, 247, 0.92); }
-  [data-theme="glass"] .tabbar { background: rgba(255, 240, 247, 0.92); }
+  [data-theme="glass"] .navbar { background: rgba(249, 249, 249, 0.96); }
+  [data-theme="glass"] .tabbar { background: rgba(252, 252, 254, 0.96); }
   [data-theme="glass"] .wx-modal,
   [data-theme="glass"] .wx-sheet,
   [data-theme="glass"] .import-panel,
   [data-theme="glass"] .modal,
-  [data-theme="glass"] .fab-sheet { background: rgba(255, 252, 253, 0.96); }
-  [data-theme="glass"] .search-bar { background: rgba(255, 255, 255, 0.85); }
-  [data-theme="glass"] .roll-card,
-  [data-theme="glass"] .result-card { background: rgba(255, 255, 255, 0.9); }
+  [data-theme="glass"] .fab-sheet { background: rgba(255, 255, 255, 0.97); }
+  [data-theme="glass"] .capsule { background: rgba(255, 255, 255, 0.9); }
+  [data-theme="glass"] .fab { background: rgba(255, 255, 255, 0.92); }
 }
 
-/* 低端设备 / 省电模式：关闭环境光斑动画与扫光，仅保留静态材质 */
+/* ---------- 动效降级 ---------- */
 @media (prefers-reduced-motion: reduce) {
   .blob, .fab-ai-glow, .fab-ai-dot, .dice, .scan-line { animation: none !important; }
   .screen.theme-anim *, .screen.theme-anim *::before, .screen.theme-anim *::after { transition: none !important; }
 }
 
-/* ---- 折射亮线：玻璃上缘的"透镜高光"，用伪元素实现，避免额外 blur ---- */
-[data-theme="glass"] .refract-top { position: relative; }
-[data-theme="glass"] .refract-top::after {
-  content: '';
-  position: absolute;
-  left: 10%; right: 10%; top: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .95), transparent);
-  pointer-events: none;
+/* ---------- 玻璃工具：细腻边缘高光（仅交互层使用） ---------- */
+[data-theme="glass"] .glass-raise { position: relative; }
+
+/* ---------- 导航栏：系统材质条 ---------- */
+[data-theme="glass"] .navbar {
+  background: var(--nav-bg);
+  -webkit-backdrop-filter: var(--nav-blur);
+  backdrop-filter: var(--nav-blur);
+  border-bottom: 0.5px solid var(--ios-sep);
 }
+[data-theme="glass"] .navbar::after { content: none; }
 
-/* ---- 层次化阴影：玻璃层越高，投影越软越大 ---- */
-[data-theme="glass"] .elev-1 { box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 4px 12px rgba(120,40,80,.10); }
-[data-theme="glass"] .elev-2 { box-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 10px 26px rgba(120,40,80,.16); }
-[data-theme="glass"] .elev-3 { box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 22px 54px rgba(80,20,50,.26); }
+/* ---------- 胶囊按钮：原生玻璃胶囊 ---------- */
+[data-theme="glass"] .capsule {
+  background: rgba(255, 255, 255, 0.5);
+  border: 0.5px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 0.5px 2px rgba(0, 0, 0, 0.06), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  color: var(--ios-label);
+}
+[data-theme="glass"] .cap-div { background: rgba(60, 60, 67, 0.18); }
+[data-theme="glass"] .cap-ring { border-color: var(--ios-label); }
+[data-theme="glass"] .cap-ring::after { background: var(--ios-label); }
+[data-theme="glass"] .cap-dot { color: var(--ios-label); }
+[data-theme="glass"] .screen.nav-transparent .capsule {
+  background: rgba(120, 120, 128, 0.24);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+[data-theme="glass"] .screen.nav-transparent .cap-div { background: rgba(255, 255, 255, 0.4); }
+[data-theme="glass"] .screen.nav-transparent .cap-ring { border-color: #fff; }
+[data-theme="glass"] .screen.nav-transparent .cap-ring::after { background: #fff; }
 
-/* ---- TabBar 玻璃：顶部折射亮线（底部液面光带会洗白文字，故不采用） ---- */
+/* ---------- TabBar：悬浮玻璃胶囊（核心改造） ----------
+   去掉横跨全屏的底色条，改为离边悬浮的圆角胶囊，透射下方内容 */
+[data-theme="glass"] .tabbar {
+  left: 14px;
+  right: 14px;
+  bottom: 10px;
+  width: auto;
+  height: 62px;
+  padding-bottom: 0;
+  border-radius: 31px;
+  background: var(--tabbar-bg);
+  -webkit-backdrop-filter: var(--tabbar-blur);
+  backdrop-filter: var(--tabbar-blur);
+  border: 0.5px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    0 -0.5px 0 rgba(0, 0, 0, 0.03) inset,
+    0 2px 6px rgba(0, 0, 0, 0.05),
+    0 12px 32px rgba(0, 0, 0, 0.12);
+  transition: background var(--ios-dur) var(--ios-ease), box-shadow var(--ios-dur) var(--ios-ease);
+}
 [data-theme="glass"] .tabbar::before {
   content: '';
   position: absolute;
-  left: 0; right: 0; top: 0; height: 1px;
-  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.9) 20%, rgba(255,255,255,.9) 80%, rgba(255,255,255,0));
+  left: 12%; right: 12%; top: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
   pointer-events: none;
+  border-radius: 1px;
+}
+[data-theme="glass"] .tabbar::after { content: none; }
+
+/* 胶囊内布局：图标+文字横排，选中项玻璃高亮 + 系统蓝 */
+[data-theme="glass"] .tab-item {
+  flex-direction: row;
+  gap: 6px;
+  padding-top: 0;
+  border-radius: 24px;
+  margin: 6px 2px;
+  transition: background var(--ios-dur) var(--ios-ease);
+}
+[data-theme="glass"] .tab-item:active { background: rgba(120, 120, 128, 0.10); }
+[data-theme="glass"] .tab-icon { width: 22px; height: 22px; }
+[data-theme="glass"] .tab-text {
+  margin-top: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ios-label-2);
+  white-space: nowrap;
+  transition: color var(--ios-dur) var(--ios-ease);
+}
+[data-theme="glass"] .tab-item.active { background: rgba(0, 122, 255, 0.10); }
+[data-theme="glass"] .tab-item.active .tab-text { color: var(--ios-blue); font-weight: 600; }
+/* 中间项内容更宽，分配更多空间避免文字换行 */
+[data-theme="glass"] .tab-item.center-item { flex: 1.25; }
+
+/* 中间「抽一抽」：玻璃圆钮内嵌胶囊，不再粉色凸起 */
+[data-theme="glass"] .center-btn {
+  width: 44px; height: 44px;
+  margin-top: 0;
+  background: rgba(255, 255, 255, 0.66);
+  border: 0.5px solid rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    0 6px 16px rgba(0, 0, 0, 0.10);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  backdrop-filter: blur(12px) saturate(180%);
+  transition: transform var(--ios-dur) var(--ios-ease), box-shadow var(--ios-dur) var(--ios-ease);
+}
+[data-theme="glass"] .tab-item:active .center-btn { transform: scale(.92); }
+[data-theme="glass"] .center-btn::before,
+[data-theme="glass"] .center-btn::after { content: none; }
+[data-theme="glass"] .center-icon { width: 22px; height: 22px; }
+[data-theme="glass"] .center-text { color: var(--ios-label-2); }
+[data-theme="glass"] .tab-item.active .center-text { color: var(--ios-blue); font-weight: 600; }
+/* 玻璃态骰子用线性字形着色（替代粉色 PNG） */
+[data-theme="glass"] .center-btn .bi-dice { font-size: 21px; color: var(--ios-blue); }
+[data-theme="glass"] .tab-item:not(.active) .center-btn .bi-dice { color: var(--ios-label-2); }
+
+/* 悬浮胶囊后 Home 指示条保持可见（不被遮挡） */
+[data-theme="glass"] .home-indicator { bottom: 4px; }
+
+/* ---------- FAB：独立圆形玻璃控件 ---------- */
+[data-theme="glass"] .fab {
+  background: rgba(255, 255, 255, 0.62);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.85);
+  color: var(--ios-blue);
+  font-weight: 300;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 2px 6px rgba(0, 0, 0, 0.06),
+    0 10px 26px rgba(0, 0, 0, 0.12);
+  bottom: 92px; /* 悬浮胶囊 TabBar 之上 */
+  transition: transform var(--ios-dur) var(--ios-ease);
+}
+[data-theme="glass"] .fab:active { transform: scale(.92); }
+[data-theme="glass"] .fab::before { content: none; }
+
+/* ---------- 弹窗 / ActionSheet / 面板：悬浮玻璃 ---------- */
+[data-theme="glass"] .wx-modal,
+[data-theme="glass"] .wx-sheet,
+[data-theme="glass"] .import-panel,
+[data-theme="glass"] .modal,
+[data-theme="glass"] .fab-sheet {
+  background: var(--modal-bg);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  backdrop-filter: blur(32px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.7);
+  box-shadow: var(--modal-shadow);
+}
+[data-theme="glass"] .wx-sheet,
+[data-theme="glass"] .fab-sheet {
+  border-radius: 20px 20px 0 0;
+  border-bottom: none;
+}
+[data-theme="glass"] .fab-handle { background: rgba(60, 60, 67, 0.18); }
+[data-theme="glass"] .wx-sheet-item { color: var(--ios-blue); border-bottom-color: var(--ios-sep); }
+[data-theme="glass"] .wx-sheet-cancel { color: var(--ios-red); font-weight: 600; }
+[data-theme="glass"] .modal-btn.confirm { background: var(--ios-blue); border-radius: 12px; }
+[data-theme="glass"] .modal-btn.cancel { background: var(--ios-fill); color: var(--ios-label); border-radius: 12px; }
+[data-theme="glass"] .import-btn-primary { background: var(--ios-blue); box-shadow: none; }
+[data-theme="glass"] .import-btn-ghost { background: var(--ios-fill); border: none; color: var(--ios-label); }
+[data-theme="glass"] .import-textarea { background: var(--ios-fill); border: none; color: var(--ios-label); }
+
+/* ---------- 扫描层：深色玻璃 ---------- */
+[data-theme="glass"] .scan-overlay {
+  background: rgba(0, 0, 0, 0.42);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+}
+[data-theme="glass"] .scan-corner { border-color: rgba(255, 255, 255, 0.85); }
+[data-theme="glass"] .scan-line {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+  box-shadow: 0 0 14px 2px rgba(255, 255, 255, 0.4);
 }
 
-/* ---- 导航栏玻璃：下缘柔和折射 ---- */
-[data-theme="glass"] .navbar::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 0; bottom: -6px; height: 6px;
-  background: linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,0));
-  pointer-events: none;
+/* ---------- 海报弹窗按钮 ---------- */
+[data-theme="glass"] .poster-btn-share { background: var(--ios-blue); box-shadow: none; }
+[data-theme="glass"] .poster-btn-save {
+  background: rgba(255, 255, 255, 0.85);
+  border: 0.5px solid var(--ios-sep);
+  color: var(--ios-blue);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
 }
+[data-theme="glass"] .poster-close-btn { background: rgba(120, 120, 128, 0.32); color: #fff; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 
-/* ---- 胶囊按钮玻璃化 ---- */
-[data-theme="glass"] .capsule {
-  background: rgba(255, 255, 255, 0.42);
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  box-shadow: 0 1px 0 rgba(255,255,255,.85) inset, 0 4px 12px rgba(120,40,80,.18);
-  -webkit-backdrop-filter: blur(16px) saturate(1.6);
-  backdrop-filter: blur(16px) saturate(1.6);
-}
-[data-theme="glass"] .screen.nav-transparent .capsule {
-  background: rgba(255, 255, 255, 0.30);
-  border-color: rgba(255, 255, 255, 0.55);
-  color: #fff;
-}
-
-/* ---- 中间凸起按钮：液态玻璃球 ---- */
-[data-theme="glass"] .center-btn { overflow: hidden; }
-[data-theme="glass"] .center-btn::before {
-  content: '';
-  position: absolute;
-  left: 12%; right: 12%; top: 6%; height: 42%;
-  border-radius: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,0));
-  pointer-events: none;
-}
-[data-theme="glass"] .center-btn::after {
-  content: '';
-  position: absolute;
-  left: 20%; right: 20%; bottom: 8%; height: 26%;
-  border-radius: 50%;
-  background: radial-gradient(50% 100% at 50% 100%, rgba(255,255,255,.55), rgba(255,255,255,0));
-  pointer-events: none;
-}
-
-/* ---- FAB 玻璃球 ---- */
-[data-theme="glass"] .fab::before {
-  content: '';
-  position: absolute;
-  left: 14%; right: 14%; top: 8%; height: 40%;
-  border-radius: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,0));
-  pointer-events: none;
-}
-
-/* ---- 文字对比度保护：玻璃层上的次级文字加深 ---- */
-[data-theme="glass"] .chip-plain { color: rgba(74, 44, 58, 0.78); }
+/* ---------- 文字对比度保护 ---------- */
+[data-theme="glass"] .chip-plain { color: var(--ios-label-2); }
 [data-theme="glass"] .empty-text,
 [data-theme="glass"] .loading-tip,
-[data-theme="glass"] .cal-empty-tip { color: rgba(74, 44, 58, 0.55); }
+[data-theme="glass"] .cal-empty-tip { color: var(--ios-label-2); }
+[data-theme="glass"] .footer { color: var(--ios-label-3); }
+
+/* ---------- 品牌装饰隐藏：Hello Kitty / Cakebaker ---------- */
+[data-theme="glass"] .kitty-deco { display: none; }

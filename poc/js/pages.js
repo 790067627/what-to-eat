@@ -133,9 +133,9 @@
 
       ctx._render = function () {
         var d = ctx.data;
-        // Kitty 装饰（装饰层，仅首页显示）
+        // Kitty 装饰（装饰层，仅首页 + 樱花粉主题显示；Liquid Glass 隐藏品牌装饰）
         var deco = UI.$('#decoLayer');
-        if (R.current().name === 'index') {
+        if (R.current().name === 'index' && UI.theme.get() === 'sakura') {
           deco.innerHTML = '<img class="kitty-deco" src="assets/kitty-deco.svg" alt="">';
         } else {
           deco.innerHTML = '';

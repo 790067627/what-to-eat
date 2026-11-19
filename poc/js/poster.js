@@ -11,6 +11,14 @@
   var TEXT_SECONDARY = '#777777';
   var DIVIDER = '#EEEEEE';
 
+  /** Liquid Glass 主题下海报采用中性+系统蓝品牌色，杜绝粉色输出 */
+  function palette() {
+    if (window.UI && UI.theme.get() === 'glass') {
+      return { brand: '#007AFF', brandLight: '#E8F1FD' };
+    }
+    return { brand: BRAND, brandLight: BRAND_LIGHT };
+  }
+
   function roundRect(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
@@ -50,10 +58,10 @@
     });
   }
 
-  function drawHeader(ctx, W) {
+  function drawHeader(ctx, W, P) {
     ctx.textBaseline = 'alphabetic';
     ctx.textAlign = 'left';
-    ctx.fillStyle = BRAND;
+    ctx.fillStyle = P.brand;
     ctx.font = '600 15px -apple-system, "PingFang SC", "Helvetica Neue", sans-serif';
     ctx.fillText('Yuki小厨房', 20, 34);
     ctx.textAlign = 'right';
@@ -62,7 +70,7 @@
     ctx.fillText('今日菜单', W - 20, 33);
   }
 
-  function drawCover(ctx, cover, W) {
+  function drawCover(ctx, cover, W, P) {
     var x = 20, y = 46, w = W - 40, h = 210;
     if (cover) {
       var ir = cover.width / cover.height;
@@ -77,7 +85,7 @@
       ctx.restore();
     } else {
       roundRect(ctx, x, y, w, h, 14);
-      ctx.fillStyle = BRAND_LIGHT;
+      ctx.fillStyle = P.brandLight;
       ctx.fill();
       var cx = x + w / 2, cy = y + h / 2;
       ctx.strokeStyle = '#E8C4D4';
@@ -85,14 +93,14 @@
       ctx.beginPath(); ctx.arc(cx - 6, cy, 26, 0, Math.PI * 2); ctx.stroke();
       ctx.lineWidth = 1;
       ctx.beginPath(); ctx.arc(cx - 6, cy, 17, 0, Math.PI * 2); ctx.stroke();
-      ctx.strokeStyle = BRAND;
+      ctx.strokeStyle = P.brand;
       ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(cx + 16, cy - 22); ctx.lineTo(cx + 24, cy + 20); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(cx + 22, cy - 23); ctx.lineTo(cx + 30, cy + 19); ctx.stroke();
     }
   }
 
-  function drawInfo(ctx, dish, W, L, descLines, categoryName) {
+  function drawInfo(ctx, dish, W, L, descLines, categoryName, P) {
     var left = 20;
     var contentTop = L.coverTop + L.coverH;
     ctx.textAlign = 'left';
@@ -109,14 +117,14 @@
     if (categoryName) {
       var tw = ctx.measureText(categoryName).width + 16;
       roundRect(ctx, chipX, y, tw, L.chipH, L.chipH / 2);
-      ctx.fillStyle = BRAND_LIGHT;
+      ctx.fillStyle = P.brandLight;
       ctx.fill();
-      ctx.fillStyle = BRAND;
+      ctx.fillStyle = P.brand;
       ctx.fillText(categoryName, chipX + 8, y + 15);
       chipX += tw + 8;
     }
     if (dish.priceYuan) {
-      ctx.fillStyle = BRAND;
+      ctx.fillStyle = P.brand;
       ctx.font = 'bold 13px -apple-system, "PingFang SC", sans-serif';
       ctx.fillText('¥' + dish.priceYuan, chipX, y + 15);
     }
@@ -137,7 +145,7 @@
     return y;
   }
 
-  function drawFooter(ctx, W, fy) {
+  function drawFooter(ctx, W, fy, P) {
     ctx.strokeStyle = DIVIDER;
     ctx.lineWidth = 0.5;
     ctx.beginPath();
@@ -149,7 +157,7 @@
     ctx.fillStyle = TEXT_SECONDARY;
     ctx.font = '12px -apple-system, "PingFang SC", sans-serif';
     ctx.fillText('发现更多家常美味', 20, fy + 22);
-    ctx.fillStyle = BRAND;
+    ctx.fillStyle = P.brand;
     ctx.fillText('微信搜索「Yuki 小厨房」', 20, fy + 42);
   }
 
@@ -191,10 +199,11 @@
 
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, W, H);
-      drawHeader(ctx, W);
-      drawCover(ctx, cover, W);
-      var infoBottom = drawInfo(ctx, dish, W, L, descLines, opts.categoryName || '');
-      drawFooter(ctx, W, infoBottom + L.gapDescFooter);
+      var P = palette();
+      drawHeader(ctx, W, P);
+      drawCover(ctx, cover, W, P);
+      var infoBottom = drawInfo(ctx, dish, W, L, descLines, opts.categoryName || '', P);
+      drawFooter(ctx, W, infoBottom + L.gapDescFooter, P);
 
       UI.hideLoading();
       showPosterModal(canvas.toDataURL('image/png'));

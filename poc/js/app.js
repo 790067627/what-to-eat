@@ -6,12 +6,17 @@
   'use strict';
 
   function fitPhone() {
+    // 窄屏（真机全屏模式）：CSS 媒体查询已精确匹配机型逻辑尺寸，不做缩放
+    if (window.matchMedia('(max-width: 520px)').matches) {
+      document.querySelector('.phone').style.transform = '';
+      return;
+    }
+    // 桌面窗口：手机壳 clamp() 自适应；极小窗口时整体缩放兜底
     var phone = document.querySelector('.phone');
-    var pad = 24;
-    var maxW = window.innerWidth - pad;
-    var maxH = window.innerHeight - 110;
-    var scale = Math.min(1, maxW / 390, maxH / 844);
-    phone.style.transform = 'scale(' + scale + ')';
+    var need = 340 + 48;
+    var scale = window.innerWidth < need ? (window.innerWidth - 16) / need : 1;
+    scale = Math.min(scale, (window.innerHeight - 100) / 640);
+    phone.style.transform = scale < 1 ? 'scale(' + Math.max(0.5, scale) + ')' : '';
   }
 
   function boot() {
