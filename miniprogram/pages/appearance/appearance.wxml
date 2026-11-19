@@ -1,10 +1,20 @@
 <page-meta page-style="{{themeVars}}" root-background-color="{{themeWindowBg}}" background-color="{{themeWindowBg}}" background-text-style="{{themeJs.mode === 'dark' ? 'light' : 'dark'}}" />
-<!-- 外观设置：三套主题预览卡片，点击即全局切换 -->
+<!-- 外观设置：跟随系统开关 + 主题预览卡片（手动模式点击即切；跟随模式仅预览） -->
 
 <view class="page">
   <view class="page-tip">选择一套外观主题，立即生效并自动记住你的选择。切换只改变视觉，不影响任何菜品数据与记录。</view>
 
-  <view class="theme-list">
+  <!-- 跟随系统开关（基础库不支持时整卡隐藏，降级为纯手动模式） -->
+  <view wx:if="{{systemSupported}}" class="follow-card">
+    <view class="follow-main">
+      <view class="follow-title">跟随系统</view>
+      <view class="follow-desc">浅色模式使用 GitHub Light，深色模式使用 GitHub Dark</view>
+      <view wx:if="{{followSystem}}" class="follow-state">当前系统为{{systemThemeText}}模式</view>
+    </view>
+    <switch checked="{{followSystem}}" color="{{themeJs.switchColor}}" bindchange="onToggleFollow" />
+  </view>
+
+  <view class="theme-list {{followSystem ? 'preview-only' : ''}}">
     <view
       wx:for="{{themes}}"
       wx:key="name"
@@ -45,9 +55,11 @@
         <view class="theme-name">{{item.label}}</view>
         <view class="theme-desc">{{item.desc}}</view>
       </view>
-      <view wx:if="{{item.selected}}" class="theme-check bi"></view>
+      <!-- 手动模式：选中勾；跟随系统：生效主题标注「当前生效」（仅预览不可点） -->
+      <view wx:if="{{item.selected && !followSystem}}" class="theme-check bi"></view>
+      <view wx:if="{{item.selected && followSystem}}" class="theme-active-tag">当前生效</view>
     </view>
   </view>
 
-  <view class="foot-note">后续将支持「跟随系统」深浅色自动切换</view>
+  <view class="foot-note">{{followSystem ? '跟随系统期间主题卡片仅供预览，关闭开关后可手动选择' : '开启「跟随系统」后将按系统深浅色自动切换主题'}}</view>
 </view>

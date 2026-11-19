@@ -19,7 +19,11 @@ function withTheme(config) {
     themeVars: snap.varsString,
     themeName: snap.name,
     themeJs: snap.js,
-    themeWindowBg: snap.js.windowBg
+    themeWindowBg: snap.js.windowBg,
+    // 内容区顶部额外视觉间距（px）：来自主题 nav.contentTopOffset，与导航高度解耦。
+    // 需要「内容起始位置 = 导航让位 + 主题间距」的页面用 {{navHeight + contentTopOffset}}，
+    // 不引用的页面零影响。illustrated 主题为 0，minimal 主题用它补齐留白。
+    contentTopOffset: manager.getContentTopOffset()
   }, config.data);
 
   config.onLoad = function (options) {
@@ -44,7 +48,8 @@ function withTheme(config) {
       themeVars: snap.varsString,
       themeName: snap.name,
       themeJs: snap.js,
-      themeWindowBg: snap.js.windowBg
+      themeWindowBg: snap.js.windowBg,
+      contentTopOffset: manager.getContentTopOffset()
     };
     // 页面若维护了导航让位高度，随主题布局策略同步（illustrated 24px / minimal 0）
     if (this.data && 'navHeight' in this.data) {

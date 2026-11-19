@@ -5,7 +5,7 @@
 
 <immersive-nav />
 
-<view class="page" style="padding-top: {{navHeight}}px" bindtap="onPageTap">
+<view class="page" style="padding-top: {{navHeight + contentTopOffset}}px" bindtap="onPageTap">
   <!-- 骨架屏 -->
   <block wx:if="{{loading}}">
     <view class="skeleton-item"><view class="skeleton-img"></view>

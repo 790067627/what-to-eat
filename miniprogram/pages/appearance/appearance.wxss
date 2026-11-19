@@ -12,6 +12,33 @@
   padding: 0 8rpx;
 }
 
+/* ============ 跟随系统开关卡 ============ */
+.follow-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  background: var(--bg-card, rgba(255,255,255,0.88));
+  border: 2rpx solid var(--border-default, #F8E3EC);
+  border-radius: var(--radius-lg);
+  padding: 26rpx 28rpx;
+  margin-bottom: 24rpx;
+  box-shadow: var(--shadow-card, 0 6rpx 24rpx rgba(217,108,153,0.08));
+}
+.follow-main { flex: 1; min-width: 0; }
+.follow-title { font-size: 30rpx; font-weight: 600; color: var(--text-primary, #4A2C3A); }
+.follow-desc { font-size: 22rpx; color: var(--text-secondary, #9C7B8C); margin-top: 6rpx; line-height: 1.5; }
+.follow-state {
+  display: inline-block;
+  margin-top: 10rpx;
+  font-size: 20rpx;
+  color: var(--color-accent, #FF8FB8);
+  background: var(--color-accent-soft, #FFF0F6);
+  border-radius: 10rpx;
+  padding: 4rpx 14rpx;
+}
+.follow-card switch { transform: scale(0.84); transform-origin: right center; }
+
 .theme-list {
   display: flex;
   flex-direction: column;
@@ -93,7 +120,7 @@
 .theme-name { font-size: 30rpx; font-weight: 600; color: var(--text-primary, #4A2C3A); }
 .theme-desc { font-size: 24rpx; color: var(--text-secondary, #9C7B8C); margin-top: 6rpx; }
 
-/* 选中勾：右上角圆形徽标 */
+/* 选中勾：右上角圆形徽标（手动模式） */
 .theme-check {
   position: absolute;
   top: 16rpx;
@@ -108,6 +135,24 @@
   align-items: center;
   justify-content: center;
 }
+
+/* 跟随系统期间的「当前生效」标签（替代选中勾，仅预览不可点） */
+.theme-active-tag {
+  position: absolute;
+  top: 16rpx;
+  right: 16rpx;
+  font-size: 20rpx;
+  font-weight: 600;
+  color: var(--text-on-accent, #fff);
+  background: var(--color-accent, #FF8FB8);
+  border-radius: 999rpx;
+  padding: 6rpx 16rpx;
+}
+
+/* 跟随系统期间：卡片仅预览（降透明 + 去按压反馈；保留点击以给出提示 toast） */
+.theme-list.preview-only .theme-card { opacity: 0.62; }
+.theme-list.preview-only .theme-card.selected { opacity: 1; }
+.theme-list.preview-only .theme-card:active { transform: none; }
 
 .foot-note {
   text-align: center;

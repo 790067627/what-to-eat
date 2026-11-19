@@ -9,8 +9,11 @@ App({
   },
 
   onLaunch() {
-    // 主题初始化最先执行（同步读 Storage）：页面 data 初始值即为最终主题，避免先粉后切
+    // 主题初始化最先执行（同步读 Storage + 同步读系统深浅色）：
+    // 页面 data 初始值即为最终主题，避免先粉后切
     theme.init();
+    // 注册「跟随系统」深浅色监听（基础库不支持时内部静默跳过，手动模式不受影响）
+    theme.watchSystem();
 
     // 图标字体已通过 app.wxss 内联 base64 @font-face 加载，无需 loadFontFace
     if (!wx.cloud) {
@@ -22,5 +25,10 @@ App({
       env: ENV_ID || undefined,
       traceUser: true
     });
+  },
+
+  onShow() {
+    // 前台兜底复查系统深浅色（覆盖个别机型 onThemeChange 不触发的场景）
+    theme.checkSystemTheme();
   }
 });

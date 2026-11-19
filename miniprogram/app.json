@@ -10,12 +10,14 @@
     "pages/history/history",
     "pages/appearance/appearance"
   ],
+  "darkmode": true,
+  "themeLocation": "theme.json",
   "window": {
-    "navigationBarBackgroundColor": "#FFF7FA",
+    "navigationBarBackgroundColor": "@navBg",
     "navigationBarTitleText": "Yuki小厨房",
-    "navigationBarTextStyle": "black",
-    "backgroundColor": "#FFF7FA",
-    "backgroundTextStyle": "dark",
+    "navigationBarTextStyle": "@navText",
+    "backgroundColor": "@winBg",
+    "backgroundTextStyle": "@winText",
     "enablePullDownRefresh": false
   },
   "tabBar": {
