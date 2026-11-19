@@ -57,8 +57,6 @@
     <view class="ov-body">
       <view class="ov-stage {{zoomPunch ? 'zoompunch' : ''}}">
         <view class="card-zone {{zoneClass}}">
-          <!-- 关闭钮：卡片右上方，与卡顶间距 20rpx（16~24 区间） -->
-          <view class="ov-close" bindtap="onCloseOverlay"><text class="bi"></text></view>
           <view class="charge-glow {{glowOn ? 'on' : ''}}"></view>
           <view class="flash {{flashGo ? 'go' : ''}}"></view>
           <!-- 卡牌 3D：transform 由 JS 逐帧写入（WXSS 动画会压平 preserve-3d，禁用） -->
@@ -72,11 +70,17 @@
             <!-- 卡面：云存储封面为英雄区，无图走统一 bi 占位 -->
             <view class="face face-front">
               <view class="sheen"></view>
+              <!-- 卡片顶部工具栏：左抽中数 / 右分享+关闭（线性 bi 图标，不遮照片） -->
+              <view class="card-toolbar">
+                <text class="tb-count">从 {{result.poolSize}} 道里抽中</text>
+                <view class="tb-btns">
+                  <view class="tb-btn" bindtap="onShareTap"><text class="bi"></text></view>
+                  <view class="tb-btn" bindtap="onCloseOverlay"><text class="bi"></text></view>
+                </view>
+              </view>
               <view class="hero">
                 <image wx:if="{{result.dish.coverImage}}" class="hero-img" src="{{result.dish.coverImage}}" mode="aspectFill" />
                 <view wx:else class="hero-img hero-ph bi"><text class="bi"></text></view>
-                <view class="hero-badge">今日幸运菜</view>
-                <view class="hero-from">从 {{result.poolSize}} 道里抽中</view>
               </view>
               <view class="fbody">
                 <view class="r-name">{{result.dish.name}}</view>
@@ -99,12 +103,46 @@
           <view class="btn-ghost action-reject" bindtap="onReject"><text class="bi"></text> 不想吃，换一个</view>
           <view class="btn-primary action-accept" bindtap="onAccept"><text class="bi"></text> 就它了，记一笔</view>
         </view>
-        <view class="poster-row">
-          <view class="btn-ghost poster-btn" bindtap="onPoster"><text class="bi"></text> 生成分享海报</view>
-        </view>
       </view>
     </view>
     <view class="ov-spacer" style="height: {{ovBottom}}px"></view>
+  </view>
+</view>
+
+<!-- ===== 顶层面板：分享 Bottom Sheet（与抽卡弹层互斥） ===== -->
+<view wx:if="{{shareMounted}}" class="top-panel {{shareOpen ? 'open' : ''}}">
+  <view class="tp-mask" bindtap="closeShare"></view>
+  <view class="sheet" catchtap="noop">
+    <view class="sheet-grip"></view>
+    <view class="sheet-title">分享这道菜</view>
+    <view class="sheet-opts">
+      <button class="sheet-opt" open-type="share" bindtap="closeShare">
+        <view class="so-ic wechat bi"><text class="bi"></text></view>
+        <view class="so-tx">分享给微信好友</view>
+      </button>
+      <view class="sheet-opt" bindtap="onSharePoster">
+        <view class="so-ic poster bi"><text class="bi"></text></view>
+        <view class="so-tx">生成分享海报</view>
+      </view>
+    </view>
+    <view class="sheet-cancel" bindtap="closeShare">取消</view>
+  </view>
+</view>
+
+<!-- ===== 顶层面板：全屏海报预览（覆盖结果层，不叠加弹窗） ===== -->
+<view wx:if="{{posterOpen}}" class="top-panel open poster-panel">
+  <view class="poster-full">
+    <view class="pf-head" style="padding-top: {{pfTop}}px">
+      <view class="pf-back" bindtap="closePoster"><text class="bi"></text> 返回</view>
+      <view class="pf-title">分享海报</view>
+      <view class="pf-save-top" bindtap="onSavePoster">保存</view>
+    </view>
+    <view class="pf-body">
+      <image class="pf-img" src="{{posterUrl}}" mode="aspectFit" show-menu-by-longpress="{{true}}" />
+    </view>
+    <view class="pf-actions">
+      <view class="btn-primary pf-save" bindtap="onSavePoster"><text class="bi"></text> 保存到相册</view>
+    </view>
   </view>
 </view>
 <poster id="poster" dish="{{result.dish}}" category-name="{{result.categoryName}}" />

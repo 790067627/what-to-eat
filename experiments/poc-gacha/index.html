@@ -160,7 +160,7 @@ body{
 .hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:48px;
   background:linear-gradient(transparent,rgba(255,255,255,.94));pointer-events:none}
 .hero-badge{
-  position:absolute;top:12px;right:12px;z-index:2;font-size:11px;font-weight:800;letter-spacing:1px;
+  position:absolute;bottom:34px;right:12px;z-index:2;font-size:11px;font-weight:800;letter-spacing:1px;
   color:#8a4a12;background:linear-gradient(135deg,#FFE9B8,#FFD370);border:1px solid rgba(255,255,255,.7);
   padding:4px 11px;border-radius:999px;box-shadow:0 3px 10px rgba(150,90,10,.35);opacity:0}
 .card-zone.flipped .hero-badge{animation:lineUp .38s ease .5s forwards}
@@ -256,7 +256,7 @@ body.dbg .fsm{display:block}
   cursor:pointer;opacity:0;transform:scale(.6);
   transition:opacity .3s ease,transform .3s cubic-bezier(.34,1.56,.64,1);
 }
-.ov.ready .card-topbtns .tb-ic{opacity:1;transform:scale(1)}
+.ov.ready .card-topbtns .tb-ic{opacity:1;transform:scale(1);pointer-events:auto}
 .card-topbtns .tb-ic:active{transform:scale(.88)!important}
 .card-topbtns .tb-ic.share{background:rgba(255,143,184,.85);border-color:rgba(255,222,236,.8)}
 
@@ -443,7 +443,7 @@ body.dbg .fsm{display:block}
     </div>
     <div class="pf-body"><img id="pfImg" src="" alt="海报预览"></div>
     <div class="pf-actions">
-      <button class="a-btn a-accept" id="pfSave">💾 保存到相册</button>
+      <button class="a-btn a-accept bi" id="pfSave"> 保存到相册</button>
     </div>
   </div>
 </div>
@@ -811,7 +811,7 @@ function buildPoster(){
     c.fillStyle='#fff';c.fillRect(0,0,W,H);
     // 品牌头
     c.fillStyle='#D4779A';c.font='700 15px -apple-system,"PingFang SC",sans-serif';
-    c.fillText('🍱 Yuki小厨房',pad,30);
+    c.fillStyle='#D4779A';c.beginPath();c.roundRect?c.roundRect(pad,16,20,20,6):c.rect(pad,16,20,20);c.fill();c.fillStyle='#fff';c.font='700 12px sans-serif';c.fillText('Y',pad+6,31);c.fillStyle='#D4779A';c.font='700 15px -apple-system,"PingFang SC",sans-serif';c.fillText('Yuki小厨房',pad+28,31);
     c.fillStyle='#999';c.font='11px sans-serif';
     c.fillText('今天吃啥？抽一抽',W-pad-110,30);
     // 菜品图（当前揭晓照片，本地资源无跨域）

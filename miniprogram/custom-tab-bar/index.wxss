@@ -22,6 +22,12 @@
   border-top: 1rpx solid #F0C0D4;
   display: flex;
   z-index: 999;
+  /* 常驻挂载：显隐只用 opacity 过渡（与抽屉滑入/滑出同帧同步），不卸载不重排 */
+  transition: opacity 0.22s ease;
+}
+.tab-bar.tb-hide {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* 顶对齐布局：图标/文字行位置由 padding-top 精确控制，四列统一 */

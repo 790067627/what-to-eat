@@ -31,6 +31,20 @@ Component({
     },
 
     async generate() {
+      return this._generate(false);
+    },
+
+    /** silent=true：只绘制并返回图片路径，不弹组件自带预览（供页面自定义全屏预览） */
+    async generateSilent() {
+      return this._generate(true);
+    },
+
+    /** 保存当前海报到相册（含相册权限引导），供页面全屏预览态调用 */
+    async saveToAlbum() {
+      return this.onSave();
+    },
+
+    async _generate(silent) {
       const dish = this.data.dish || this.properties.dish;
       if (!dish || !dish.name) {
         wx.showToast({ title: '没有可分享的菜品', icon: 'none' });
@@ -97,11 +111,19 @@ Component({
           }, this);
         });
         wx.hideLoading();
-        this.setData({ visible: true, posterUrl });
+        if (silent) {
+          this.setData({ posterUrl });
+        } else {
+          this.setData({ visible: true, posterUrl });
+        }
+        return posterUrl;
       } catch (e) {
         wx.hideLoading();
         console.error('[poster] 海报生成失败:', e);
-        wx.showToast({ title: `海报生成失败：${e.message || e.errMsg || '未知错误'}`, icon: 'none', duration: 3000 });
+        if (!silent) {
+          wx.showToast({ title: `海报生成失败：${e.message || e.errMsg || '未知错误'}`, icon: 'none', duration: 3000 });
+        }
+        return '';
       }
     },
 

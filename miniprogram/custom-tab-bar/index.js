@@ -2,6 +2,7 @@
 Component({
   data: {
     selected: 0,
+    hidden: false,   // 顶层抽屉/预览打开时由页面置 true 隐藏（含凸起）
     list: [
       { pagePath: '/pages/index/index', text: '首页', iconPath: '/custom-tab-bar/icons/home_normal.png', selectedIconPath: '/custom-tab-bar/icons/home_active.png' },
       { pagePath: '/pages/dishes/dishes', text: '菜单', iconPath: '/custom-tab-bar/icons/dishes_normal.png', selectedIconPath: '/custom-tab-bar/icons/dishes_active.png' },

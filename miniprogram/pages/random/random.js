@@ -44,6 +44,12 @@ Page({
     ovReady: false,          // 操作按钮/关闭钮可用
     ovTop: 0,                // 上占位 = 导航实际底边 T（px，实测）
     ovBottom: 0,             // 下占位 = 窗口高 - TabBar 凸起顶边 B（px，实测）
+    // ---- 顶层面板（与抽卡弹层互斥，同一时刻只有一个可交互） ----
+    shareMounted: false,     // 抽屉是否挂载（退出动画完成后才卸载）
+    shareOpen: false,        // 抽屉展开态（驱动滑入/滑出过渡）
+    posterOpen: false,       // 全屏海报预览
+    posterUrl: '',
+    pfTop: 96,               // 海报头行 padding-top（胶囊底边实测值，px）
     zoneClass: '',           // card-zone 状态类：enter-back/flipped/flyout/swapin
     cardTf: 'rotateY(180deg)', // 卡牌内联 transform（JS 逐帧驱动；初始背面朝上防闪面）
     glowOn: false,           // 蓄力光晕
@@ -78,6 +84,11 @@ Page({
   measureLayout() {
     const win = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
     const winH = win.windowHeight;
+    // 海报头行顶边 = 原生胶囊底边 + 8px（实测，避免与胶囊重叠）
+    try {
+      const mb = wx.getMenuButtonBoundingClientRect();
+      if (mb && mb.bottom) this.setData({ pfTop: mb.bottom + 8 });
+    } catch (e) { /* 忽略 */ }
     // T：导航组件根节点底边（组件实例选择器）
     const nav = this.selectComponent('#immersiveNav');
     const navQ = nav ? nav.createSelectorQuery().select('.imm-nav') : null;
@@ -105,9 +116,15 @@ Page({
   },
 
   onShow() {
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 2 });
+    const tb = typeof this.getTabBar === 'function' ? this.getTabBar() : null;
+    if (tb) tb.setData({ selected: 2 });
+    // 系统返回/切后台回流：面板若残留则立即复位（不走动画），恢复交互状态
+    if (this.data.shareMounted || this.data.posterOpen) {
+      this._shareBusy = false;
+      this._keepTabHidden = false;
+      this.setData({ shareMounted: false, shareOpen: false, posterOpen: false });
     }
+    this.syncTabBar();
     // 恢复"高分优先"上次选择
     try {
       const v = wx.getStorageSync('random_weight');
@@ -341,11 +358,93 @@ Page({
     }
   },
 
-  /** 生成分享海报（结果态） */
+  /** 生成分享海报（旧入口保留兼容：直接进全屏预览） */
   onPoster() {
     if (this.data.phase !== 'revealed') return;
+    this.openPosterPreview();
+  },
+
+  /** 卡片右上分享图标 → 打开 Bottom Sheet（挂载→下一帧展开，触发滑入过渡） */
+  onShareTap() {
+    if (this.data.phase !== 'revealed' || this._shareBusy) return;
+    this._shareBusy = true;
+    this.setData({ shareMounted: true });
+    this.syncTabBar();
+    // 下一帧再置 open：让 translateY(110%) 先落位，过渡才生效
+    this.T(() => {
+      this.setData({ shareOpen: true });
+      this.syncTabBar();   // 与滑入同帧：TabBar 同步淡出
+      this.T(() => { this._shareBusy = false; }, 300);
+    }, 30);
+  },
+
+  /** 关闭抽屉：滑出 220ms 完成后卸载；取消/遮罩/系统返回统一走这里 */
+  closeShare() {
+    if (!this.data.shareOpen || this._shareBusy) return;
+    this._shareBusy = true;
+    this.setData({ shareOpen: false });
+    this.syncTabBar();   // 与滑出同帧：TabBar 随遮罩同步淡入，无瞬间跳变
+    this.T(() => {
+      this.setData({ shareMounted: false });
+      this._shareBusy = false;
+    }, 240);
+  },
+
+  /** TabBar 可见性统一同步（常驻 opacity 过渡，不卸载不重排）：
+   *  隐藏条件看展开态 shareOpen——关闭起点即淡入，与抽屉滑出同帧同步 */
+  syncTabBar() {
+    const hide = !!(this.data.shareOpen || this.data.posterOpen || this._keepTabHidden);
+    const tb = typeof this.getTabBar === 'function' ? this.getTabBar() : null;
+    if (tb && tb.data.hidden !== hide) tb.setData({ hidden: hide });
+  },
+
+  /** Sheet：生成分享海报 → 全屏预览（静默生成，不叠组件自带弹窗）；
+   *  抽屉滑出与海报打开衔接期间 TabBar 保持隐藏，避免闪一下 */
+  onSharePoster() {
+    this._keepTabHidden = true;
+    this.setData({ shareOpen: false });
+    this.T(() => {
+      this.setData({ shareMounted: false });
+      this.syncTabBar();
+    }, 240);
+    this.openPosterPreview().then(() => { this._keepTabHidden = false; });
+  },
+
+  async openPosterPreview() {
     const poster = this.selectComponent('#poster');
-    if (poster) poster.generate();
+    if (!poster) return;
+    const url = await poster.generateSilent();
+    if (!url) {
+      this._keepTabHidden = false;
+      this.syncTabBar();
+      wx.showToast({ title: '海报生成失败', icon: 'none' });
+      return;
+    }
+    this.setData({ posterUrl: url, posterOpen: true });
+    this.syncTabBar();
+  },
+
+  closePoster() {
+    // 恢复原抽卡结果，菜品不变（result 未动，仅关预览层）
+    this.setData({ posterOpen: false });
+    this.syncTabBar();
+  },
+
+  onSavePoster() {
+    const poster = this.selectComponent('#poster');
+    if (poster) poster.saveToAlbum();
+  },
+
+  /** 微信转发（结果态分享当前菜品） */
+  onShareAppMessage() {
+    const { result } = this.data;
+    if (result && result.dish) {
+      return {
+        title: `${result.dish.name} | Yuki小厨房`,
+        path: `/pages/dish-detail/dish-detail?id=${result.dish._id}`
+      };
+    }
+    return { title: 'Yuki小厨房｜不知道吃啥？帮你决定', path: '/pages/index/index' };
   },
 
   /** 关闭弹层（右上角 ✕） */
