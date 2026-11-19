@@ -204,7 +204,7 @@ Page({
     this.setData({ fabX: left, fabY: top, fabDragging: true });
   },
 
-  /** FAB 拖动：松手——位移小视为点击弹面板，否则记忆新位置 */
+  /** FAB 拖动：松手——位移小视为点击弹面板；否则按中轴线自动吸附到最左/最右，高度保持 */
   onFabTouchEnd() {
     const s = this._fabStart;
     this._fabStart = null;
@@ -213,8 +213,13 @@ Page({
       this.setData({ fabSheetVisible: true });
       return;
     }
-    this.setData({ fabDragging: false });
-    wx.setStorageSync('dishesFabPos', { left: this.data.fabX, top: this.data.fabY });
+    const b = this._fabBounds;
+    const win = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
+    // 按钮中心点落在屏幕中轴线哪一侧，就吸附到哪条边
+    const centerX = this.data.fabX + this._fabSize / 2;
+    const snapX = centerX < win.windowWidth / 2 ? b.minX : b.maxX;
+    this.setData({ fabX: snapX, fabY: this.data.fabY, fabDragging: false });
+    wx.setStorageSync('dishesFabPos', { left: snapX, top: this.data.fabY });
   },
   closeFabSheet() {
     this.setData({ fabSheetVisible: false });
