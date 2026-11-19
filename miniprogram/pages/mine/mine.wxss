@@ -1,4 +1,8 @@
-.page { padding: 24rpx; }
+/* 底部让位 TabBar（100px 内容区 + 安全区）+ 24rpx 呼吸，避免末行菜单被遮 */
+.page {
+  padding: 24rpx 24rpx calc(100px + constant(safe-area-inset-bottom) + 24rpx);
+  padding: 24rpx 24rpx calc(100px + env(safe-area-inset-bottom) + 24rpx);
+}
 
 /* 统计卡 */
 .stats-card {

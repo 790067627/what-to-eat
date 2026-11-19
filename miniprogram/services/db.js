@@ -1,11 +1,15 @@
 // services/db.js
-/** icon 清洗：仅接受 PUA 码位（U+E000~U+F8FF，图标字体子集范围），其余一律换 apple 字形 */
-function sanitizeIcon(icon) {
+const LEAF_ICON = '\uE000';
+const DEFAULT_CATEGORY_ICON = '\uF312';
+
+function normalizeCategoryIcon(icon) {
+  // Bootstrap Icons 的旧叶子码位 U+F90C 在 Unicode 中等同于「奈」U+5948。
+  if (icon === '\uF90C' || icon === '\u5948') return LEAF_ICON;
   if (typeof icon === 'string' && icon.length === 1) {
     const cp = icon.charCodeAt(0);
     if (cp >= 0xE000 && cp <= 0xF8FF) return icon;
   }
-  return '\uf65b';
+  return DEFAULT_CATEGORY_ICON;
 }
 // - 数据服务层（统一走云函数 dish，前端不直连数据库，权限收敛在服务端）
 const { toast } = require('../utils/util');
@@ -35,18 +39,12 @@ function handleErr(err, fallbackMsg = '网络异常，请稍后再试') {
 
 module.exports = {
   // ---- 分类 ----
-  /** 分类列表：icon 统一清洗——非图标字体码位（汉字/emoji 等历史脏数据）替换为 apple 字形。
-   *  原因：CJK 区码位（如「奈」U+5948）在真机渲染时系统汉字字体优先于 web 字体 cmap，
-   *  字体层映射不生效，故在数据层兜底 */
   listCategories: async () => {
-    const res = await call('listCategories');
-    if (res && Array.isArray(res.categories)) {
-      res.categories = res.categories.map(c => ({
-        ...c,
-        icon: sanitizeIcon(c.icon)
-      }));
-    }
-    return res;
+    const categories = await call('listCategories');
+    return categories.map(category => ({
+      ...category,
+      icon: normalizeCategoryIcon(category.icon)
+    }));
   },
   addCategory: (data) => call('addCategory', { data }),
   updateCategory: (id, data) => call('updateCategory', { id, data }),
@@ -72,7 +70,16 @@ module.exports = {
   initDemo: () => call('initDemo'),
   exportData: () => call('exportData'),
   getBgUrl: (key) => call('getBgUrl', { key }),
-  listEatLogsByMonth: (yearMonth) => call('listEatLogsByMonth', { yearMonth }),
+  listEatLogsByMonth: async (yearMonth) => {
+    const result = await call('listEatLogsByMonth', { yearMonth });
+    return {
+      ...result,
+      categoryStats: (result.categoryStats || []).map(category => ({
+        ...category,
+        icon: normalizeCategoryIcon(category.icon)
+      }))
+    };
+  },
   importData: (data) => call('importData', { data }),
   
   // ---- 用户信息 ----

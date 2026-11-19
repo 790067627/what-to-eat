@@ -156,8 +156,8 @@ Page({
     const win = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
     const rpx2px = win.windowWidth / 750;
     this._fabSize = 100 * rpx2px;
-    // 自定义 tabbar：110rpx 高 + 底部安全区
-    const tabBarH = 110 * rpx2px + (win.safeArea ? win.windowHeight - win.safeArea.bottom : 0);
+    // 自定义 tabbar：100px 内容区（对齐原生规范）+ 底部安全区
+    const tabBarH = 100 + (win.safeArea ? win.windowHeight - win.safeArea.bottom : 0);
     const pad = 12;
     this._fabBounds = {
       minX: pad,

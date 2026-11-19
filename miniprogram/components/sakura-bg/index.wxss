@@ -6,9 +6,9 @@
 .kitty-wrap {
   /* 装饰图宽度（原图 1536x1024，widthFix 自动等比，高≈宽×2/3） */
   --kitty-width: 380rpx;
-  /* 底部留白：TabBar 之上，不与凸起按钮重叠 */
-  --kitty-bottom: calc(110rpx + constant(safe-area-inset-bottom));
-  --kitty-bottom: calc(110rpx + env(safe-area-inset-bottom));
+  /* 底部留白：TabBar 顶边之上（100px 内容区 + 安全区），不与凸起按钮重叠 */
+  --kitty-bottom: calc(100px + constant(safe-area-inset-bottom));
+  --kitty-bottom: calc(100px + env(safe-area-inset-bottom));
   --kitty-opacity: 0.92;
 
   position: fixed;

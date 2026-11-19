@@ -19,7 +19,7 @@ const ICONS = [
   // 娱乐兴趣
   '\uF49E', '\uF3C3', '\uF194', '\uF4B1', '\uF1D8', '\uF448', '\uF2D4',
   // 自然
-  '\uF5A2', '\uF496', '\uF2C1', '\uF56D', '\uF617', '\uF5E2', '\uF3CE',
+  '\uE000', '\uF5A2', '\uF496', '\uF2C1', '\uF56D', '\uF617', '\uF5E2', '\uF3CE',
   '\uF3CF', '\uF46F'
 ];
 

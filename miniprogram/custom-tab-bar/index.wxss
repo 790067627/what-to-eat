@@ -10,7 +10,10 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 110rpx;
+  /* 内容区 50px（100rpx）对齐微信原生 tabBar 规范高度；全局 border-box 下
+     height 需把 .safe-bottom 的安全区 padding 加在外面，否则内容区会被安全区吃掉 */
+  height: calc(100px + constant(safe-area-inset-bottom));
+  height: calc(100px + env(safe-area-inset-bottom));
   /* 白底 + 顶部细分割线：不再依赖背景图透出，各页统一 */
   background: #F9D6E4;
   border-top: 1rpx solid #F0C0D4;
@@ -46,7 +49,7 @@
   font-weight: 600;
 }
 
-/* 中间凸起按钮：保留圆形粉色，白图标，白描边环融入白底 */
+/* 中间凸起按钮：保留圆形粉色，白图标，白描边环融入白底；bar 加高后凸起半露 */
 .center-btn {
   width: 96rpx;
   height: 96rpx;
@@ -56,7 +59,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: -44rpx;
+  margin-top: -48rpx;
   border: 6rpx solid #FFFFFF;
 }
 
