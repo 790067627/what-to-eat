@@ -61,12 +61,23 @@ function withTheme(config) {
 
   config._syncNavBar = function () {
     const js = manager.getJs();
-    // custom 导航页调用无视觉效果，失败静默
+    // 原生导航栏颜色（custom 导航页调用无视觉效果，失败静默）
     wx.setNavigationBarColor({
       frontColor: js.navBar.frontColor,
       backgroundColor: js.navBar.backgroundColor,
       fail: () => {}
     });
+    // 原生窗口背景（下拉刷新露出区域）：app.json darkmode:true 后 theme.json 按「系统」深浅色
+    // 渲染窗口层，与 app 内主题（如系统深色 + 手动选樱花粉）会割裂。运行时按当前主题 windowBg
+    // 覆盖统一。iOS 需同时设 top/bottom 才能完全覆盖下拉区域。基础库 2.3.0+，缺失则跳过。
+    if (typeof wx.setBackgroundColor === 'function') {
+      wx.setBackgroundColor({
+        backgroundColor: js.windowBg,
+        backgroundColorTop: js.windowBg,
+        backgroundColorBottom: js.windowBg,
+        fail: () => {}
+      });
+    }
   };
 
   return config;
