@@ -42,6 +42,8 @@ Page({
     ovShow: false,           // 弹层是否挂载
     ovIn: false,             // 弹层渐显（挂载后下一帧置 true 触发 transition）
     ovReady: false,          // 操作按钮/关闭钮可用
+    ovTop: 0,                // 上占位 = 导航实际底边 T（px，实测）
+    ovBottom: 0,             // 下占位 = 窗口高 - TabBar 凸起顶边 B（px，实测）
     zoneClass: '',           // card-zone 状态类：enter-back/flipped/flyout/swapin
     cardTf: 'rotateY(180deg)', // 卡牌内联 transform（JS 逐帧驱动；初始背面朝上防闪面）
     glowOn: false,           // 蓄力光晕
@@ -68,6 +70,38 @@ Page({
 
   onReady() {
     this.initCanvas();
+    this.measureLayout();
+  },
+
+  /** 实测 T（导航底边）与 B（TabBar 含凸起的顶边），写入上下占位高度。
+   *  H = B - T 的可用区由 .ov-body flex:1 承担，内容在其中居中；无硬编码 top/margin。 */
+  measureLayout() {
+    const win = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
+    const winH = win.windowHeight;
+    // T：导航组件根节点底边（组件实例选择器）
+    const nav = this.selectComponent('#immersiveNav');
+    const navQ = nav ? nav.createSelectorQuery().select('.imm-nav') : null;
+    const applyB = (B) => {
+      this.setData({ ovTop: this._navBottom || 0, ovBottom: Math.max(winH - B, 0) });
+    };
+    // B：自定义 TabBar 凸起顶边（组件实例选择器）
+    const tb = typeof this.getTabBar === 'function' ? this.getTabBar() : null;
+    if (tb) {
+      tb.createSelectorQuery().select('.center-btn').boundingClientRect(r => {
+        const B = r && r.top ? r.top : winH - 56;
+        applyB(B);
+      }).exec();
+    } else {
+      applyB(winH - 56);
+    }
+    if (navQ) {
+      navQ.boundingClientRect(r => {
+        if (r && r.bottom) { this._navBottom = r.bottom; this.setData({ ovTop: r.bottom }); }
+      }).exec();
+    } else {
+      this._navBottom = this.data.navHeight;
+      this.setData({ ovTop: this.data.navHeight });
+    }
   },
 
   onShow() {
@@ -81,6 +115,9 @@ Page({
     } catch (e) { /* 忽略 */ }
     this.loadNames();
   },
+
+  /** 屏幕尺寸变化（旋转/分屏）：重测 T/B */
+  onResize() { this.measureLayout(); },
 
   onHide() {
     // 动画中途切走：彻底复位，避免 phase 卡在 charging/switching 导致回来后无法再抽
@@ -195,8 +232,8 @@ Page({
     this._alive = true;
     this._pending = null; this._pendingErr = null; this._chargeStart = Date.now();
 
-    // 弹层挂载后初始化 canvas（wx:if 需要等渲染完成）并触发渐显
-    this.T(() => { this.initCanvas(); this.setData({ ovIn: true }); }, 60);
+    // 弹层挂载后初始化 canvas（wx:if 需要等渲染完成）并触发渐显；同时重测 T/B
+    this.T(() => { this.initCanvas(); this.measureLayout(); this.setData({ ovIn: true }); }, 60);
 
     // 卡背悬浮进场 → 蓄力嗡鸣
     this.animBackIn(() => {
@@ -251,7 +288,11 @@ Page({
   applyResult(res) {
     const dish = res.dish;
     this.setData({
-      result: { ...res, dish: { ...dish, priceYuan: fenToYuan(dish.price) } },
+      result: {
+        ...res,
+        // 价格为 0/未填时不显示 ¥0：priceYuan 置空串，wxml 的 wx:if 自动隐藏标签
+        dish: { ...dish, priceYuan: Number(dish.price) > 0 ? fenToYuan(dish.price) : '' }
+      },
       lastEatenText: res.lastEatenAt ? `上次吃是 ${timeAgo(res.lastEatenAt)}` : '还没吃过，尝个鲜'
     });
   },

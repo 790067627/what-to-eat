@@ -47,58 +47,64 @@
     </view>
   </view>
 
-  <!-- ③ 全屏沉浸揭晓弹层（游戏级抽卡，v2 方案经 iPhone 12 Pro 真机验证） -->
+  <!-- ③ 全屏沉浸揭晓弹层：卡片+操作按钮为整体，按可用高度居中 -->
   <view wx:if="{{ovShow}}" class="ov {{ovIn ? 'in' : ''}} {{ovReady ? 'ready' : ''}}" catchtouchmove="noop">
     <view class="ov-bg"></view>
-    <view class="ov-close" bindtap="onCloseOverlay">✕</view>
     <!-- 粒子层：canvas 必须显式 width/height 100%，防替换元素尺寸失控 -->
     <canvas type="2d" id="fx" class="fx"></canvas>
-    <view class="ov-stage {{zoomPunch ? 'zoompunch' : ''}}">
-      <view class="card-zone {{zoneClass}}">
-        <view class="charge-glow {{glowOn ? 'on' : ''}}"></view>
-        <view class="flash {{flashGo ? 'go' : ''}}"></view>
-        <!-- 卡牌 3D：transform 由 JS 逐帧写入（WXSS 动画会压平 preserve-3d，禁用） -->
-        <view class="card-inner" style="transform: perspective(1100px) {{cardTf}}">
-          <!-- 卡背：樱花纹样 + bi 骰子徽标 -->
-          <view class="face face-back">
-            <view class="back-arc"></view>
-            <view class="back-arc2"></view>
-            <view class="back-emblem bi"><text class="bi"></text></view>
-          </view>
-          <!-- 卡面：云存储封面为英雄区，无图走统一 bi 占位 -->
-          <view class="face face-front">
-            <view class="sheen"></view>
-            <view class="hero">
-              <image wx:if="{{result.dish.coverImage}}" class="hero-img" src="{{result.dish.coverImage}}" mode="aspectFill" />
-              <view wx:else class="hero-img hero-ph bi"><text class="bi"></text></view>
-              <view class="hero-badge">今日幸运菜</view>
-              <view class="hero-from">从 {{result.poolSize}} 道里抽中</view>
+    <!-- 上占位=导航实际底边 T（测量值）；下占位=窗口高-TabBar凸起顶边 B -->
+    <view class="ov-spacer" style="height: {{ovTop}}px"></view>
+    <view class="ov-body">
+      <view class="ov-stage {{zoomPunch ? 'zoompunch' : ''}}">
+        <view class="card-zone {{zoneClass}}">
+          <!-- 关闭钮：卡片右上方，与卡顶间距 20rpx（16~24 区间） -->
+          <view class="ov-close" bindtap="onCloseOverlay"><text class="bi"></text></view>
+          <view class="charge-glow {{glowOn ? 'on' : ''}}"></view>
+          <view class="flash {{flashGo ? 'go' : ''}}"></view>
+          <!-- 卡牌 3D：transform 由 JS 逐帧写入（WXSS 动画会压平 preserve-3d，禁用） -->
+          <view class="card-inner" style="transform: perspective(1100px) {{cardTf}}">
+            <!-- 卡背：樱花纹样 + bi 骰子徽标 -->
+            <view class="face face-back">
+              <view class="back-arc"></view>
+              <view class="back-arc2"></view>
+              <view class="back-emblem bi"><text class="bi"></text></view>
             </view>
-            <view class="fbody">
-              <view class="r-name">{{result.dish.name}}</view>
-              <view class="r-chips">
-                <text wx:if="{{result.categoryName}}" class="chip chip-plain">{{result.categoryName}}</text>
-                <text wx:if="{{result.dish.priceYuan}}" class="chip">¥{{result.dish.priceYuan}}</text>
-                <text wx:if="{{result.dish.rating}}" class="chip chip-plain">★{{result.dish.rating}}</text>
+            <!-- 卡面：云存储封面为英雄区，无图走统一 bi 占位 -->
+            <view class="face face-front">
+              <view class="sheen"></view>
+              <view class="hero">
+                <image wx:if="{{result.dish.coverImage}}" class="hero-img" src="{{result.dish.coverImage}}" mode="aspectFill" />
+                <view wx:else class="hero-img hero-ph bi"><text class="bi"></text></view>
+                <view class="hero-badge">今日幸运菜</view>
+                <view class="hero-from">从 {{result.poolSize}} 道里抽中</view>
               </view>
-              <view class="r-desc ellipsis-2" wx:if="{{result.dish.description}}">{{result.dish.description}}</view>
-              <view class="r-last">{{lastEatenText}}</view>
-              <view class="r-link" bindtap="goDetail">查看详情 ›</view>
+              <view class="fbody">
+                <view class="r-name">{{result.dish.name}}</view>
+                <view class="r-chips">
+                  <text wx:if="{{result.categoryName}}" class="chip chip-plain">{{result.categoryName}}</text>
+                  <text wx:if="{{result.dish.priceYuan}}" class="chip">¥{{result.dish.priceYuan}}</text>
+                  <text wx:if="{{result.dish.rating}}" class="chip chip-plain">★{{result.dish.rating}}</text>
+                </view>
+                <view class="r-desc ellipsis-2" wx:if="{{result.dish.description}}">{{result.dish.description}}</view>
+                <view class="r-last">{{lastEatenText}}</view>
+                <view class="r-link" bindtap="goDetail">查看详情 ›</view>
+              </view>
             </view>
           </view>
         </view>
       </view>
-    </view>
-    <!-- 底部操作区：避让 TabBar 凸起（175rpx+safe，与 v1.5.9 页面避让同源计算） -->
-    <view class="ov-actions">
-      <view class="action-row">
-        <view class="btn-ghost action-reject" bindtap="onReject"><text class="bi"></text> 不想吃，换一个</view>
-        <view class="btn-primary action-accept" bindtap="onAccept">✓ 就它了，记一笔</view>
+      <!-- 操作区：与卡片同属居中整体；主次配色保留 -->
+      <view class="ov-actions">
+        <view class="action-row">
+          <view class="btn-ghost action-reject" bindtap="onReject"><text class="bi"></text> 不想吃，换一个</view>
+          <view class="btn-primary action-accept" bindtap="onAccept"><text class="bi"></text> 就它了，记一笔</view>
+        </view>
+        <view class="poster-row">
+          <view class="btn-ghost poster-btn" bindtap="onPoster"><text class="bi"></text> 生成分享海报</view>
+        </view>
       </view>
-      <view class="poster-row">
-        <view class="btn-ghost poster-btn" bindtap="onPoster"><text class="bi"></text> 生成分享海报</view>
-      </view>
     </view>
+    <view class="ov-spacer" style="height: {{ovBottom}}px"></view>
   </view>
 </view>
 <poster id="poster" dish="{{result.dish}}" category-name="{{result.categoryName}}" />
