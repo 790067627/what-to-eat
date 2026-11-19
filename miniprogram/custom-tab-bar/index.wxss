@@ -53,8 +53,8 @@
   font-weight: 600;
 }
 
-/* 中间凸起按钮：直径 104rpx，上凸 28rpx（30rpx 列顶 - 58rpx = -28rpx），
-   底边落在 76rpx，与文字行(78rpx 起)留 2rpx 间隙，不重叠 */
+/* 中间凸起按钮：直径 104rpx，上凸 35rpx（30rpx 列顶 - 65rpx = -35rpx），
+   底边落在 69rpx，与文字行(78rpx 起)留 9rpx 间隙，不重叠 */
 .center-btn {
   width: 104rpx;
   height: 104rpx;
@@ -64,7 +64,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: -58rpx;
+  margin-top: -65rpx;
   border: 6rpx solid #FFFFFF;
 }
 
@@ -73,10 +73,11 @@
   height: 46rpx;
 }
 
-/* 「抽一抽」文字：与两侧标签同一文字行（78~100rpx），不沉入安全区 */
+/* 「抽一抽」文字：按钮上移后底边在 69rpx，margin-top 9rpx 把文字行
+   推回 78~100rpx，与两侧标签基线一致；圆与文字间隙 9rpx */
 .center-text {
   color: #6B5360;
-  margin-top: 2rpx;
+  margin-top: 9rpx;
 }
 
 .tab-item.active .center-text {
