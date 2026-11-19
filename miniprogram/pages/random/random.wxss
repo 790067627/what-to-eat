@@ -4,10 +4,10 @@
   height: 100vh;
   overflow: hidden;
   /* border-box：100vh 含 padding，顶部让位导航(内联)、底部让位 TabBar，无重复占位。
-     112rpx = TabBar 内容区高（+安全区）：操作区贴 TabBar 顶，
-     中间凸起骰子(上凸28rpx)落于两按钮中缝上方（不遮文字） */
-  padding: 0 24rpx calc(112rpx + constant(safe-area-inset-bottom));
-  padding: 0 24rpx calc(112rpx + env(safe-area-inset-bottom));
+     底部避让统一计算 = TabBar 内容区 112rpx + 凸起按钮上凸 35rpx + 安全间距 28rpx + 安全区，
+     保证结果态操作区（含第二行海报按钮）底边始终在凸起骰子最高点之上 */
+  padding: 0 24rpx calc(175rpx + constant(safe-area-inset-bottom));
+  padding: 0 24rpx calc(175rpx + env(safe-area-inset-bottom));
 }
 /* 筛选区：自然高度不滚动 */
 .filters { flex-shrink: 0; }
@@ -132,15 +132,16 @@
 .result-desc { font-size: 26rpx; color: #9C7B8C; line-height: 1.6; padding: 0 20rpx; }
 .result-link { font-size: 24rpx; color: #FF8FB8; margin-top: 16rpx; }
 
-/* 操作区：固定底部（TabBar 避让由 page padding 承担），独立背景不遮卡片 */
+/* 操作区：固定底部（TabBar+凸起避让由 page padding 统一承担），独立背景不遮卡片；
+   行1 换一个/记一笔，行2 海报居中，行间距 18rpx */
 .actions {
   flex-shrink: 0;
   padding-top: 12rpx;
   background: #FFF7FA;
 }
-/* 海报按钮居中 */
-.poster-row { display: flex; justify-content: center; margin-top: 16rpx; }
-.poster-btn { width: auto; padding: 20rpx 48rpx; }
+/* 第二行：海报按钮居中，与第一行间距 18rpx（规范 16~20） */
+.poster-row { display: flex; justify-content: center; margin-top: 18rpx; }
+.poster-btn { width: auto; padding: 20rpx 48rpx; text-align: center; }
 .action-row { display: flex; gap: 20rpx; }
 .action-reject {
   flex: 1;
@@ -150,10 +151,3 @@
   color: #9C7B8C;
 }
 .action-accept { flex: 1.4; }
-
-
-/* 海报按钮 */
-.poster-btn {
-  margin-top: 16rpx;
-  text-align: center;
-}
