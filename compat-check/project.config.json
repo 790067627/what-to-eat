@@ -1,0 +1,14 @@
+{
+  "miniprogramRoot": "miniprogram/",
+  "projectname": "compat-check",
+  "description": "抽卡动画移植前兼容性验证（独立最小工程，非生产代码）",
+  "appid": "wx3279aa279653bf32",
+  "compileType": "miniprogram",
+  "libVersion": "3.17.6",
+  "setting": {
+    "es6": true,
+    "postcss": true,
+    "minified": true,
+    "urlCheck": false
+  }
+}

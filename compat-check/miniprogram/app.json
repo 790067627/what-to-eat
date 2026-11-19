@@ -1,0 +1,10 @@
+{
+  "pages": ["pages/check/check"],
+  "window": {
+    "navigationBarTitleText": "抽卡动画兼容性验证",
+    "navigationBarBackgroundColor": "#2a1a24",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#2a1a24"
+  },
+  "sitemapLocation": "sitemap.json"
+}

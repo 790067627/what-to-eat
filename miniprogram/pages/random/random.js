@@ -1,7 +1,26 @@
-// pages/random/random.js - 随机抽卡：核心决策页
+// pages/random/random.js - 随机抽卡：核心决策页（v2 游戏级抽卡揭晓弹层）
+// 动画方案经 compat-check 真机验证（iPhone 12 Pro / iOS 27.3 / 基础库 3.18.0）：
+//   3D 翻牌逐帧 setData 60fps 掉0、粒子 canvas 节点 raf 满帧、setData 单次 0.33ms。
+// 关键约束：
+//   1) 小程序逻辑层无全局 requestAnimationFrame / wx.requestAnimationFrame，
+//      统一用 canvas(type=2d) 节点 raf，setTimeout(16) 兜底；
+//   2) preserve-3d 子树禁止跑 CSS transform 动画（合成层会压平 3D），
+//      卡牌 transform 全部由 JS 逐帧写入 cardTf。
 const api = require('../../services/db');
 const { getNavMetrics } = require('../../utils/util');
 const { fenToYuan, timeAgo } = require('../../utils/util');
+
+// 缓动
+const EASE = {
+  outBack: k => { const c = 2.0; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); },
+  outCubic: k => 1 - Math.pow(1 - k, 3),
+  inCubic: k => k * k * k
+};
+const CHARGE_MIN = 650;   // 最短蓄力 ms（卡背进场 500 + 嗡鸣 150）
+const FLIP_MS = 450;      // 翻牌
+const LAND_MS = 420;      // 落位回弹
+const FLY_MS = 240;       // 换一道飞出
+const SWAP_MS = 420;      // 换一道翻入
 
 Page({
   data: {
@@ -10,22 +29,45 @@ Page({
     excludeDays: 3,          // 排除最近 N 天吃过的（0 = 不排除）
     onlyWant: false,         // 只从"想吃"里抽
     weightByRating: true,    // 高分优先：按评分加权抽取
-    // 抽卡状态机：idle | rolling | result
+    // 抽卡状态机：idle | charging | bursting | revealing | revealed | switching | closing
     phase: 'idle',
-    rollingName: '',         // 滚动时闪过的菜名
     result: null,            // { dish(含priceYuan), categoryName, lastEatenAt, poolSize }
     lastEatenText: '',
     errorMessage: '',
     categories: [],
     categoryNames: ['不限'],  // picker 用
     categoryFilter: '',      // 限定分类
-    categoryFilterName: ''
+    categoryFilterName: '',
+    // ---- 弹层视图状态 ----
+    ovShow: false,           // 弹层是否挂载
+    ovIn: false,             // 弹层渐显（挂载后下一帧置 true 触发 transition）
+    ovReady: false,          // 操作按钮/关闭钮可用
+    zoneClass: '',           // card-zone 状态类：enter-back/flipped/flyout/swapin
+    cardTf: 'rotateY(180deg)', // 卡牌内联 transform（JS 逐帧驱动；初始背面朝上防闪面）
+    glowOn: false,           // 蓄力光晕
+    flashGo: false,          // 中心闪光
+    zoomPunch: false         // 空间缩放脉冲
   },
 
-  _rollTimer: null,
+  _timers: [],
+  _rafCard: null,
+  _rafFx: null,
+  _alive: false,
+  _humTimer: null,
+  _pending: null,
+  _pendingErr: null,
+  _chargeStart: 0,
+  _particles: [],
+  _rings: [],
+  _ctx: null,
+  _cardCenter: null,
 
   onLoad() {
     this.setData({ navHeight: getNavMetrics().headerHeight });
+  },
+
+  onReady() {
+    this.initCanvas();
   },
 
   onShow() {
@@ -40,11 +82,45 @@ Page({
     this.loadNames();
   },
 
-  onUnload() {
-    if (this._rollTimer) clearInterval(this._rollTimer);
+  onHide() {
+    // 动画中途切走：彻底复位，避免 phase 卡在 charging/switching 导致回来后无法再抽
+    this.stopAll();
+    this.setData({
+      phase: 'idle', ovShow: false, ovIn: false, ovReady: false,
+      zoneClass: '', cardTf: 'rotateY(180deg)', glowOn: false,
+      flashGo: false, zoomPunch: false, result: null
+    });
+  },
+  onUnload() { this.stopAll(); },
+
+  /** 资源清理：动画帧、定时器、粒子（页面卸载/隐藏/弹层关闭统一走这里） */
+  stopAll() {
+    this._alive = false;
+    this.caf(this._rafCard); this._rafCard = null;
+    this.caf(this._rafFx); this._rafFx = null;
+    this._timers.forEach(t => clearTimeout(t));
+    this._timers = [];
+    if (this._humTimer) { clearInterval(this._humTimer); this._humTimer = null; }
+    this._particles = []; this._rings = [];
+    if (this._ctx && this._cw) { try { this._ctx.clearRect(0, 0, this._cw, this._ch); } catch (e) { /* 忽略 */ } }
   },
 
-  /** 预加载菜名列表，供滚动动画使用 */
+  T(fn, ms) { this._timers.push(setTimeout(fn, ms)); },
+
+  /** 帧调度器：canvas 节点 raf 优先，setTimeout(16) 兜底（逻辑层无全局 rAF） */
+  raf(cb) {
+    if (this._cv && typeof this._cv.requestAnimationFrame === 'function') {
+      return { kind: 'c', id: this._cv.requestAnimationFrame(cb) };
+    }
+    return { kind: 't', id: setTimeout(() => cb(Date.now()), 16) };
+  },
+  caf(h) {
+    if (!h) return;
+    if (h.kind === 'c') { if (this._cv && this._cv.cancelAnimationFrame) this._cv.cancelAnimationFrame(h.id); }
+    else clearTimeout(h.id);
+  },
+
+  /** 预加载菜名列表（空池校验用） */
   async loadNames() {
     try {
       const [dishes, categories] = await Promise.all([api.listDishes(), api.listCategories()]);
@@ -81,98 +157,400 @@ Page({
     }
   },
 
-  // ---- 抽卡 ----
+  // ==================== 抽卡主流程 ====================
+
+  /** 服务端随机抽取。
+   *  注意：db.js 的 randomPick(filters) 会自行包一层 { filters }，
+   *  这里必须传扁平对象，否则云函数收到 filters.filters 导致筛选失效 */
+  _pick() {
+    return api.randomPick({
+      excludeRecentDays: this.data.excludeDays,
+      onlyStatus: this.data.onlyWant ? 'want' : '',
+      categoryId: this.data.categoryFilter,
+      weightByRating: this.data.weightByRating
+    });
+  },
+
+  /** 换一个专用：排除当前菜品（云函数无 exclude 参数，客户端重抽一次兜底） */
+  async _pickExcluding(dishId) {
+    let res = await this._pick();
+    if (dishId && res.dish && res.dish._id === dishId && (res.poolSize || 0) > 1) {
+      res = await this._pick();  // 重抽一次；仍相同则接受（池子极小时无解）
+    }
+    return res;
+  },
+
   async onRoll() {
-    if (this.data.phase === 'rolling') return;
+    if (this.data.phase !== 'idle') return;   // 防连点
     const names = this._names || [];
     if (!names.length) {
       this.setData({ errorMessage: '菜品库是空的，先去添加几道菜吧' });
       return;
     }
+    this.setData({
+      phase: 'charging', errorMessage: '', result: null,
+      ovShow: true, ovIn: false, ovReady: false, flashGo: false, zoomPunch: false,
+      zoneClass: 'enter-back', glowOn: true, cardTf: 'rotateY(180deg)'
+    });
+    this._alive = true;
+    this._pending = null; this._pendingErr = null; this._chargeStart = Date.now();
 
-    this.setData({ phase: 'rolling', errorMessage: '', result: null });
+    // 弹层挂载后初始化 canvas（wx:if 需要等渲染完成）并触发渐显
+    this.T(() => { this.initCanvas(); this.setData({ ovIn: true }); }, 60);
 
-    // 滚动动画：菜名快速闪动
-    let i = 0;
-    this._rollTimer = setInterval(() => {
-      this.setData({ rollingName: names[i % names.length] });
-      i++;
-    }, 80);
+    // 卡背悬浮进场 → 蓄力嗡鸣
+    this.animBackIn(() => {
+      this.measureCard();
+      if (this.data.phase === 'charging') this.startHum();
+    });
+    this.T(() => this.spawnGather(), 120);
+    if (this._humTimer) clearInterval(this._humTimer);
+    this._humTimer = setInterval(() => {
+      if (this.data.phase === 'charging') this.spawnGather();
+      else { clearInterval(this._humTimer); this._humTimer = null; }
+    }, 420);
 
-    // 请求服务端随机结果
-    try {
-      // 注意：db.js 的 randomPick(filters) 会自行包一层 { filters }，
-      // 这里必须传扁平对象，否则云函数收到 filters.filters 导致筛选失效
-      const res = await api.randomPick({
-        excludeRecentDays: this.data.excludeDays,
-        onlyStatus: this.data.onlyWant ? 'want' : '',
-        categoryId: this.data.categoryFilter,
-        weightByRating: this.data.weightByRating
-      });
-      // 至少滚 1.2 秒，仪式感拉满
-      setTimeout(() => this.showResult(res), 1200);
-    } catch (err) {
-      clearInterval(this._rollTimer);
-      if (err.message && err.message.includes('没有符合条件')) {
-        this.setData({ phase: 'idle', errorMessage: '没有符合条件的菜品，放宽筛选试试' });
-      } else {
-        this.setData({ phase: 'idle', errorMessage: '网络异常，再抽一次试试' });
-      }
-    }
+    // 并发请求服务端结果（结果先于动画确定，动画只是表演）
+    this._pick().then(res => { this._pending = res; this.tryReveal(); })
+      .catch(err => { this._pendingErr = err; this.tryReveal(); });
+    this.T(() => { if (this.data.phase === 'charging') this.tryReveal(); }, CHARGE_MIN);
   },
 
-  showResult(res) {
-    clearInterval(this._rollTimer);
+  tryReveal() {
+    if (this.data.phase !== 'charging') return;
+    if (this._pendingErr) {   // 失败恢复：收弹层回 idle
+      const err = this._pendingErr;
+      this.closeOverlay(() => {
+        this.setData({
+          phase: 'idle',
+          errorMessage: (err.message && err.message.includes('没有符合条件'))
+            ? '没有符合条件的菜品，放宽筛选试试' : '网络异常，再抽一次试试'
+        });
+      });
+      return;
+    }
+    if (!this._pending || Date.now() - this._chargeStart < CHARGE_MIN) return; // 结果未回或蓄力未满→继续等待
+    this.reveal(this._pending);
+  },
+
+  reveal(res) {
+    this.setData({ phase: 'bursting' });
+    if (this._humTimer) { clearInterval(this._humTimer); this._humTimer = null; }
+    this.applyResult(res);
+    this.setData({ glowOn: false, flashGo: true, zoomPunch: true });
+    this.spawnBurst();
+    wx.vibrateShort({ type: 'medium', fail: () => {} });
+    this.animFlip(() => {
+      this.setData({ phase: 'revealing', zoneClass: 'flipped' });
+      this.animLand(() => {
+        this.setData({ phase: 'revealed', ovReady: true, zoomPunch: false });
+      });
+    });
+  },
+
+  applyResult(res) {
     const dish = res.dish;
     this.setData({
-      phase: 'result',
-      result: {
-        ...res,
-        dish: { ...dish, priceYuan: fenToYuan(dish.price) }
-      },
+      result: { ...res, dish: { ...dish, priceYuan: fenToYuan(dish.price) } },
       lastEatenText: res.lastEatenAt ? `上次吃是 ${timeAgo(res.lastEatenAt)}` : '还没吃过，尝个鲜'
     });
-    wx.vibrateShort({ type: 'medium', fail: () => {} });
   },
 
-  // ---- 决策闭环 ----
+  /** 不想吃：侧翻飞出 → 短程翻入（不重复蓄力，排除当前菜品） */
+  onReject() {
+    if (this.data.phase !== 'revealed') return;  // 防连点
+    const cur = this.data.result;
+    this.setData({ phase: 'switching', ovReady: false, zoneClass: 'flipped flyout' });
+    this.animFlyOut(() => {
+      this._pickExcluding(cur ? cur.dish._id : '').then(res => {
+        this.applyResult(res);
+        this.setData({ zoneClass: 'flipped swapin', flashGo: false });
+        this.T(() => this.setData({ flashGo: true }), 30);
+        this.spawnPop();
+        wx.vibrateShort({ type: 'light', fail: () => {} });
+        this.animSwapIn(() => {
+          this.setData({ phase: 'revealed', ovReady: true, zoneClass: 'flipped' });
+        });
+      }).catch(() => {   // 换菜失败：原卡翻回，保留当前结果
+        this.setData({ zoneClass: 'flipped swapin' });
+        this.animSwapIn(() => {
+          this.setData({ phase: 'revealed', ovReady: true, zoneClass: 'flipped' });
+          wx.showToast({ title: '网络异常，没换成', icon: 'none' });
+        });
+      });
+    });
+  },
+
   /** 就它了：记一笔吃过，状态自动升级"常吃" */
   async onAccept() {
     const { result } = this.data;
-    if (!result) return;
+    if (!result || this.data.phase !== 'revealed') return;
     wx.showLoading({ title: '记录中' });
     try {
       await api.logEat(result.dish._id);
       wx.hideLoading();
       wx.showToast({ title: `就吃${result.dish.name}！`, icon: 'success' });
-      this.setData({ phase: 'idle', result: null });
-      this.loadNames(); // 刷新菜名池
+      this.closeOverlay(() => {
+        this.setData({ phase: 'idle', result: null });
+        this.loadNames(); // 刷新菜名池
+      });
     } catch (err) {
       wx.hideLoading();
       api.handleErr(err);
     }
   },
 
-  /** 不想吃：直接再抽一次 */
-  onReject() {
-    this.onRoll();
-  },
-
   /** 生成分享海报（结果态） */
   onPoster() {
+    if (this.data.phase !== 'revealed') return;
     const poster = this.selectComponent('#poster');
     if (poster) poster.generate();
+  },
+
+  /** 关闭弹层（右上角 ✕） */
+  onCloseOverlay() {
+    if (['revealed', 'revealing', 'bursting', 'switching'].indexOf(this.data.phase) < 0) return;
+    this.closeOverlay(() => this.setData({ phase: 'idle', result: null }));
+  },
+
+  closeOverlay(done) {
+    this.setData({ phase: 'closing', ovReady: false, ovIn: false });
+    this.T(() => {
+      this.stopAll();
+      this.setData({
+        ovShow: false, zoneClass: '', cardTf: 'rotateY(180deg)', glowOn: false,
+        flashGo: false, zoomPunch: false
+      });
+      if (done) done();
+    }, 320);
   },
 
   /** 看详情 */
   goDetail() {
     const { result } = this.data;
-    if (!result) return;
+    if (!result || this.data.phase !== 'revealed') return;
     wx.navigateTo({ url: `/pages/dish-detail/dish-detail?id=${result.dish._id}` });
   },
 
   /** 去加菜 */
   goAdd() {
     wx.navigateTo({ url: '/pages/dish-edit/dish-edit' });
+  },
+
+  /** 弹层内阻断滚动穿透 */
+  noop() {},
+
+  // ==================== 卡牌 tween（JS 逐帧写 cardTf，保 3D） ====================
+
+  tween(dur, fn, done) {
+    this._alive = true;
+    this.caf(this._rafCard);
+    const t0 = Date.now();
+    const step = () => {
+      if (!this._alive) return;
+      const k = Math.min((Date.now() - t0) / dur, 1);
+      fn(k);
+      if (k < 1) this._rafCard = this.raf(step);
+      else { this._rafCard = null; if (done) done(); }
+    };
+    this._rafCard = this.raf(step);
+  },
+
+  animBackIn(done) {
+    this.tween(500, k => {
+      const e = EASE.outBack(k);
+      this.setData({
+        cardTf: `translateY(${90 * (1 - e)}px) scale(${0.6 + 0.4 * e}) rotateY(180deg) rotateX(${14 * (1 - e)}deg)`
+      });
+    }, done);
+  },
+
+  /** 蓄力嗡鸣：rotateY(180) 附近正弦微颤 */
+  startHum() {
+    this.caf(this._rafCard);
+    const t0 = Date.now();
+    const loop = () => {
+      if (!this._alive || this.data.phase !== 'charging') return;
+      const t = (Date.now() - t0) / 1000;
+      const w = Math.sin(t * 7);
+      this.setData({ cardTf: `translateY(${-3.5 - w * 3.5}px) scale(${1.009 + w * 0.009}) rotateY(${180 + w * 4}deg)` });
+      this._rafCard = this.raf(loop);
+    };
+    this._rafCard = this.raf(loop);
+  },
+
+  animFlip(done) {
+    this.tween(FLIP_MS, k => {
+      const e = EASE.outBack(k);
+      const ry = 180 * (1 - e);
+      const sc = 1.06 + 0.07 * Math.sin(Math.min(k, 1) * Math.PI);
+      this.setData({ cardTf: `scale(${sc}) rotateY(${ry}deg)` });
+    }, done);
+  },
+
+  animLand(done) {
+    this.tween(LAND_MS, k => {
+      let sc, ty;
+      if (k < 0.6) { const e = k / 0.6; sc = 1.05 - 0.065 * EASE.outCubic(e); ty = -6 + 8 * EASE.outCubic(e); }
+      else { const e = (k - 0.6) / 0.4; sc = 0.985 + 0.015 * e; ty = 2 - 2 * e; }
+      this.setData({ cardTf: `translateY(${ty}px) scale(${sc}) rotateY(0deg)` });
+    }, () => { this.setData({ cardTf: '' }); if (done) done(); });
+  },
+
+  animFlyOut(done) {
+    this.tween(FLY_MS, k => {
+      const e = EASE.inCubic(k);
+      this.setData({ cardTf: `translateX(${135 * e}%) rotateY(${-105 * e}deg) rotate(${9 * e}deg) scale(${1 - 0.28 * e})` });
+    }, done);
+  },
+
+  animSwapIn(done) {
+    this.tween(SWAP_MS, k => {
+      const e = EASE.outBack(k);
+      this.setData({ cardTf: `translateX(${-115 * (1 - e)}%) rotateY(${150 * (1 - e)}deg) scale(${0.72 + 0.28 * e})` });
+    }, () => { this.setData({ cardTf: '' }); if (done) done(); });
+  },
+
+  // ==================== Canvas 2D 粒子（星芒+冲击波+能量汇聚） ====================
+
+  initCanvas() {
+    this.createSelectorQuery().select('#fx').fields({ node: true, size: true }).exec(res => {
+      if (!res || !res[0] || !res[0].node) return;
+      const cv = res[0].node, ctx = cv.getContext('2d');
+      const dpr = Math.min((wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()).pixelRatio || 2, 3);
+      cv.width = res[0].width * dpr;
+      cv.height = res[0].height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      this._cv = cv; this._ctx = ctx; this._cw = res[0].width; this._ch = res[0].height;
+    });
+  },
+
+  /** 量一次卡片中心（viewport 坐标 = 全屏 fixed canvas 的 CSS 坐标） */
+  measureCard() {
+    this.createSelectorQuery().select('.card-zone').boundingClientRect(r => {
+      if (r && r.width) this._cardCenter = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    }).exec();
+  },
+
+  cardCenter() {
+    return this._cardCenter || { x: (this._cw || 375) / 2, y: (this._ch || 667) * 0.4 };
+  },
+
+  /** 蓄力：能量粒子向卡心汇聚 */
+  spawnGather() {
+    if (!this._ctx) return;
+    const c = this.cardCenter();
+    for (let i = 0; i < 18; i++) {
+      const a = Math.random() * Math.PI * 2, d = 160 + Math.random() * 130;
+      this._particles.push({
+        gather: true, x: c.x + Math.cos(a) * d, y: c.y + Math.sin(a) * d,
+        tx: c.x, ty: c.y, t: 0, dur: 26 + Math.random() * 20,
+        s: 1.2 + Math.random() * 2.2, color: Math.random() < 0.7 ? '255,182,213' : '255,243,248'
+      });
+    }
+    this.kickFx();
+  },
+
+  /** 揭晓爆发：星芒粒子 + 双冲击波环 */
+  spawnBurst() {
+    if (!this._ctx) return;
+    const c = this.cardCenter();
+    const colors = ['#FFD6E7', '#FF8FB8', '#FFF3F8', '#FFC9DE', '#FFD98A'];
+    for (let i = 0; i < 52; i++) {
+      const a = Math.random() * Math.PI * 2, sp = 2.4 + Math.random() * 7;
+      this._particles.push({
+        x: c.x, y: c.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1.4,
+        s: 1.5 + Math.random() * 3, life: 1, decay: 0.013 + Math.random() * 0.017,
+        color: colors[(Math.random() * colors.length) | 0], star: Math.random() < 0.6,
+        rot: Math.random() * Math.PI, spin: (Math.random() - 0.5) * 0.26
+      });
+    }
+    this._rings.push({ x: c.x, y: c.y, r: 10, max: 230, life: 1, decay: 0.026, w: 5, color: '255,182,213' });
+    this._rings.push({ x: c.x, y: c.y, r: 4, max: 150, life: 1, decay: 0.04, w: 3, color: '255,243,248' });
+    this.kickFx();
+  },
+
+  /** 换一道轻量点缀 */
+  spawnPop() {
+    if (!this._ctx) return;
+    const c = this.cardCenter();
+    const colors = ['#FFD6E7', '#FF8FB8', '#FFF3F8'];
+    for (let i = 0; i < 18; i++) {
+      const a = Math.random() * Math.PI * 2, sp = 1.2 + Math.random() * 3;
+      this._particles.push({
+        x: c.x, y: c.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+        s: 1.2 + Math.random() * 2, life: 1, decay: 0.022 + Math.random() * 0.02,
+        color: colors[(Math.random() * colors.length) | 0], star: Math.random() < 0.5,
+        rot: Math.random() * Math.PI, spin: (Math.random() - 0.5) * 0.2
+      });
+    }
+    this.kickFx();
+  },
+
+  kickFx() {
+    if (this._rafFx || !this._ctx) return;
+    this._rafFx = this.raf(() => this.tickFx());
+  },
+
+  tickFx() {
+    this._rafFx = null;
+    const ctx = this._ctx;
+    if (!ctx) return;
+    ctx.clearRect(0, 0, this._cw, this._ch);
+    let alive = false;
+    this._particles = this._particles.filter(p => {
+      if (p.gather) {   // 汇聚粒子：缓动移向卡心
+        p.t += 1;
+        const k = Math.min(p.t / p.dur, 1), e = k * k * (3 - 2 * k);
+        const x = p.x + (p.tx - p.x) * e, y = p.y + (p.ty - p.y) * e;
+        ctx.save();
+        ctx.globalAlpha = (1 - k) * 0.9;
+        ctx.fillStyle = 'rgba(' + p.color + ',1)';
+        ctx.shadowColor = 'rgba(' + p.color + ',.9)'; ctx.shadowBlur = 5;
+        ctx.beginPath(); ctx.arc(x, y, p.s * (1 - k * 0.5), 0, 7); ctx.fill();
+        ctx.restore();
+        if (k < 1) alive = true;
+        return k < 1;
+      }
+      p.life -= p.decay;
+      if (p.life <= 0) return false;
+      alive = true;
+      p.x += p.vx; p.y += p.vy; p.vy += 0.07; p.vx *= 0.985; p.vy *= 0.985; p.rot += p.spin;
+      ctx.save();
+      ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.globalAlpha = Math.max(p.life, 0);
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color; ctx.shadowBlur = 6 * p.life;
+      if (p.star) {
+        const s = p.s * 1.7;
+        ctx.beginPath();
+        ctx.moveTo(0, -s); ctx.quadraticCurveTo(s * 0.18, -s * 0.18, s, 0);
+        ctx.quadraticCurveTo(s * 0.18, s * 0.18, 0, s);
+        ctx.quadraticCurveTo(-s * 0.18, s * 0.18, -s, 0);
+        ctx.quadraticCurveTo(-s * 0.18, -s * 0.18, 0, -s);
+        ctx.fill();
+      } else { ctx.beginPath(); ctx.arc(0, 0, p.s, 0, 7); ctx.fill(); }
+      ctx.restore();
+      return true;
+    });
+    this._rings = this._rings.filter(r => {
+      r.life -= r.decay;
+      if (r.life <= 0) return false;
+      alive = true;
+      r.r += (r.max - r.r) * 0.09;
+      ctx.save();
+      ctx.globalAlpha = r.life * 0.8;
+      ctx.strokeStyle = 'rgba(' + r.color + ',1)';
+      ctx.lineWidth = r.w * r.life;
+      ctx.shadowColor = 'rgba(' + r.color + ',.9)'; ctx.shadowBlur = 14 * r.life;
+      ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, 7); ctx.stroke();
+      ctx.restore();
+      return true;
+    });
+    if (alive) {
+      this._rafFx = this.raf(() => this.tickFx());
+    } else {
+      ctx.clearRect(0, 0, this._cw, this._ch);   // 特效播完即静止释放
+    }
   }
 });

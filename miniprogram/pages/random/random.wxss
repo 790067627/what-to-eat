@@ -1,21 +1,26 @@
+/* ============ 页面骨架 ============ */
 .page {
   display: flex;
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  /* border-box：100vh 含 padding，顶部让位导航(内联)、底部让位 TabBar，无重复占位。
-     底部避让统一计算 = TabBar 内容区 112rpx + 凸起按钮上凸 35rpx + 安全间距 28rpx + 安全区，
-     保证结果态操作区（含第二行海报按钮）底边始终在凸起骰子最高点之上 */
-  padding: 0 24rpx calc(175rpx + constant(safe-area-inset-bottom));
-  padding: 0 24rpx calc(175rpx + env(safe-area-inset-bottom));
+  /* border-box：100vh 含 padding，顶部让位导航(内联)、底部让位 TabBar（内容区 112rpx + 24rpx 呼吸）。
+     结果揭晓已移入全屏弹层，其避让在 .ov-actions 内独立计算 */
+  padding: 0 24rpx calc(136rpx + constant(safe-area-inset-bottom));
+  padding: 0 24rpx calc(136rpx + env(safe-area-inset-bottom));
 }
-/* 筛选区：自然高度不滚动 */
-.filters { flex-shrink: 0; }
-/* 中间抽卡区：独占剩余空间，内容不超时居中、超时才内部滚动 */
-.rand-scroll {
+/* 背景内容层：弹层打开时暗化模糊（filter 只作用于此，不含弹层） */
+.page-body {
   flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  transition: filter 0.4s ease;
 }
+.page-body.dimmed { filter: blur(14rpx) brightness(0.5) saturate(0.7); }
+
+/* 筛选区：自然高度不滚动 */
+.filters { flex-shrink: 0; }
 
 /* 筛选卡：行高统一 92rpx，行间细分割线，控件右缘对齐 */
 .filters { padding: 16rpx 28rpx; }
@@ -39,18 +44,14 @@
   padding: 8rpx 28rpx;
 }
 
-/* 舞台区：撑满中间滚动区并垂直居中；内容超高时自然撑开触发滚动 */
-.stage {
-  min-height: 100%;
+/* 初始态舞台：占满剩余空间居中 */
+.idle-stage {
+  flex: 1;
+  min-height: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24rpx 0;
-  box-sizing: border-box;
 }
-
-/* 初始态：骰子+标题+说明+按钮为一个整体 */
 .idle { text-align: center; width: 100%; }
 .dice { font-size: 120rpx; margin-bottom: 20rpx; animation: float 2.4s ease-in-out infinite; }
 /* 开始抽按钮：距说明 56rpx（48~64 区间） */
@@ -77,77 +78,318 @@
   display: inline-block;
 }
 
-/* 滚动中 */
-.rolling { width: 100%; }
-.rolling .roll-btn { margin-top: 56rpx; }
-.roll-card {
-  width: 420rpx;
-  height: 240rpx;
-  margin: 0 auto;
-  background: #fff;
-  border-radius: var(--radius-lg);
+/* ============ 全屏沉浸揭晓弹层 ============
+   z-index 1000：盖过 nav(900) 与自定义 TabBar(999) */
+.ov {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.ov.in { opacity: 1; pointer-events: auto; }
+.ov.in { display: flex; flex-direction: column; }
+.ov-bg {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(130% 95% at 50% 34%, rgba(78,30,52,0.58), rgba(32,10,24,0.86));
+}
+/* 粒子层：canvas 必须显式 width/height，防替换元素尺寸失控（POC 踩坑） */
+.fx {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+}
+.ov-close {
+  position: absolute;
+  /* 避开原生胶囊：不低于 176rpx；max() 不支持的老 WebView 回落到第一行 */
+  top: calc(env(safe-area-inset-top) + 100rpx);
+  top: max(176rpx, calc(env(safe-area-inset-top) + 100rpx));
+  right: 36rpx;
+  width: 80rpx; height: 80rpx;
+  border-radius: 50%;
+  z-index: 7;
+  background: rgba(20,6,14,0.55);
+  border: 3rpx solid rgba(255,255,255,0.5);
+  color: #fff;
+  font-size: 36rpx;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 4rpx solid #FFD6E7;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
 }
-.roll-name { font-size: 48rpx; font-weight: 600; color: #FF8FB8; }
-.shake { animation: shake 0.3s infinite; }
-@keyframes shake {
-  0%, 100% { transform: rotate(-2deg); }
-  50% { transform: rotate(2deg); }
-}
+.ov.ready .ov-close { opacity: 1; transform: scale(1); }
 
-/* 结果 */
-.result-card {
+/* 舞台：flex 余量区底对齐；卡片底边与操作区顶边恒隔 32rpx（结构保证，任意屏高不重叠） */
+.ov-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 32rpx;
+}
+.ov-stage.zoompunch { animation: zoomPunch 0.4s cubic-bezier(0.2,1.4,0.4,1); }
+@keyframes zoomPunch { 0% { transform: scale(1.045); } 100% { transform: scale(1); } }
+
+/* ============ 卡牌（3D 翻牌；transform 全部由 JS 逐帧驱动） ============ */
+.card-zone { width: 616rpx; position: relative; }
+.card-inner {
+  position: relative;
   width: 100%;
-  background: #fff;
-  border-radius: var(--radius-lg);
-  padding: 40rpx 32rpx;
-  text-align: center;
-  border: 4rpx solid #FFD6E7;
+  height: 744rpx;
+  transform-style: preserve-3d;
 }
-.pop-in { animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
-@keyframes popIn {
-  0% { transform: scale(0.6); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+.face {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 52rpx;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
-.result-img {
-  width: 200rpx;
-  height: 200rpx;
+/* ---- 卡背：樱花纹样 ---- */
+.face-back {
+  transform: rotateY(180deg);
+  background:
+    radial-gradient(circle at 22% 18%, rgba(255,214,231,0.5) 0 12rpx, transparent 14rpx),
+    radial-gradient(circle at 78% 30%, rgba(255,214,231,0.42) 0 10rpx, transparent 12rpx),
+    radial-gradient(circle at 30% 76%, rgba(255,214,231,0.4) 0 14rpx, transparent 16rpx),
+    radial-gradient(circle at 74% 84%, rgba(255,214,231,0.5) 0 10rpx, transparent 12rpx),
+    radial-gradient(circle at 50% 48%, rgba(255,240,247,0.35) 0 24rpx, transparent 28rpx),
+    linear-gradient(160deg, #E85D91 0%, #C74B7C 46%, #8E2F58 100%);
+  border: 3rpx solid rgba(255,190,216,0.55);
+  box-shadow: 0 52rpx 128rpx rgba(14,2,10,0.6),
+    inset 0 2rpx 0 rgba(255,255,255,0.28),
+    inset 0 0 80rpx rgba(80,10,40,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.back-emblem {
+  width: 208rpx; height: 208rpx;
   border-radius: 50%;
-  margin: 0 auto 24rpx;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 104rpx;
+  color: #FFEAF3;
+  background: radial-gradient(circle at 34% 30%, rgba(255,255,255,0.3), rgba(255,255,255,0.08));
+  border: 4rpx solid rgba(255,222,236,0.65);
+  box-shadow: 0 0 60rpx rgba(255,143,184,0.5), inset 0 0 36rpx rgba(255,255,255,0.2);
+  animation: emblemPulse 1s ease-in-out infinite alternate;
 }
-.result-img-ph {
+@keyframes emblemPulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.07); }
+}
+.back-arc { position: absolute; top: 28rpx; left: 28rpx; right: 28rpx; bottom: 28rpx; border-radius: 40rpx; border: 2rpx dashed rgba(255,214,231,0.5); }
+.back-arc2 { position: absolute; top: 52rpx; left: 52rpx; right: 52rpx; bottom: 52rpx; border-radius: 32rpx; border: 2rpx solid rgba(255,214,231,0.22); }
+
+/* ---- 卡面：照片英雄区 + 信息区 ---- */
+.face-front {
+  background: linear-gradient(172deg, #fff 55%, #FFF5F9 100%);
+  border: 3rpx solid rgba(255,222,236,0.95);
+  box-shadow: 0 60rpx 140rpx rgba(14,2,10,0.62),
+    0 0 0 10rpx rgba(255,255,255,0.06),
+    inset 0 2rpx 0 #fff,
+    0 0 120rpx rgba(255,143,184,0.22);
+}
+/* 顶部稀有度光带 */
+.face-front::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 8rpx;
+  z-index: 3;
+  background: linear-gradient(90deg, #FFD6E7, #FF8FB8 30%, #FFC9DE 50%, #FF8FB8 70%, #FFD6E7);
+}
+/* 边缘斜向流光 */
+.face-front::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 52rpx;
+  pointer-events: none;
+  z-index: 3;
+  background: linear-gradient(128deg, rgba(255,255,255,0.55) 0%, transparent 18%, transparent 82%, rgba(255,214,231,0.35) 100%);
+}
+.hero { position: relative; height: 400rpx; overflow: hidden; background: #FFE9F2; }
+.hero-img { width: 100%; height: 100%; display: block; }
+/* 翻牌期间照片朦胧，翻定后聚焦清晰 */
+.hero-img { filter: blur(32rpx) saturate(0.65); transform: scale(1.14); opacity: 0.5; }
+.card-zone.flipped .hero-img { animation: photoFocus 0.55s cubic-bezier(0.22,1,0.36,1) forwards; }
+@keyframes photoFocus { to { filter: blur(0) saturate(1); transform: scale(1); opacity: 1; } }
+.hero-ph {
   background: #FFEAF2;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 80rpx;
+  font-size: 140rpx;
+  color: #FF8FB8;
 }
-.result-name { font-size: 48rpx; font-weight: 600; color: #4A2C3A; margin-bottom: 16rpx; }
-.result-meta { margin-bottom: 14rpx; }
-.result-last { font-size: 24rpx; color: #C9A8B8; margin-bottom: 16rpx; }
-.result-desc { font-size: 26rpx; color: #9C7B8C; line-height: 1.6; padding: 0 20rpx; }
-.result-link { font-size: 24rpx; color: #FF8FB8; margin-top: 16rpx; }
+/* 照片底部渐隐衔接信息区 */
+.hero::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 96rpx;
+  background: linear-gradient(transparent, rgba(255,255,255,0.94));
+  pointer-events: none;
+}
+.hero-badge {
+  position: absolute;
+  top: 24rpx; right: 24rpx;
+  z-index: 2;
+  font-size: 22rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: #8a4a12;
+  background: linear-gradient(135deg, #FFE9B8, #FFD370);
+  border: 2rpx solid rgba(255,255,255,0.7);
+  padding: 8rpx 22rpx;
+  border-radius: 999rpx;
+  box-shadow: 0 6rpx 20rpx rgba(150,90,10,0.35);
+  opacity: 0;
+}
+.card-zone.flipped .hero-badge { animation: lineUp 0.38s ease 0.5s forwards; }
+.hero-from {
+  position: absolute;
+  top: 28rpx; left: 28rpx;
+  z-index: 2;
+  font-size: 21rpx;
+  color: #fff;
+  background: rgba(40,12,26,0.45);
+  padding: 6rpx 20rpx;
+  border-radius: 999rpx;
+  opacity: 0;
+}
+.card-zone.flipped .hero-from { animation: lineUp 0.38s ease 0.56s forwards; }
 
-/* 操作区：固定底部（TabBar+凸起避让由 page padding 统一承担），独立背景不遮卡片；
-   行1 换一个/记一笔，行2 海报居中，行间距 18rpx */
-.actions {
-  flex-shrink: 0;
-  padding-top: 12rpx;
-  background: #FFF7FA;
+.fbody { padding: 24rpx 40rpx 32rpx; text-align: center; position: relative; margin-top: -40rpx; z-index: 2; }
+.r-name { font-size: 52rpx; font-weight: 800; color: #4A2C3A; letter-spacing: 3rpx; text-shadow: 0 2rpx 0 #fff; }
+.r-chips { display: flex; gap: 14rpx; justify-content: center; margin-top: 16rpx; flex-wrap: wrap; }
+.r-desc { font-size: 25rpx; color: #9C7B8C; margin-top: 16rpx; line-height: 1.55; padding: 0 8rpx; }
+.r-last { font-size: 22rpx; color: #C9A8B8; margin-top: 12rpx; }
+.r-link { margin-top: 14rpx; font-size: 24rpx; color: #E85D91; font-weight: 600; }
+/* 信息逐行浮现（仅翻面后触发） */
+.r-name, .r-chips, .r-desc, .r-last, .r-link, .hero-badge, .hero-from { opacity: 0; transform: translateY(18rpx); }
+.card-zone.flipped .r-name { animation: lineUp 0.36s ease 0.34s forwards; }
+.card-zone.flipped .r-chips { animation: lineUp 0.36s ease 0.44s forwards; }
+.card-zone.flipped .r-desc { animation: lineUp 0.36s ease 0.54s forwards; }
+.card-zone.flipped .r-last { animation: lineUp 0.36s ease 0.58s forwards; }
+.card-zone.flipped .r-link { animation: lineUp 0.36s ease 0.62s forwards; }
+@keyframes lineUp { to { opacity: 1; transform: translateY(0); } }
+/* 扫光：翻面后一次掠过即停 */
+.sheen {
+  position: absolute;
+  top: -70%; left: -65%;
+  width: 48%; height: 240%;
+  pointer-events: none;
+  z-index: 4;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.55), transparent);
+  transform: rotate(16deg);
+  opacity: 0;
 }
-/* 第二行：海报按钮居中，与第一行间距 18rpx（规范 16~20） */
-.poster-row { display: flex; justify-content: center; margin-top: 18rpx; }
-.poster-btn { width: auto; padding: 20rpx 48rpx; text-align: center; }
+.card-zone.flipped .sheen { animation: sweepGo 0.7s cubic-bezier(0.3,0.6,0.3,1) 0.22s 1 forwards; }
+@keyframes sweepGo { 0% { left: -65%; opacity: 0; } 12% { opacity: 1; } 100% { left: 155%; opacity: 0; } }
+
+/* 蓄力聚能光晕（挂 card-zone 内跟随卡片） */
+.charge-glow {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 800rpx; height: 800rpx;
+  transform: translate(-50%, -50%) scale(0.4);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  background: radial-gradient(circle, rgba(255,143,184,0.42), rgba(255,143,184,0.1) 42%, transparent 66%);
+}
+.charge-glow.on { opacity: 1; transform: translate(-50%, -50%) scale(1); animation: glowBreathe 0.7s ease-in-out infinite alternate; }
+@keyframes glowBreathe {
+  from { transform: translate(-50%, -50%) scale(0.92); opacity: 0.75; }
+  to { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+}
+/* 中心闪光（揭晓/换菜瞬间一次） */
+.flash {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 1120rpx; height: 1120rpx;
+  transform: translate(-50%, -50%) scale(0);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.98) 0%, rgba(255,226,240,0.85) 22%, rgba(255,143,184,0.35) 45%, transparent 68%);
+}
+.flash.go { animation: flashBoom 0.42s cubic-bezier(0.16,0.9,0.3,1) forwards; }
+@keyframes flashBoom {
+  0% { transform: translate(-50%, -50%) scale(0.08); opacity: 1; }
+  22% { transform: translate(-50%, -50%) scale(0.55); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.25); opacity: 0; }
+}
+
+/* ============ 弹层底部操作区 ============
+   避让 = TabBar 内容区 112rpx + 凸起上探 35rpx + 安全间距 28rpx（v1.5.9 同源计算） */
+.ov-actions {
+  position: relative;
+  flex-shrink: 0;
+  z-index: 6;
+  /* 凸起避让 175rpx + 整体上移 70rpx（真机反馈顶部留白偏多） */
+  padding: 0 44rpx calc(245rpx + constant(safe-area-inset-bottom));
+  padding: 0 44rpx calc(245rpx + env(safe-area-inset-bottom));
+  opacity: 0;
+  transform: translateY(36rpx);
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.22,1,0.36,1);
+}
+.ov.ready .ov-actions { opacity: 1; transform: translateY(0); pointer-events: auto; }
 .action-row { display: flex; gap: 20rpx; }
 .action-reject {
   flex: 1;
   text-align: center;
-  padding: 20rpx 0;
-  background: #FBEFF5;
-  color: #9C7B8C;
+  padding: 24rpx 0;
+  background: rgba(255,255,255,0.92);
+  color: #B25478;
+  border: 3rpx solid #fff;
+  box-shadow: 0 8rpx 32rpx rgba(10,2,8,0.4);
 }
-.action-accept { flex: 1.4; }
+.action-accept { flex: 1.45; box-shadow: 0 16rpx 48rpx rgba(240,99,156,0.5); }
+.poster-row { display: flex; justify-content: center; margin-top: 16rpx; }
+.poster-btn {
+  width: auto;
+  padding: 16rpx 64rpx;
+  text-align: center;
+  background: rgba(255,240,247,0.16);
+  color: #FFEAF3;
+  border: 3rpx solid rgba(255,214,231,0.75);
+  box-shadow: 0 4rpx 20rpx rgba(10,2,8,0.3);
+}
+/* ============ 小屏兜底（SE 级 667px）：缩卡+收信息，防卡片顶碰关闭钮 ============ */
+@media (max-height: 800px) {
+  .card-inner { height: 520rpx; }
+  .hero { height: 270rpx; }
+  .ov-actions {
+    padding: 0 44rpx calc(215rpx + constant(safe-area-inset-bottom));
+    padding: 0 44rpx calc(215rpx + env(safe-area-inset-bottom));
+  }
+  .action-row .action-reject, .action-row .action-accept { padding: 18rpx 0; }
+  .poster-btn { padding: 12rpx 56rpx; }
+  .poster-row { margin-top: 10rpx; }
+  .r-name { font-size: 42rpx; }
+  .fbody { padding: 18rpx 32rpx 22rpx; margin-top: -30rpx; }
+  .r-last { display: none; }
+  .r-desc { -webkit-line-clamp: 1; }
+  .back-emblem { width: 170rpx; height: 170rpx; font-size: 86rpx; }
+}

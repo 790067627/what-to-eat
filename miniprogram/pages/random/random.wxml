@@ -1,87 +1,103 @@
 <immersive-nav />
 <view class="page" style="padding-top: {{navHeight}}px">
-  <!-- ① 顶部筛选区：自然高度，不滚动 -->
-  <!-- 筛选条件 -->
-  <view class="card filters">
-    <view class="filter-row">
-      <text class="filter-label">排除最近吃过的</text>
-      <slider
-        class="filter-slider"
-        min="0" max="14" step="1"
-        value="{{excludeDays}}"
-        activeColor="#FF8FB8"
-        backgroundColor="#F8E3EC"
-        block-size="20"
-        bindchanging="onDaysChange"
-        bindchange="onDaysChange"
-      />
-      <text class="filter-value">{{excludeDays === 0 ? '不排除' : excludeDays + '天'}}</text>
+  <!-- 背景内容（弹层打开时整体暗化模糊；filter 只作用于此层，不含弹层） -->
+  <view class="page-body {{ovShow ? 'dimmed' : ''}}">
+    <!-- ① 顶部筛选区：自然高度，不滚动 -->
+    <view class="card filters">
+      <view class="filter-row">
+        <text class="filter-label">排除最近吃过的</text>
+        <slider
+          class="filter-slider"
+          min="0" max="14" step="1"
+          value="{{excludeDays}}"
+          activeColor="#FF8FB8"
+          backgroundColor="#F8E3EC"
+          block-size="20"
+          bindchanging="onDaysChange"
+          bindchange="onDaysChange"
+        />
+        <text class="filter-value">{{excludeDays === 0 ? '不排除' : excludeDays + '天'}}</text>
+      </view>
+      <view class="filter-row">
+        <text class="filter-label">只从「想吃」里抽</text>
+        <switch checked="{{onlyWant}}" color="#FF8FB8" bindchange="toggleWant" />
+      </view>
+      <view class="filter-row">
+        <text class="filter-label">高分优先</text>
+        <switch checked="{{weightByRating}}" color="#FF8FB8" bindchange="toggleWeight" />
+      </view>
+      <view class="filter-row">
+        <text class="filter-label">限定分类</text>
+        <picker range="{{categoryNames}}" bindchange="onCategoryChoose">
+          <view class="filter-picker">{{categoryFilterName || '不限'}} ▾</view>
+        </picker>
+      </view>
     </view>
-    <view class="filter-row">
-      <text class="filter-label">只从「想吃」里抽</text>
-      <switch checked="{{onlyWant}}" color="#FF8FB8" bindchange="toggleWant" />
-    </view>
-    <view class="filter-row">
-      <text class="filter-label">高分优先</text>
-      <switch checked="{{weightByRating}}" color="#FF8FB8" bindchange="toggleWeight" />
-    </view>
-    <view class="filter-row">
-      <text class="filter-label">限定分类</text>
-      <picker range="{{categoryNames}}" bindchange="onCategoryChoose">
-        <view class="filter-picker">{{categoryFilterName || '不限'}} ▾</view>
-      </picker>
+
+    <!-- ② 初始态：骰子+标题+说明+开始抽 -->
+    <view class="idle-stage">
+      <view class="idle">
+        <view class="dice bi"><text class="bi"></text></view>
+        <view class="idle-title">今天吃啥？</view>
+        <view class="idle-sub">让命运替你决定</view>
+        <view wx:if="{{errorMessage}}" class="error-tip">{{errorMessage}}</view>
+        <view class="btn-primary roll-btn" bindtap="onRoll">开始抽</view>
+        <view class="add-hint" bindtap="goAdd">菜品库不够丰富？去加几道 ›</view>
+      </view>
     </view>
   </view>
 
-  <!-- ② 中间抽卡区：独占剩余空间，仅内容超高时内部滚动 -->
-  <scroll-view class="rand-scroll" scroll-y>
-  <view class="stage">
-    <!-- 初始态：骰子+标题+说明+开始抽整合为一个操作区域 -->
-    <view wx:if="{{phase === 'idle'}}" class="idle">
-      <view class="dice bi"><text class="bi"></text></view>
-      <view class="idle-title">今天吃啥？</view>
-      <view class="idle-sub">让命运替你决定</view>
-      <view wx:if="{{errorMessage}}" class="error-tip">{{errorMessage}}</view>
-      <view class="btn-primary roll-btn" bindtap="onRoll"> 开始抽</view>
-      <view class="add-hint" bindtap="goAdd">菜品库不够丰富？去加几道 ›</view>
-    </view>
-
-    <!-- 滚动中 -->
-    <view wx:elif="{{phase === 'rolling'}}" class="rolling">
-      <view class="roll-card shake">
-        <text class="roll-name">{{rollingName}}</text>
-      </view>
-      <view class="btn-primary roll-btn btn-disabled">抽取中…</view>
-      <view class="add-hint" bindtap="goAdd">菜品库不够丰富？去加几道 ›</view>
-    </view>
-
-    <!-- 结果 -->
-    <view wx:else class="result">
-      <view class="result-card pop-in">
-        <image wx:if="{{result.dish.coverImage}}" class="result-img" src="{{result.dish.coverImage}}" mode="aspectFill" />
-        <view wx:else class="result-img result-img-ph"><text class="bi"></text></view>
-        <view class="result-name">{{result.dish.name}}</view>
-        <view class="result-meta">
-          <text wx:if="{{result.categoryName}}" class="chip chip-plain">{{result.categoryName}}</text>
-          <text wx:if="{{result.dish.priceYuan}}" class="chip">¥{{result.dish.priceYuan}}</text>
-          <text wx:if="{{result.dish.rating}}" class="chip chip-plain">★{{result.dish.rating}}</text>
+  <!-- ③ 全屏沉浸揭晓弹层（游戏级抽卡，v2 方案经 iPhone 12 Pro 真机验证） -->
+  <view wx:if="{{ovShow}}" class="ov {{ovIn ? 'in' : ''}} {{ovReady ? 'ready' : ''}}" catchtouchmove="noop">
+    <view class="ov-bg"></view>
+    <view class="ov-close" bindtap="onCloseOverlay">✕</view>
+    <!-- 粒子层：canvas 必须显式 width/height 100%，防替换元素尺寸失控 -->
+    <canvas type="2d" id="fx" class="fx"></canvas>
+    <view class="ov-stage {{zoomPunch ? 'zoompunch' : ''}}">
+      <view class="card-zone {{zoneClass}}">
+        <view class="charge-glow {{glowOn ? 'on' : ''}}"></view>
+        <view class="flash {{flashGo ? 'go' : ''}}"></view>
+        <!-- 卡牌 3D：transform 由 JS 逐帧写入（WXSS 动画会压平 preserve-3d，禁用） -->
+        <view class="card-inner" style="transform: perspective(1100px) {{cardTf}}">
+          <!-- 卡背：樱花纹样 + bi 骰子徽标 -->
+          <view class="face face-back">
+            <view class="back-arc"></view>
+            <view class="back-arc2"></view>
+            <view class="back-emblem bi"><text class="bi"></text></view>
+          </view>
+          <!-- 卡面：云存储封面为英雄区，无图走统一 bi 占位 -->
+          <view class="face face-front">
+            <view class="sheen"></view>
+            <view class="hero">
+              <image wx:if="{{result.dish.coverImage}}" class="hero-img" src="{{result.dish.coverImage}}" mode="aspectFill" />
+              <view wx:else class="hero-img hero-ph bi"><text class="bi"></text></view>
+              <view class="hero-badge">今日幸运菜</view>
+              <view class="hero-from">从 {{result.poolSize}} 道里抽中</view>
+            </view>
+            <view class="fbody">
+              <view class="r-name">{{result.dish.name}}</view>
+              <view class="r-chips">
+                <text wx:if="{{result.categoryName}}" class="chip chip-plain">{{result.categoryName}}</text>
+                <text wx:if="{{result.dish.priceYuan}}" class="chip">¥{{result.dish.priceYuan}}</text>
+                <text wx:if="{{result.dish.rating}}" class="chip chip-plain">★{{result.dish.rating}}</text>
+              </view>
+              <view class="r-desc ellipsis-2" wx:if="{{result.dish.description}}">{{result.dish.description}}</view>
+              <view class="r-last">{{lastEatenText}}</view>
+              <view class="r-link" bindtap="goDetail">查看详情 ›</view>
+            </view>
+          </view>
         </view>
-        <view class="result-last">{{lastEatenText}} · 从 {{result.poolSize}} 道里抽中</view>
-        <view class="result-desc ellipsis-2" wx:if="{{result.dish.description}}" bindtap="goDetail">{{result.dish.description}}</view>
-        <view class="result-link" bindtap="goDetail">查看详情 ›</view>
       </view>
     </view>
-  </view>
-  </scroll-view>
-
-  <!-- 操作区（固定底部，仅结果态显示） -->
-  <view wx:if="{{phase === 'result'}}" class="actions">
-    <view class="action-row">
-      <view class="btn-ghost action-reject" bindtap="onReject"><text class="bi"></text> 不想吃，换一个</view>
-      <view class="btn-primary action-accept" bindtap="onAccept">✓ 就它了，记一笔</view>
-    </view>
-    <view class="poster-row">
-      <view class="btn-ghost poster-btn" bindtap="onPoster"><text class="bi"></text> 生成分享海报</view>
+    <!-- 底部操作区：避让 TabBar 凸起（175rpx+safe，与 v1.5.9 页面避让同源计算） -->
+    <view class="ov-actions">
+      <view class="action-row">
+        <view class="btn-ghost action-reject" bindtap="onReject"><text class="bi"></text> 不想吃，换一个</view>
+        <view class="btn-primary action-accept" bindtap="onAccept">✓ 就它了，记一笔</view>
+      </view>
+      <view class="poster-row">
+        <view class="btn-ghost poster-btn" bindtap="onPoster"><text class="bi"></text> 生成分享海报</view>
+      </view>
     </view>
   </view>
 </view>

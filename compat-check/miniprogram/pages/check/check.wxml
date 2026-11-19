@@ -1,0 +1,139 @@
+<view class="wrap">
+  <view wx:if="{{bootInfo}}" class="card errcard">
+    <view class="t">启动信标 / 全局错误</view>
+    <view class="kv">{{bootInfo}}</view>
+  </view>
+  <view class="card">
+    <view class="t">环境</view>
+    <view class="kv">平台：{{env.platform}} {{env.brand}} {{env.model}}</view>
+    <view class="kv">系统：{{env.system}}</view>
+    <view class="kv">基础库：{{env.sdk}}　微信：{{env.wechat}}</view>
+    <view class="kv">帧调度：{{rafMode}}</view>
+  </view>
+
+  <!-- A. 3D 翻牌（逐帧 setData，移植方案） -->
+  <view class="card">
+    <view class="t">A. 3D 翻牌（逐帧 setData，移植方案）</view>
+    <view class="hint">判定：翻转中能看到粉色卡背→侧向压缩→正面；无双面同显/白面</view>
+    <view class="stage3d">
+      <view class="zone">
+        <view class="inner" style="transform: perspective(1100px) rotateY({{degA}}deg)">
+          <view class="face back"><view class="emblem">卡</view></view>
+          <view class="face front"><view class="ph"></view><view class="nm">测试菜品</view></view>
+        </view>
+      </view>
+    </view>
+    <view class="row">
+      <button size="mini" bindtap="playA">重播</button>
+      <button size="mini" type="primary" data-k="A" data-v="1" bindtap="mark">通过</button>
+      <button size="mini" type="warn" data-k="A" data-v="0" bindtap="mark">异常</button>
+      <text class="mark">{{marks.A}}</text>
+    </view>
+  </view>
+
+  <!-- B. CSS 动画翻牌（对照组） -->
+  <view class="card">
+    <view class="t">B. CSS 动画翻牌（对照组）</view>
+    <view class="hint">若翻转中看不到卡背（一直白面/叠影）= 内核压平缺陷复现，证实必须用 A 方案</view>
+    <view class="stage3d">
+      <view class="zone">
+        <view class="inner cssflip {{playB ? 'go' : ''}}">
+          <view class="face back"><view class="emblem">卡</view></view>
+          <view class="face front"><view class="ph"></view><view class="nm">测试菜品</view></view>
+        </view>
+      </view>
+    </view>
+    <view class="row">
+      <button size="mini" bindtap="playB">重播</button>
+      <button size="mini" type="primary" data-k="B" data-v="back" bindtap="mark">能看到卡背</button>
+      <button size="mini" type="warn" data-k="B" data-v="flat" bindtap="mark">看不到(缺陷复现)</button>
+      <text class="mark">{{marks.B}}</text>
+    </view>
+  </view>
+
+  <!-- C. 2D 降级翻牌 -->
+  <view class="card">
+    <view class="t">C. 2D 降级翻牌（scaleX 换面）</view>
+    <view class="hint">判定：半程换面无穿帮、节奏可接受，作为 A 失败时的兜底</view>
+    <view class="stage3d">
+      <view class="zone">
+        <view class="inner2d" style="transform: scaleX({{sxC}})">
+          <view wx:if="{{faceC === 0}}" class="face back"><view class="emblem">卡</view></view>
+          <view wx:else class="face front"><view class="ph"></view><view class="nm">测试菜品</view></view>
+        </view>
+      </view>
+    </view>
+    <view class="row">
+      <button size="mini" bindtap="playC">重播</button>
+      <button size="mini" type="primary" data-k="C" data-v="1" bindtap="mark">通过</button>
+      <button size="mini" type="warn" data-k="C" data-v="0" bindtap="mark">异常</button>
+      <text class="mark">{{marks.C}}</text>
+    </view>
+  </view>
+
+  <!-- D. Canvas 2D 粒子 -->
+  <view class="card">
+    <view class="t">D. Canvas 2D 粒子 + 冲击波</view>
+    <view class="hint">判定：星芒与光环正常迸发；{{rafStopped ? '播完已自动停止(raf 释放)' : '播放中…'}}</view>
+    <view class="cvbox">
+      <canvas type="2d" id="fx" class="fx"></canvas>
+    </view>
+    <view class="row">
+      <button size="mini" bindtap="playD">爆发</button>
+      <button size="mini" type="primary" data-k="D" data-v="1" bindtap="mark">通过</button>
+      <button size="mini" type="warn" data-k="D" data-v="0" bindtap="mark">异常</button>
+      <text class="mark">{{marks.D}}</text>
+    </view>
+  </view>
+
+  <!-- E. 背景模糊 -->
+  <view class="card">
+    <view class="t">E. 背景暗化 + 模糊</view>
+    <view class="hint">左：view filter:blur；右：遮罩 backdrop-filter。判定：文字变模糊、无白屏/黑块</view>
+    <view class="blur-row">
+      <view class="blur-cell">
+        <view class="blur-src filterblur">红烧肉 38元 肥瘦相间</view>
+        <text class="tag">filter:blur</text>
+      </view>
+      <view class="blur-cell">
+        <view class="blur-src">红烧肉 38元 肥瘦相间</view>
+        <view class="blur-mask"></view>
+        <text class="tag">backdrop-filter</text>
+      </view>
+    </view>
+    <view class="row">
+      <button size="mini" type="primary" data-k="E" data-v="1" bindtap="mark">通过</button>
+      <button size="mini" type="warn" data-k="E" data-v="0" bindtap="mark">异常</button>
+      <text class="mark">{{marks.E}}</text>
+    </view>
+  </view>
+
+  <!-- F. 时序实测 -->
+  <view class="card">
+    <view class="t">F. 动画时序实测（自动）</view>
+    <view class="kv">首抽链（650+450+420=1520ms 理论）：实测 {{tFirst}}ms</view>
+    <view class="kv">换一道链（240+420=660ms 理论）：实测 {{tSwap}}ms</view>
+    <view class="kv">偏差来源：setData 帧节流；±80ms 内视为达标</view>
+  </view>
+
+  <!-- G. 帧率与 setData 开销 -->
+  <view class="card">
+    <view class="t">G. 帧率 / setData 开销（点测）</view>
+    <view class="hint">A/D 播放后自动记录帧率与掉帧；「压测」=连续10次翻牌+setData开销，模拟最坏节奏</view>
+    <view class="kv">翻牌帧率：{{perf.fpsA}}　{{perf.jankA}}</view>
+    <view class="kv">粒子帧率：{{perf.fpsD}}　{{perf.jankD}}</view>
+    <view class="kv">setData 单次：{{perf.setMs}}　压测：{{perf.stress}}</view>
+    <view class="row">
+      <button size="mini" bindtap="runPerf">压测</button>
+      <button size="mini" type="primary" data-k="G" data-v="1" bindtap="mark">通过</button>
+      <button size="mini" type="warn" data-k="G" data-v="0" bindtap="mark">异常</button>
+      <text class="mark">{{marks.G}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="t">结论汇总（长按或点复制发回）</view>
+    <view class="sum" bindlongpress="copySum">{{summary}}</view>
+    <button size="mini" bindtap="copySum">复制</button>
+  </view>
+</view>

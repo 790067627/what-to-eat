@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yuki小厨房 · 抽卡揭晓动画 POC v2（翻牌版）</title>
+<style>
+:root{
+  --pink:#FF8FB8; --pink-deep:#E85D91; --pink-dark:#A73568;
+  --ink:#4A2C3A; --hint:#9C7B8C; --hint2:#C9A8B8;
+  --bg-page:#FDF1F6;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;
+  background:#241b21; display:flex; flex-direction:column; align-items:center;
+  min-height:100vh; padding:22px 12px; gap:12px;
+}
+.poc-title{color:#f3d9e4;font-size:15px;font-weight:600}
+.poc-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+.poc-btn{background:#4a3540;color:#e8c9d8;border:1px solid #6b4a58;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer}
+.poc-btn.on{background:#E85D91;color:#fff;border-color:#E85D91}
+.poc-sel{background:#3a2a33;color:#e8c9d8;border:1px solid #6b4a58;border-radius:8px;padding:6px 8px;font-size:12px}
+
+/* 手机壳 */
+.phone{
+  width:390px;height:844px;border-radius:44px;overflow:hidden;position:relative;
+  background:var(--bg-page);box-shadow:0 24px 80px rgba(0,0,0,.55),0 0 0 10px #171114,0 0 0 12px #3a2c33;
+  container-type:size; /* 容器查询：小屏自动缩卡 */
+}
+.phone.shake{animation:phoneShake .3s ease}
+@keyframes phoneShake{
+  0%,100%{transform:translate(0,0)}20%{transform:translate(-3px,2px)}
+  40%{transform:translate(3px,-2px)}60%{transform:translate(-2px,-1px)}80%{transform:translate(2px,1px)}
+}
+
+/* ===== 背景页 ===== */
+.pg{position:absolute;inset:0;display:flex;flex-direction:column;padding:60px 12px 91px;transition:filter .4s ease}
+.pg.dimmed{filter:blur(7px) brightness(.5) saturate(.7)}
+.pg-nav{position:absolute;top:14px;left:0;right:0;text-align:center;font-size:16px;font-weight:600;color:var(--ink)}
+.filters{background:rgba(255,255,255,.9);border-radius:16px;padding:8px 14px;border:1px solid #F8DCE8}
+.f-row{display:flex;align-items:center;height:46px;font-size:13px;color:var(--ink)}
+.f-row+.f-row{border-top:1px solid #FCEFF5}
+.f-row .lbl{width:130px}
+.f-row .val{margin-left:auto;color:var(--pink);font-weight:600}
+.f-row .sw{width:44px;height:26px;border-radius:13px;background:#F8E3EC;position:relative;margin-left:auto;transition:background .2s}
+.f-row .sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.f-row .sw.on{background:var(--pink)}
+.f-row .sw.on::after{left:21px}
+.stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.pg-dice{font-size:64px;animation:pgFloat 2.4s ease-in-out infinite}
+@keyframes pgFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.pg-title{font-size:22px;font-weight:700;color:var(--ink);margin-top:8px}
+.pg-sub{font-size:13px;color:var(--hint2);margin-top:6px}
+.roll-btn{margin-top:30px;width:70%;padding:15px 0;border-radius:999px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,#FFB3D1,#FF8FB8);color:#fff;font-size:17px;font-weight:700;
+  box-shadow:0 8px 24px rgba(255,143,184,.45);transition:transform .15s}
+.roll-btn:active{transform:scale(.96)}
+.pg-hint{margin-top:16px;font-size:12px;color:var(--hint2)}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:58px;background:#F9D6E4;border-top:1px solid #F0C0D4;display:flex;z-index:50}
+.tabbar .tb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:15px;gap:3px}
+.tabbar .tb i{font-style:normal;font-size:21px;line-height:1;filter:grayscale(.35)}
+.tabbar .tb span{font-size:11px;color:#6B5360;line-height:1}
+.tabbar .tb.act span{color:var(--pink-dark);font-weight:600}
+.tabbar .tb-center i{width:54px;height:54px;border-radius:50%;background:var(--pink-deep);border:3px solid #fff;
+  display:flex;align-items:center;justify-content:center;font-size:26px;filter:none;margin-top:-35px;box-shadow:0 3px 10px rgba(167,53,104,.35)}
+
+/* ===== 全屏弹层 ===== */
+.ov{position:absolute;inset:0;z-index:100;opacity:0;pointer-events:none;transition:opacity .3s ease}
+.ov.show{opacity:1;pointer-events:auto}
+.ov-bg{position:absolute;inset:0;background:radial-gradient(130% 95% at 50% 34%,rgba(78,30,52,.58),rgba(32,10,24,.86))}
+.ov-close{
+  position:absolute;top:50px;right:18px;width:40px;height:40px;border-radius:50%;z-index:7;
+  background:rgba(20,6,14,.55);border:1.5px solid rgba(255,255,255,.5);color:#fff;font-size:18px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  opacity:0;transform:scale(.6);transition:opacity .3s ease,transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.ov.ready .ov-close{opacity:1;transform:scale(1)}
+.ov-close:active{transform:scale(.88)!important}
+#fx{position:absolute;left:0;top:0;width:100%;height:100%;z-index:3;pointer-events:none}
+
+/* 中心闪光（揭晓/翻转瞬间） */
+.flash{
+  position:absolute;left:50%;top:50%;width:560px;height:560px;transform:translate(-50%,-50%) scale(0);
+  border-radius:50%;pointer-events:none;z-index:4;opacity:0;
+  background:radial-gradient(circle,rgba(255,255,255,.98) 0%,rgba(255,226,240,.85) 22%,rgba(255,143,184,.35) 45%,transparent 68%);
+}
+.flash.go{animation:flashBoom .42s cubic-bezier(.16,.9,.3,1) forwards}
+@keyframes flashBoom{
+  0%{transform:translate(-50%,-50%) scale(.08);opacity:1}
+  22%{transform:translate(-50%,-50%) scale(.55);opacity:1}
+  100%{transform:translate(-50%,-50%) scale(1.25);opacity:0}
+}
+/* 空间缩放脉冲：整层轻微 zoom 冲击 */
+.ov.zoompunch .ov-stage{animation:zoomPunch .4s cubic-bezier(.2,1.4,.4,1)}
+@keyframes zoomPunch{0%{transform:scale(1.045)}100%{transform:scale(1)}}
+
+/* ===== 卡牌（3D 翻牌结构） ===== */
+.ov-stage{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;pointer-events:none;padding-bottom:205px}
+.card-zone{width:308px;perspective:1100px;opacity:0;pointer-events:none;position:relative}
+.card-zone.show{opacity:1}
+.card-inner{position:relative;width:100%;height:372px;transform-style:preserve-3d}
+
+/* 卡牌 3D 变换全部由 JS rAF 逐帧驱动（见脚本 tween 引擎）。
+   原因：Chromium 对 preserve-3d 子树跑 CSS transform 动画时会合成层化并 flatten，
+   导致 backface-visibility/perspective 失效（正面盖住背面）；逐帧静态 transform 可保持 3D。
+   以下 class 仅作状态标记，触发 .flipped 的信息浮现/扫光/照片聚焦。 */
+
+.face{backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:26px;overflow:hidden;position:absolute;inset:0}
+/* ---- 卡背：樱花纹样 ---- */
+.face-back{
+  transform:rotateY(180deg);
+  background:
+    radial-gradient(circle at 22% 18%,rgba(255,214,231,.5) 0 6px,transparent 7px),
+    radial-gradient(circle at 78% 30%,rgba(255,214,231,.42) 0 5px,transparent 6px),
+    radial-gradient(circle at 30% 76%,rgba(255,214,231,.4) 0 7px,transparent 8px),
+    radial-gradient(circle at 74% 84%,rgba(255,214,231,.5) 0 5px,transparent 6px),
+    radial-gradient(circle at 50% 48%,rgba(255,240,247,.35) 0 12px,transparent 14px),
+    linear-gradient(160deg,#E85D91 0%,#C74B7C 46%,#8E2F58 100%);
+  border:1.5px solid rgba(255,190,216,.55);
+  box-shadow:0 26px 64px rgba(14,2,10,.6),inset 0 1px 0 rgba(255,255,255,.28),inset 0 0 40px rgba(80,10,40,.4);
+  display:flex;align-items:center;justify-content:center;
+}
+.back-emblem{
+  width:104px;height:104px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:52px;
+  background:radial-gradient(circle at 34% 30%,rgba(255,255,255,.3),rgba(255,255,255,.08));
+  border:2px solid rgba(255,222,236,.65);box-shadow:0 0 30px rgba(255,143,184,.5),inset 0 0 18px rgba(255,255,255,.2);
+  animation:emblemPulse 1s ease-in-out infinite alternate;
+}
+@keyframes emblemPulse{from{transform:scale(1);box-shadow:0 0 22px rgba(255,143,184,.4),inset 0 0 14px rgba(255,255,255,.15)}
+  to{transform:scale(1.07);box-shadow:0 0 44px rgba(255,182,213,.75),inset 0 0 22px rgba(255,255,255,.3)}}
+.back-arc{position:absolute;inset:14px;border-radius:20px;border:1px dashed rgba(255,214,231,.5)}
+.back-arc2{position:absolute;inset:26px;border-radius:16px;border:1px solid rgba(255,214,231,.22)}
+
+/* ---- 卡面：照片英雄区 + 信息区 ---- */
+.face-front{
+  background:linear-gradient(172deg,#fff 55%,#FFF5F9 100%);
+  border:1.5px solid rgba(255,222,236,.95);
+  box-shadow:0 30px 70px rgba(14,2,10,.62),0 0 0 5px rgba(255,255,255,.06),
+             inset 0 1px 0 #fff, 0 0 60px rgba(255,143,184,.22);
+}
+/* 顶部稀有度光带 */
+.face-front::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:4px;z-index:3;
+  background:linear-gradient(90deg,#FFD6E7,#FF8FB8 30%,#FFC9DE 50%,#FF8FB8 70%,#FFD6E7);
+}
+/* 边缘高光描边（斜向流光感） */
+.face-front::after{
+  content:"";position:absolute;inset:0;border-radius:26px;pointer-events:none;z-index:3;
+  background:linear-gradient(128deg,rgba(255,255,255,.55) 0%,transparent 18%,transparent 82%,rgba(255,214,231,.35) 100%);
+  mix-blend-mode:overlay;
+}
+.hero{position:relative;height:200px;overflow:hidden;background:#FFE9F2}
+/* 翻牌期间照片即以朦胧态可见（避免翻面瞬间空面），翻定后聚焦清晰 */
+.hero img{width:100%;height:100%;object-fit:cover;display:block;
+  filter:blur(18px) saturate(.65);transform:scale(1.14);opacity:.5}
+.card-zone.flipped .hero img{animation:photoFocus .55s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes photoFocus{to{filter:blur(0) saturate(1);transform:scale(1);opacity:1}}
+/* 照片底部渐隐衔接信息区 */
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:48px;
+  background:linear-gradient(transparent,rgba(255,255,255,.94));pointer-events:none}
+.hero-badge{
+  position:absolute;top:12px;right:12px;z-index:2;font-size:11px;font-weight:800;letter-spacing:1px;
+  color:#8a4a12;background:linear-gradient(135deg,#FFE9B8,#FFD370);border:1px solid rgba(255,255,255,.7);
+  padding:4px 11px;border-radius:999px;box-shadow:0 3px 10px rgba(150,90,10,.35);opacity:0}
+.card-zone.flipped .hero-badge{animation:lineUp .38s ease .5s forwards}
+.hero-from{position:absolute;top:14px;left:14px;z-index:2;font-size:10.5px;color:#fff;background:rgba(40,12,26,.45);
+  padding:3px 10px;border-radius:999px;opacity:0}
+.card-zone.flipped .hero-from{animation:lineUp .38s ease .56s forwards}
+
+.fbody{padding:12px 20px 16px;text-align:center;position:relative;margin-top:-20px;z-index:2}
+.r-name{font-size:26px;font-weight:800;color:var(--ink);letter-spacing:1.5px;text-shadow:0 1px 0 #fff}
+.r-chips{display:flex;gap:7px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.r-chip{font-size:11.5px;padding:4px 12px;border-radius:999px;background:#FFF0F6;color:var(--pink-deep);border:1px solid #FFDCEA;font-weight:700}
+.r-chip.star{background:#FFF7E3;color:#B57E12;border-color:#FFE9B8}
+.r-desc{font-size:12.5px;color:var(--hint);margin-top:8px;line-height:1.55;padding:0 4px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.r-link{margin-top:8px;font-size:12px;color:var(--pink-deep);font-weight:600;cursor:pointer}
+.ov.ready .r-link{pointer-events:auto}
+/* 信息逐行浮现 */
+.r-name,.r-chips,.r-desc,.r-link,.hero-badge,.hero-from{opacity:0;transform:translateY(9px)}
+.card-zone.flipped .r-name{animation:lineUp .36s ease .34s forwards}
+.card-zone.flipped .r-chips{animation:lineUp .36s ease .44s forwards}
+.card-zone.flipped .r-desc{animation:lineUp .36s ease .54s forwards}
+.card-zone.flipped .r-link{animation:lineUp .36s ease .62s forwards}
+@keyframes lineUp{to{opacity:1;transform:translateY(0)}}
+/* 翻牌期间卡面水印：避免翻转瞬间纯白空面；翻定后淡出 */
+.front-wm{
+  position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;
+  font-size:130px;opacity:.13;filter:grayscale(1);pointer-events:none;transition:opacity .35s ease;
+}
+.card-zone.flipped .front-wm{opacity:0}
+/* 扫光（翻面后一次掠过） */
+.sheen{position:absolute;top:-70%;left:-65%;width:48%;height:240%;pointer-events:none;z-index:4;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:rotate(16deg);opacity:0}
+.card-zone.flipped .sheen{animation:sweepGo .7s cubic-bezier(.3,.6,.3,1) .22s 1 forwards}
+@keyframes sweepGo{0%{left:-65%;opacity:0}12%{opacity:1}100%{left:155%;opacity:0}}
+/* 蓄力时卡背聚能光晕 */
+.charge-glow{
+  position:absolute;left:50%;top:50%;width:400px;height:400px;transform:translate(-50%,-50%) scale(.4);z-index:0;
+  border-radius:50%;pointer-events:none;z-index:1;opacity:0;
+  background:radial-gradient(circle,rgba(255,143,184,.42),rgba(255,143,184,.1) 42%,transparent 66%);
+}
+.charge-glow.on{opacity:1;transform:translate(-50%,-50%) scale(1);
+  animation:glowBreathe .7s ease-in-out infinite alternate}
+@keyframes glowBreathe{from{transform:translate(-50%,-50%) scale(.92);opacity:.75}to{transform:translate(-50%,-50%) scale(1.1);opacity:1}}
+
+/* ===== 底部操作区（紧凑，避让 TabBar 凸起） ===== */
+.ov-actions{
+  position:absolute;left:0;right:0;bottom:0;z-index:6;
+  padding:0 22px 92px; /* ≈ TabBar 58 + 凸起 18 + 安全间距 16，等比对应生产 175rpx+safe */
+  opacity:0;transform:translateY(18px);pointer-events:none;
+  transition:opacity .3s ease,transform .35s cubic-bezier(.22,1,.36,1);
+}
+.ov.ready .ov-actions{opacity:1;transform:translateY(0);pointer-events:auto}
+.a-row{display:flex;gap:10px}
+.a-btn{flex:1;padding:12px 0;border-radius:999px;text-align:center;font-size:14.5px;font-weight:700;cursor:pointer;border:none}
+.a-reject{
+  background:rgba(255,255,255,.92);color:#B25478;border:1.5px solid #fff;
+  box-shadow:0 4px 16px rgba(10,2,8,.4)}
+.a-reject:active{background:#fff;transform:scale(.97)}
+.a-accept{flex:1.45;background:linear-gradient(135deg,#FF9FC4,#F0639C);color:#fff;
+  box-shadow:0 8px 24px rgba(240,99,156,.5),inset 0 1px 0 rgba(255,255,255,.4)}
+.a-accept:active{transform:scale(.97)}
+.a-poster-row{display:flex;justify-content:center;margin-top:8px}
+.a-poster{
+  flex:none;padding:8px 32px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;
+  background:rgba(255,240,247,.16);color:#FFEAF3;border:1.5px solid rgba(255,214,231,.75);
+  box-shadow:0 2px 10px rgba(10,2,8,.3)}
+.a-poster:active{background:rgba(255,214,231,.28)}
+
+.toast{position:absolute;left:50%;bottom:236px;transform:translateX(-50%) translateY(8px);z-index:9;
+  background:rgba(24,8,18,.9);color:#ffe9f2;font-size:12.5px;padding:9px 18px;border-radius:999px;
+  opacity:0;transition:all .25s ease;pointer-events:none;border:1px solid rgba(255,255,255,.15)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.fsm{position:absolute;top:14px;left:14px;z-index:8;font-size:10px;color:rgba(255,220,235,.85);
+  background:rgba(40,14,28,.5);padding:4px 10px;border-radius:99px;letter-spacing:.5px;display:none}
+body.dbg .fsm{display:block}
+.note{color:#a08492;font-size:12px;max-width:600px;text-align:center;line-height:1.7}
+/* 矮屏（SE/667px 级）：缩小卡牌与英雄图、收紧关闭按钮，防顶碰与裁切 */
+@container (max-height:760px){
+  .card-inner{height:336px}
+  .hero{height:180px}
+  .card-zone{width:272px}
+  .ov-close{top:18px;width:34px;height:34px;font-size:15px}
+  .charge-glow{width:330px;height:330px}
+  .r-name{font-size:24px}
+}
+</style>
+</head>
+<body>
+
+<div class="poc-title">Yuki小厨房 · 抽卡揭晓 POC v2（真实翻牌 + 空间爆发）</div>
+<div class="poc-bar">
+  <select class="poc-sel" id="selSpeed">
+    <option value="1">1× 正常</option>
+    <option value="0.4">0.4× 慢放</option>
+    <option value="0.2">0.2× 逐帧</option>
+  </select>
+  <button class="poc-btn" id="btnDbg">显示状态机</button>
+  <span style="color:#7a6070;font-size:11px">首抽动画≈1.6s · 换一道≈0.6s · 8% 概率模拟接口失败（自动恢复）</span>
+</div>
+
+<div class="phone" id="phone">
+  <div class="pg" id="pg">
+    <div class="pg-nav">抽一抽</div>
+    <div class="filters">
+      <div class="f-row"><span class="lbl">排除最近吃过的</span><span class="val">3天</span></div>
+      <div class="f-row"><span class="lbl">只从「想吃」里抽</span><span class="sw"></span></div>
+      <div class="f-row"><span class="lbl">高分优先</span><span class="sw on"></span></div>
+      <div class="f-row"><span class="lbl">限定分类</span><span class="val">不限 ▾</span></div>
+    </div>
+    <div class="stage">
+      <div class="pg-dice">🎲</div>
+      <div class="pg-title">今天吃啥？</div>
+      <div class="pg-sub">让命运替你决定</div>
+      <button class="roll-btn" id="btnRoll">开始抽</button>
+      <div class="pg-hint">菜品库不够丰富？去加几道 ›</div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tb"><i>🏠</i><span>首页</span></div>
+    <div class="tb"><i>🍱</i><span>菜单</span></div>
+    <div class="tb tb-center act"><i>🎲</i><span>抽一抽</span></div>
+    <div class="tb"><i>👤</i><span>我的</span></div>
+  </div>
+
+  <div class="ov" id="ov">
+    <div class="ov-bg"></div>
+    <div class="fsm" id="fsm">state: idle</div>
+    <div class="ov-close" id="btnClose">✕</div>
+    <canvas id="fx"></canvas>
+
+    <div class="ov-stage">
+      <div class="card-zone" id="cardZone">
+        <div class="flash" id="flash"></div>
+        <div class="charge-glow" id="chargeGlow"></div>
+        <div class="card-inner" id="cardInner">
+          <!-- 卡背 -->
+          <div class="face face-back">
+            <div class="back-arc"></div><div class="back-arc2"></div>
+            <div class="back-emblem">🎲</div>
+          </div>
+          <!-- 卡面 -->
+          <div class="face face-front">
+            <div class="front-wm">🎲</div>
+            <div class="sheen"></div>
+            <div class="hero">
+              <img id="rPhoto" src="" alt="">
+              <div class="hero-badge" id="rBadge">今日幸运菜</div>
+              <div class="hero-from" id="rFrom">从 8 道里抽中</div>
+            </div>
+            <div class="fbody">
+              <div class="r-name" id="rName">菜名</div>
+              <div class="r-chips" id="rChips"></div>
+              <div class="r-desc" id="rDesc"></div>
+              <div class="r-link" id="rLink">查看详情 ›</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ov-actions">
+      <div class="a-row">
+        <button class="a-btn a-reject" id="btnReject">🔄 不想吃，换一个</button>
+        <button class="a-btn a-accept" id="btnAccept">✓ 就它了，记一笔</button>
+      </div>
+      <div class="a-poster-row">
+        <button class="a-btn a-poster" id="btnPoster">🖼 生成分享海报</button>
+      </div>
+    </div>
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
+
+<div class="note">
+  v2 变化：卡背悬浮进场 → 蓄力嗡鸣（能量粒子向卡心汇聚）→ 中心闪光 + 冲击波 + 空间缩放驱动真实 3D 翻牌 → 照片模糊变清晰 → 信息逐行浮现 → 落位回弹，特效播完立即静止。换一道 = 侧翻飞出 + 对侧短程翻入（≈0.6s，自动排除当前菜品）。Mock 接口 300~1400ms 随机延迟、8% 失败自动恢复。粒子/光环为 Canvas 2D（对应小程序 canvas type="2d"，WX-Confetti 式 fire/reset 生命周期），无 React/GSAP 依赖，全部可移植。
+</div>
+
+<script>
+'use strict';
+/* ================= Mock 数据（真实美食照片，Unsplash 本地副本） ================= */
+const DISHES=[
+  {name:'红烧肉',img:'assets/dish1.jpg',cat:'硬菜',price:'38',rating:5,desc:'肥瘦相间的五花慢炖两小时，酱色油亮、入口即化，配米饭一绝。'},
+  {name:'蒜蓉粉丝虾',img:'assets/dish2.jpg',cat:'海鲜',price:'52',rating:4,desc:'开背虾铺蒜蓉粉丝清蒸，鲜甜弹牙，宴客撑场面首选。'},
+  {name:'玛格丽特披萨',img:'assets/dish3.jpg',cat:'西餐',price:'58',rating:4,desc:'薄脆饼底配新鲜罗勒与水牛芝士，窑烤焦香四溢。'},
+  {name:'莓果松饼',img:'assets/dish4.jpg',cat:'甜品',price:'26',rating:4,desc:'现烤松饼淋蜂蜜配新鲜莓果，周末早晨的仪式感。'},
+  {name:'缤纷蔬菜碗',img:'assets/dish5.jpg',cat:'轻食',price:'32',rating:3,desc:'彩虹蔬菜搭牛油果与谷物，低卡又饱腹的健康之选。'},
+  {name:'日式米饭定食',img:'assets/dish6.jpg',cat:'主食',price:'36',rating:4,desc:'粒粒分明的越光米饭，配味噌汤与渍物小菜。'},
+  {name:'照烧鸡肉饭',img:'assets/dish7.jpg',cat:'主食',price:'30',rating:5,desc:'鸡腿肉煎到皮脆，照烧汁浓稠挂面，米饭杀手。'},
+  {name:'脆皮炸鸡',img:'assets/dish8.jpg',cat:'硬菜',price:'34',rating:4,desc:'外壳金黄酥脆，肉汁锁在里面，配冰可乐无敌。'},
+];
+let lastDishName='';
+/* 模拟云函数 randomPick：300~1400ms，8% 失败；exclude=换菜时排除当前菜品 */
+function mockRandomPick(exclude){
+  return new Promise((resolve,reject)=>{
+    const pool=(exclude?DISHES.filter(d=>d.name!==exclude):DISHES);
+    setTimeout(()=>{
+      if(Math.random()<0.08){reject(new Error('没有符合条件的菜品'));return;}
+      resolve({dish:pool[Math.floor(Math.random()*pool.length)],poolSize:DISHES.length});
+    },300+Math.random()*1100);
+  });
+}
+
+/* ================= 状态机 =================
+   idle → charging（卡背进场+蓄力，等结果且≥CHARGE_MIN）
+        → burst（闪光+翻牌+粒子爆发）→ revealing → revealed
+   revealed → switching → revealed
+   charging/switching 出错 → 恢复（charging→closing→idle；switching→原卡翻回） */
+const FSM={state:'idle'};
+const CHARGE_MIN=650;   // 最短蓄力：卡背进场 500 + 嗡鸣 150
+const FLIP_MS=450;      // 翻牌
+// ready 时机 = 翻牌(450)+回弹(420) 完成时；信息浮现与回弹并行播放
+// 首抽动画总时长 ≈ 650+450+420 = 1.52s（不含接口等待）；换一道 ≈ 240+420 = 0.66s
+let pending=null,pendingErr=null,chargeStart=0,slowmo=1;
+const $=id=>document.getElementById(id);
+const phone=$('phone'),pg=$('pg'),ov=$('ov'),cardZone=$('cardZone'),cardInner=$('cardInner'),
+      flash=$('flash'),glow=$('chargeGlow'),fsmEl=$('fsm'),toastEl=$('toast');
+function setState(s){FSM.state=s;fsmEl.textContent='state: '+s;}
+function toast(msg,ms=1700){toastEl.textContent=msg;toastEl.classList.add('show');
+  clearTimeout(toast._t);toast._t=setTimeout(()=>toastEl.classList.remove('show'),ms/slowmo);}
+function vibrate(p){if(navigator.vibrate)navigator.vibrate(p);}
+const timers=[];function T(fn,ms){timers.push(setTimeout(fn,ms/slowmo));}
+function clearTimers(){timers.forEach(t=>{clearTimeout(t);clearInterval(t);});timers.length=0;}
+
+/* ================= Canvas 2D 粒子（星芒+冲击波+能量汇聚） =================
+   坑备忘：canvas 是替换元素，必须显式 CSS width/height:100% 解耦布局尺寸，
+   否则设 cv.width 会把元素撑大→ResizeObserver 指数回环→画面全毁 */
+const cv=$('fx'),ctx=cv.getContext('2d');
+let particles=[],rings=[],sparks=[],raf=null;
+function sizeCanvas(){
+  const w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  cv.width=Math.min(w*dpr,4096);cv.height=Math.min(h*dpr,4096);
+  ctx.setTransform(cv.width/w,0,0,cv.height/h,0,0);
+}
+new ResizeObserver(sizeCanvas).observe(cv);sizeCanvas();
+function cardCenter(){const r=cardZone.getBoundingClientRect(),o=cv.getBoundingClientRect();
+  return{x:r.left+r.width/2-o.left,y:r.top+r.height/2-o.top};}
+/* 蓄力：四周能量粒子向卡片中心汇聚 */
+function spawnGather(){
+  const c=cardCenter();
+  for(let i=0;i<22;i++){
+    const a=Math.random()*Math.PI*2,d=160+Math.random()*130;
+    sparks.push({x:c.x+Math.cos(a)*d,y:c.y+Math.sin(a)*d,tx:c.x,ty:c.y,
+      t:0,dur:26+Math.random()*20,size:1.2+Math.random()*2.2,
+      color:Math.random()<.7?'255,182,213':'255,243,248'});
+  }
+  kick();
+}
+/* 揭晓爆发：星芒粒子+双冲击波环 */
+function spawnBurst(){
+  const c=cardCenter(),colors=['#FFD6E7','#FF8FB8','#FFF3F8','#FFC9DE','#FFD98A'];
+  for(let i=0;i<52;i++){
+    const a=Math.random()*Math.PI*2,sp=2.4+Math.random()*7;
+    particles.push({x:c.x,y:c.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-1.4,
+      size:1.5+Math.random()*3,life:1,decay:.013+Math.random()*.017,
+      color:colors[Math.random()*colors.length|0],star:Math.random()<.6,
+      rot:Math.random()*Math.PI,spin:(Math.random()-.5)*.26});
+  }
+  rings.push({x:c.x,y:c.y,r:10,max:230,life:1,decay:.026,w:5,color:'255,182,213'});
+  rings.push({x:c.x,y:c.y,r:4,max:150,life:1,decay:.04,w:3,color:'255,243,248'});
+  kick();
+}
+/* 换一道轻量点缀 */
+function spawnPop(){
+  const c=cardCenter(),colors=['#FFD6E7','#FF8FB8','#FFF3F8'];
+  for(let i=0;i<18;i++){
+    const a=Math.random()*Math.PI*2,sp=1.2+Math.random()*3;
+    particles.push({x:c.x,y:c.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,
+      size:1.2+Math.random()*2,life:1,decay:.022+Math.random()*.02,
+      color:colors[Math.random()*colors.length|0],star:Math.random()<.5,
+      rot:Math.random()*Math.PI,spin:(Math.random()-.5)*.2});
+  }
+  kick();
+}
+function kick(){if(!raf)raf=requestAnimationFrame(tick);}
+function tick(){
+  ctx.clearRect(0,0,cv.clientWidth,cv.clientHeight);
+  let alive=false;
+  sparks=sparks.filter(s=>{
+    s.t+=slowmo;const k=Math.min(s.t/s.dur,1),e=k*k*(3-2*k);
+    const x=s.x+(s.tx-s.x)*e,y=s.y+(s.ty-s.y)*e;
+    ctx.save();ctx.globalAlpha=(1-k)*.9;ctx.fillStyle='rgba('+s.color+',1)';
+    ctx.shadowColor='rgba('+s.color+',.9)';ctx.shadowBlur=5;
+    ctx.beginPath();ctx.arc(x,y,s.size*(1-k*.5),0,7);ctx.fill();ctx.restore();
+    if(k<1)alive=true;return k<1;
+  });
+  particles=particles.filter(p=>{
+    p.life-=p.decay*slowmo;if(p.life<=0)return false;alive=true;
+    p.x+=p.vx*slowmo;p.y+=p.vy*slowmo;p.vy+=.07*slowmo;p.vx*=.985;p.vy*=.985;p.rot+=p.spin*slowmo;
+    ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.globalAlpha=Math.max(p.life,0);
+    ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=6*p.life;
+    if(p.star)drawStar(ctx,p.size*1.7);else{ctx.beginPath();ctx.arc(0,0,p.size,0,7);ctx.fill();}
+    ctx.restore();return true;
+  });
+  rings=rings.filter(r=>{
+    r.life-=r.decay*slowmo;if(r.life<=0)return false;alive=true;
+    r.r+=(r.max-r.r)*.09*slowmo;
+    ctx.save();ctx.globalAlpha=r.life*.8;ctx.strokeStyle='rgba('+r.color+',1)';
+    ctx.lineWidth=r.w*r.life;ctx.shadowColor='rgba('+r.color+',.9)';ctx.shadowBlur=14*r.life;
+    ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,7);ctx.stroke();ctx.restore();return true;
+  });
+  if(alive){raf=requestAnimationFrame(tick);}
+  else{raf=null;ctx.clearRect(0,0,cv.clientWidth,cv.clientHeight);} // 播完即静止释放
+}
+function drawStar(c,s){c.beginPath();
+  c.moveTo(0,-s);c.quadraticCurveTo(s*.18,-s*.18,s,0);
+  c.quadraticCurveTo(s*.18,s*.18,0,s);c.quadraticCurveTo(-s*.18,s*.18,-s,0);
+  c.quadraticCurveTo(-s*.18,-s*.18,0,-s);c.fill();}
+
+/* ================= tween 引擎（rAF 逐帧静态 transform，保 3D） ================= */
+const E={
+  outBack:k=>{const c=2.0;return 1+(c+1)*Math.pow(k-1,3)+c*Math.pow(k-1,2);},
+  outCubic:k=>1-Math.pow(1-k,3),
+  inCubic:k=>k*k*k,
+};
+let twRaf=null,twLive=false,humRaf=null;
+function stopTween(){twLive=false;if(twRaf){cancelAnimationFrame(twRaf);twRaf=null;}}
+function stopHum(){if(humRaf){cancelAnimationFrame(humRaf);humRaf=null;}}
+function setCard(tf,op){
+  cardInner.style.transform=tf;
+  if(op!==undefined)cardZone.style.opacity=op;
+}
+function tween(dur,fn,done){
+  stopTween();stopHum();
+  twLive=true;const t0=performance.now();
+  const step=now=>{
+    if(!twLive)return;
+    const k=Math.min((now-t0)/(dur/slowmo),1);
+    fn(k);
+    if(k<1)twRaf=requestAnimationFrame(step);
+    else{twRaf=null;twLive=false;if(done)done();}
+  };
+  twRaf=requestAnimationFrame(step);
+}
+/* 蓄力嗡鸣：正弦微颤（rotateY 180 附近） */
+function startHum(){
+  stopHum();const t0=performance.now();
+  const loop=now=>{
+    const t=(now-t0)/1000*slowmo;
+    const w=Math.sin(t*7);
+    setCard(`translateY(${-3.5-w*3.5}px) scale(${1.009+w*.009}) rotateY(${180+w*4}deg)`);
+    humRaf=requestAnimationFrame(loop);
+  };
+  humRaf=requestAnimationFrame(loop);
+}
+/* 卡背悬浮进场 */
+function animBackIn(done){
+  tween(500,k=>{
+    const e=E.outBack(k);
+    setCard(`translateY(${90*(1-e)}px) scale(${.6+.4*e}) rotateY(180deg) rotateX(${14*(1-e)}deg)`,Math.min(1,k*2.5));
+  },done);
+}
+/* 冲击翻牌：180→0，outBack 过冲带来回摆 */
+function animFlip(done){
+  tween(FLIP_MS,k=>{
+    const e=E.outBack(k);
+    const ry=180*(1-e);
+    const sc=1.06+.07*Math.sin(Math.min(k,1)*Math.PI);
+    setCard(`scale(${sc}) rotateY(${ry}deg)`,1);
+  },done);
+}
+/* 落位回弹 */
+function animLand(done){
+  tween(420,k=>{
+    let sc,ty;
+    if(k<.6){const e=k/.6;sc=1.05-.065*E.outCubic(e);ty=-6+8*E.outCubic(e);}
+    else{const e=(k-.6)/.4;sc=.985+.015*e;ty=2-2*e;}
+    setCard(`translateY(${ty}px) scale(${sc}) rotateY(0deg)`,1);
+  },done);
+}
+/* 换一道：侧翻飞出 */
+function animFlyOut(done){
+  tween(240,k=>{
+    const e=E.inCubic(k);
+    setCard(`translateX(${135*e}%) rotateY(${-105*e}deg) rotate(${9*e}deg) scale(${1-.28*e})`,1-e);
+  },done);
+}
+/* 换一道：对侧短程翻入 */
+function animSwapIn(done){
+  tween(420,k=>{
+    const e=E.outBack(k);
+    setCard(`translateX(${-115*(1-e)}%) rotateY(${150*(1-e)}deg) scale(${.72+.28*e})`,Math.min(1,k*2.2));
+  },done);
+}
+
+/* ================= 流程 ================= */
+function renderCard(dish,poolSize){
+  $('rPhoto').src=dish.img;
+  $('rName').textContent=dish.name;
+  $('rChips').innerHTML='<span class="r-chip">'+dish.cat+'</span><span class="r-chip">¥'+dish.price+'</span>'+
+    (dish.rating?'<span class="r-chip star">★'+dish.rating+'</span>':'');
+  $('rDesc').textContent=dish.desc;
+  $('rFrom').textContent='从 '+poolSize+' 道里抽中';
+}
+function zoneClass(cls){cardZone.className='card-zone '+cls;}
+function restart(el){el.classList.remove('go');void el.offsetWidth;}
+
+function startRoll(){
+  if(FSM.state!=='idle')return;               // 防连点
+  setState('charging');
+  pg.classList.add('dimmed');
+  ov.classList.add('show');ov.classList.remove('ready','zoompunch');
+  restart(flash);glow.classList.add('on');
+  zoneClass('show enter-back');                // 状态标记
+  cardZone.style.opacity='';
+  animBackIn(()=>{ if(FSM.state==='charging') startHum(); });  // 卡背进场→嗡鸣
+  pending=null;pendingErr=null;chargeStart=Date.now();
+  spawnGather();
+  const gi=setInterval(()=>{if(FSM.state==='charging')spawnGather();},420/slowmo);
+  timers.push(gi);
+  mockRandomPick(lastDishName).then(r=>{pending=r;tryReveal();})
+                              .catch(e=>{pendingErr=e;tryReveal();});
+  T(()=>{if(FSM.state==='charging')tryReveal();},CHARGE_MIN);
+}
+function tryReveal(){
+  if(FSM.state!=='charging')return;
+  if(pendingErr){                              // 失败恢复
+    setState('closing');
+    toast(pendingErr.message.includes('没有符合条件')?'没有符合条件的菜品，放宽筛选试试':'网络异常，再抽一次试试');
+    closeOverlay();return;
+  }
+  if(!pending||Date.now()-chargeStart<CHARGE_MIN)return; // 结果未回或蓄力未满→继续等待
+  reveal(pending);
+}
+function reveal(res){
+  setState('burst');
+  lastDishName=res.dish.name;
+  renderCard(res.dish,res.poolSize);
+  /* t0：中心闪光 + 冲击波 + 空间缩放 + 震动，同时启动 3D 翻牌 */
+  restart(flash);flash.classList.add('go');
+  ov.classList.remove('zoompunch');void ov.offsetWidth;ov.classList.add('zoompunch');
+  spawnBurst();vibrate(42);
+  phone.classList.add('shake');setTimeout(()=>phone.classList.remove('shake'),320/slowmo);
+  glow.classList.remove('on');
+  zoneClass('show flipping');                  // 状态标记
+  animFlip(()=>{                               // 背面→正面翻转（JS 逐帧）
+    zoneClass('show flipped landed');
+    setState('revealing');
+    animLand(()=>{                             // 落位回弹
+      zoneClass('show flipped');
+      setState('revealed');ov.classList.add('ready');
+    });
+  });
+}
+function nextDish(){
+  if(FSM.state!=='revealed')return;            // 防连点
+  setState('switching');
+  ov.classList.remove('ready');
+  zoneClass('show flipped flyout');            // 状态标记
+  animFlyOut(()=>{                             // 侧翻飞出
+    mockRandomPick(lastDishName).then(res=>{   // 排除当前菜品
+      lastDishName=res.dish.name;
+      renderCard(res.dish,res.poolSize);
+      zoneClass('show flipped swapin');
+      restart(flash);flash.classList.add('go');
+      spawnPop();vibrate(18);
+      animSwapIn(()=>{                         // 对侧短程翻入
+        zoneClass('show flipped');
+        setState('revealed');ov.classList.add('ready');
+      });
+    }).catch(()=>{                             // 换菜失败：原卡翻回
+      zoneClass('show flipped swapin');
+      animSwapIn(()=>{zoneClass('show flipped');toast('网络异常，没换成');
+        setState('revealed');ov.classList.add('ready');});
+    });
+  });
+}
+function closeOverlay(){
+  ov.classList.remove('ready');
+  T(()=>{
+    ov.classList.remove('show','zoompunch');pg.classList.remove('dimmed');
+    glow.classList.remove('on');zoneClass('');
+    stopTween();stopHum();
+    cardInner.style.transform='';cardZone.style.opacity='';
+    clearTimers();setState('idle');
+  },320);
+}
+
+/* ================= 事件 ================= */
+$('btnRoll').addEventListener('click',startRoll);
+$('btnClose').addEventListener('click',()=>{
+  if(['revealed','revealing','burst','switching'].includes(FSM.state)){setState('closing');closeOverlay();}});
+$('btnReject').addEventListener('click',nextDish);
+$('btnAccept').addEventListener('click',()=>{
+  if(FSM.state!=='revealed')return;
+  toast('就吃'+$('rName').textContent+'！已记一笔 ✓');vibrate([18,60,18]);
+  lastDishName='';setState('closing');closeOverlay();});
+$('btnPoster').addEventListener('click',()=>{if(FSM.state==='revealed')toast('（POC）调用 poster 组件生成分享海报…');});
+$('rLink').addEventListener('click',()=>{if(FSM.state==='revealed')toast('（POC）跳转 dish-detail 详情页');});
+
+/* 慢放：JS 定时走 slowmo；CSS 动画逐条重写 duration/delay */
+const dynStyle=document.createElement('style');document.head.appendChild(dynStyle);
+$('selSpeed').addEventListener('change',function(){
+  slowmo=parseFloat(this.value);
+  const s=slowmo;
+  dynStyle.textContent=s===1?'':`
+     .flash.go{animation-duration:${.42/s}s!important}
+     .card-zone.flipped .hero img{animation-duration:${.55/s}s!important}
+     .card-zone.flipped .sheen{animation-duration:${.7/s}s!important;animation-delay:${.22/s}s!important}
+     .card-zone.flipped .r-name{animation-delay:${.34/s}s!important}
+     .card-zone.flipped .r-chips{animation-delay:${.44/s}s!important}
+     .card-zone.flipped .r-desc{animation-delay:${.54/s}s!important}
+     .card-zone.flipped .r-link{animation-delay:${.62/s}s!important}
+     .card-zone.flipped .hero-badge{animation-delay:${.5/s}s!important}
+     .card-zone.flipped .hero-from{animation-delay:${.56/s}s!important}`;
+});
+$('btnDbg').addEventListener('click',function(){document.body.classList.toggle('dbg');this.classList.toggle('on');});
+setState('idle');
+</script>
+</body>
+</html>
