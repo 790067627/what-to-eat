@@ -20,6 +20,7 @@ miniprogram/          前端（原生小程序）
 ├── services/db.js    数据服务层（统一走云函数，前端不直连数据库）
 └── utils/util.js     工具函数
 cloudfunctions/dish/  唯一云函数（命令路由模式，openid 数据隔离 + 服务端校验）
+experiments/          实验与验证产物（POC/原型/兼容性验证，不参与构建，详见其中 README）
 ```
 
 数据库集合（云开发控制台手动创建，或首次调用自动按需创建*）：

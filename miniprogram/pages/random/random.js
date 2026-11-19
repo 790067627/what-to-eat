@@ -1,5 +1,5 @@
 // pages/random/random.js - 随机抽卡：核心决策页（v2 游戏级抽卡揭晓弹层）
-// 动画方案经 compat-check 真机验证（iPhone 12 Pro / iOS 27.3 / 基础库 3.18.0）：
+// 动画方案经 experiments/compat-check 真机验证（iPhone 12 Pro / iOS 27.3 / 基础库 3.18.0）：
 //   3D 翻牌逐帧 setData 60fps 掉0、粒子 canvas 节点 raf 满帧、setData 单次 0.33ms。
 // 关键约束：
 //   1) 小程序逻辑层无全局 requestAnimationFrame / wx.requestAnimationFrame，
