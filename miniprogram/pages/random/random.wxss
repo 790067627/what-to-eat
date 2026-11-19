@@ -4,10 +4,10 @@
   height: 100vh;
   overflow: hidden;
   /* border-box：100vh 含 padding，顶部让位导航(内联)、底部让位 TabBar，无重复占位。
-     100px = TabBar 内容区高（对齐原生规范）+ 安全区：操作区贴 TabBar 顶，
-     中间凸起骰子落于两按钮中缝上方（不遮文字） */
-  padding: 0 24rpx calc(100px + constant(safe-area-inset-bottom));
-  padding: 0 24rpx calc(100px + env(safe-area-inset-bottom));
+     112rpx = TabBar 内容区高（+安全区）：操作区贴 TabBar 顶，
+     中间凸起骰子(上凸28rpx)落于两按钮中缝上方（不遮文字） */
+  padding: 0 24rpx calc(112rpx + constant(safe-area-inset-bottom));
+  padding: 0 24rpx calc(112rpx + env(safe-area-inset-bottom));
 }
 /* 筛选区：自然高度不滚动 */
 .filters { flex-shrink: 0; }

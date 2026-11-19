@@ -5,42 +5,46 @@
   font-style: normal;
 }
 
+/* 布局模型（三段式，互不侵占）：
+   ① 导航内容区 112rpx：图标行(30~72) + 间距6 + 文字行(78~100) + 底呼吸12
+   ② 中间凸起按钮 104rpx，上凸 28rpx（top:-28 ~ bottom:76），不压文字行
+   ③ 底部安全区：.safe-bottom 的 env(safe-area-inset-bottom) 独立叠加
+   全局 border-box：height 必须 = 内容区 + 安全区，否则内容区被 padding 吃掉 */
 .tab-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  /* 内容区 50px（100rpx）对齐微信原生 tabBar 规范高度；全局 border-box 下
-     height 需把 .safe-bottom 的安全区 padding 加在外面，否则内容区会被安全区吃掉 */
-  height: calc(100px + constant(safe-area-inset-bottom));
-  height: calc(100px + env(safe-area-inset-bottom));
-  /* 白底 + 顶部细分割线：不再依赖背景图透出，各页统一 */
+  height: calc(112rpx + constant(safe-area-inset-bottom));
+  height: calc(112rpx + env(safe-area-inset-bottom));
+  /* 浅樱花粉底 + 顶部极细分割线，无阴影无悬浮玻璃 */
   background: #F9D6E4;
   border-top: 1rpx solid #F0C0D4;
   display: flex;
   z-index: 999;
 }
 
+/* 顶对齐布局：图标/文字行位置由 padding-top 精确控制，四列统一 */
 .tab-item {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding-top: 4rpx;
+  justify-content: flex-start;
+  padding-top: 30rpx;
 }
 
-/* 图标 22~24px -> 44~48rpx，取 46rpx */
+/* 普通图标 42rpx（规范 40~44） */
 .tab-icon {
-  width: 46rpx;
-  height: 46rpx;
+  width: 42rpx;
+  height: 42rpx;
 }
 
-/* 文字 11~12px -> 22~24rpx，取 22rpx；图标与文字间距 4px -> 8rpx */
+/* 文字 22rpx（规范 22~24），与图标间距 6rpx（规范 6~8） */
 .tab-text {
   font-size: 22rpx;
   color: #6B5360;
-  margin-top: 8rpx;
+  margin-top: 6rpx;
   line-height: 1;
 }
 
@@ -49,17 +53,18 @@
   font-weight: 600;
 }
 
-/* 中间凸起按钮：保留圆形粉色，白图标，白描边环融入白底；bar 加高后凸起半露 */
+/* 中间凸起按钮：直径 104rpx，上凸 28rpx（30rpx 列顶 - 58rpx = -28rpx），
+   底边落在 76rpx，与文字行(78rpx 起)留 2rpx 间隙，不重叠 */
 .center-btn {
-  width: 96rpx;
-  height: 96rpx;
+  width: 104rpx;
+  height: 104rpx;
   border-radius: 50%;
   background: #E85D91;
-  box-shadow: 0 6rpx 16rpx rgba(167, 53, 104, 0.35);
+  box-shadow: 0 4rpx 12rpx rgba(167, 53, 104, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: -48rpx;
+  margin-top: -58rpx;
   border: 6rpx solid #FFFFFF;
 }
 
@@ -68,9 +73,10 @@
   height: 46rpx;
 }
 
-/* 中间按钮文字在白色 tabbar 上，与常规项同规则，清晰可读 */
+/* 「抽一抽」文字：与两侧标签同一文字行（78~100rpx），不沉入安全区 */
 .center-text {
   color: #6B5360;
+  margin-top: 2rpx;
 }
 
 .tab-item.active .center-text {

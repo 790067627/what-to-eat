@@ -43,8 +43,8 @@
   gap: 20rpx;
   min-height: 0;
   /* 让位 TabBar：100px 内容区 + 安全区 + 24rpx 呼吸 */
-  padding-bottom: calc(100px + constant(safe-area-inset-bottom) + 24rpx);
-  padding-bottom: calc(100px + env(safe-area-inset-bottom) + 24rpx);
+  padding-bottom: calc(112rpx + constant(safe-area-inset-bottom) + 24rpx);
+  padding-bottom: calc(112rpx + env(safe-area-inset-bottom) + 24rpx);
 }
 
 .side {
