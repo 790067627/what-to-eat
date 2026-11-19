@@ -57,12 +57,14 @@ function toast(title, icon = 'none') {
  *  只依赖胶囊矩形的屏幕绝对坐标（全机型最可靠锚点），不依赖 statusBarHeight 做定位，
  *  避免不同机型状态栏高度差异导致的重复计算/错位。
  *  - titleTop/titleHeight：标题与胶囊垂直对齐
- *  - headerHeight：胶囊底 + 24px 插画延伸带 */
+ *  - headerHeight：胶囊底 + 主题插画延伸带（樱花 24px / GitHub minimal 0，来自 theme-assets） */
 function getNavMetrics() {
   const mb = wx.getMenuButtonBoundingClientRect();
   const titleTop = mb.top;
   const titleHeight = mb.height;
-  const headerHeight = mb.top + mb.height + 24;
+  // 延迟 require 避免循环依赖（theme-manager 不依赖 util，安全）
+  const theme = require('../theme/theme-manager');
+  const headerHeight = theme.getNavHeaderHeight();
   return { titleTop, titleHeight, headerHeight };
 }
 

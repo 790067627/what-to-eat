@@ -1,3 +1,4 @@
+<page-meta page-style="{{themeVars}}" root-background-color="{{themeWindowBg}}" background-color="{{themeWindowBg}}" background-text-style="{{themeJs.mode === 'dark' ? 'light' : 'dark'}}" />
 <immersive-nav />
 <view class="page" style="padding-top: {{navHeight}}px">
   <!-- 统计卡 -->
@@ -69,6 +70,11 @@
     <view class="menu-item" bindtap="goHistory">
       <text class="menu-icon"><text class="bi"></text></text>
       <text class="menu-text">吃过时间线</text>
+      <text class="menu-arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="goAppearance">
+      <text class="menu-icon bi"></text>
+      <text class="menu-text">外观</text>
       <text class="menu-arrow">›</text>
     </view>
     <view class="menu-item" bindtap="onExport">

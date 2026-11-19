@@ -1,10 +1,12 @@
 // pages/dish-edit/dish-edit.js - 添加/编辑菜品（含图片上传云存储）
 const api = require('../../services/db');
+const { withTheme } = require('../../theme/theme-page');
+const themeManager = require('../../theme/theme-manager');
 const { fenToYuan, yuanToFen, toast } = require('../../utils/util');
 
 const MAX_IMAGES = 9;
 
-Page({
+Page(withTheme({
   data: {
     id: '',                  // 有值 = 编辑模式
     isEdit: false,
@@ -262,7 +264,7 @@ Page({
           content: '这张照片里似乎不是菜品，换一张试试？',
           confirmText: '换图',
           cancelText: '手动填写',
-          confirmColor: '#FF8FB8'
+          confirmColor: themeManager.getJs().confirmColor
         });
         if (m.confirm) this.openAiPicker();
         return;
@@ -295,7 +297,7 @@ Page({
           content: `${msg}。可以换张图重试，或直接手动填写。`,
           confirmText: '换图',
           cancelText: '手动填写',
-          confirmColor: '#FF8FB8'
+          confirmColor: themeManager.getJs().confirmColor
         });
         if (m.confirm) this.openAiPicker();
       }
@@ -438,4 +440,4 @@ Page({
     }
     this.setData({ submitting: false });
   }
-});
+}));

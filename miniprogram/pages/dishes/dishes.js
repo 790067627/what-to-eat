@@ -2,10 +2,11 @@
 const api = require('../../services/db');
 const { getNavMetrics } = require('../../utils/util');
 const { fenToYuan, timeAgo } = require('../../utils/util');
+const { withTheme } = require('../../theme/theme-page');
 
 const STATUS_TEXT = { want: '想吃', often: '常吃', never: '不想再吃' };
 
-Page({
+Page(withTheme({
   data: {
     sideScrollInto: '',   // 选中分类自动滚动锚点
     navHeight: 88,
@@ -233,4 +234,4 @@ Page({
     this.goAdd();
   },
   noop() {}
-});
+}));

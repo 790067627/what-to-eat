@@ -1,3 +1,4 @@
+<page-meta page-style="{{themeVars}}" root-background-color="{{themeWindowBg}}" background-color="{{themeWindowBg}}" background-text-style="{{themeJs.mode === 'dark' ? 'light' : 'dark'}}" />
 <custom-navbar title="菜品详情" />
 
 <view class="page" wx:if="{{!loading && dish}}" style="padding-top: {{navbarHeight}}px;">

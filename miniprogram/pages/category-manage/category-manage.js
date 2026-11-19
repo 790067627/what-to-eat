@@ -1,5 +1,7 @@
 // pages/category-manage/category-manage.js - 分类管理：增删改、排序
 const api = require('../../services/db');
+const { withTheme } = require('../../theme/theme-page');
+const themeManager = require('../../theme/theme-manager');
 const { toast } = require('../../utils/util');
 
 const ICONS = [
@@ -23,7 +25,7 @@ const ICONS = [
   '\uF3CF', '\uF46F'
 ];
 
-Page({
+Page(withTheme({
   data: {
     loading: true,
     categories: [],
@@ -94,7 +96,7 @@ Page({
     const res = await wx.showModal({
       title: '删除分类',
       content: `确定删除「${name}」吗？分类下有菜品时无法删除。`,
-      confirmColor: '#FF8FB8'
+      confirmColor: themeManager.getJs().confirmColor
     });
     if (!res.confirm) return;
     try {
@@ -126,4 +128,4 @@ Page({
       api.handleErr(err);
     }
   }
-});
+}));

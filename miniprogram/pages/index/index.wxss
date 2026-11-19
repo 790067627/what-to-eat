@@ -7,17 +7,17 @@
 
 /* 顶部问候卡 */
 .hero {
-  background: linear-gradient(135deg, rgba(255,240,246,0.92), rgba(255,227,239,0.92));
+  background: var(--gradient-hero, linear-gradient(135deg, rgba(255,240,246,0.92), rgba(255,227,239,0.92)));
   text-align: center;
   padding: 40rpx 32rpx;
 }
-.hero-greeting { font-size: 34rpx; font-weight: 600; color: #4A2C3A; }
-.hero-sub { font-size: 24rpx; color: #D96C99; margin: 10rpx 0 26rpx; }
+.hero-greeting { font-size: 34rpx; font-weight: 600; color: var(--text-primary, #4A2C3A); }
+.hero-sub { font-size: 24rpx; color: var(--color-accent-deep, #D96C99); margin: 10rpx 0 26rpx; }
 .hero-btn { width: 70%; margin: 0 auto; }
 
 /* 初始化引导 */
 .init-card { text-align: center; padding: 40rpx 32rpx; }
-.init-desc { font-size: 24rpx; color: #9C7B8C; margin-bottom: 24rpx; }
+.init-desc { font-size: 24rpx; color: var(--text-secondary, #9C7B8C); margin-bottom: 24rpx; }
 
 /* 今日推荐 */
 .today-card { display: flex; gap: 20rpx; }
@@ -28,7 +28,8 @@
   flex-shrink: 0;
 }
 .today-img-placeholder {
-  background: #FFEAF2;
+  background: var(--bg-placeholder, #FFEAF2);
+  color: var(--color-accent, #FF8FB8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -36,12 +37,12 @@
 }
 .today-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .today-name { font-size: 32rpx; font-weight: 600; margin-bottom: 8rpx; }
-.today-desc { font-size: 24rpx; color: #9C7B8C; margin-bottom: 12rpx; line-height: 1.5; }
+.today-desc { font-size: 24rpx; color: var(--text-secondary, #9C7B8C); margin-bottom: 12rpx; line-height: 1.5; }
 .today-meta { margin-top: auto; }
-.today-rating { color: #FF9500; font-size: 24rpx; margin-right: 12rpx; }
+.today-rating { color: var(--color-star, #FF9500); font-size: 24rpx; margin-right: 12rpx; }
 
 /* 分类速览 */
-.more-link { font-size: 24rpx; color: #FF8FB8; margin-bottom: 16rpx; }
+.more-link { font-size: 24rpx; color: var(--color-accent, #FF8FB8); margin-bottom: 16rpx; }
 .cat-grid { display: flex; flex-wrap: wrap; gap: 20rpx; }
 .cat-cell {
   width: calc((100% - 40rpx) / 3);
@@ -49,6 +50,6 @@
   text-align: center;
   padding: 28rpx 12rpx;
 }
-.cat-icon { font-size: 52rpx; margin-bottom: 10rpx; }
-.cat-name { font-size: 24rpx; color: #4A2C3A; }
-.empty-hint { width: 100%; text-align: center; color: #C9A8B8; font-size: 24rpx; padding: 30rpx 0; }
+.cat-icon { font-size: 52rpx; margin-bottom: 10rpx; color: var(--text-primary, #4A2C3A); }
+.cat-name { font-size: 24rpx; color: var(--text-primary, #4A2C3A); }
+.empty-hint { width: 100%; text-align: center; color: var(--text-hint, #C9A8B8); font-size: 24rpx; padding: 30rpx 0; }

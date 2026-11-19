@@ -1,3 +1,4 @@
+<page-meta page-style="{{themeVars}}" root-background-color="{{themeWindowBg}}" background-color="{{themeWindowBg}}" background-text-style="{{themeJs.mode === 'dark' ? 'light' : 'dark'}}" />
 <view class="page">
   <scroll-view class="form-scroll" scroll-y>
   <!-- 图片区 -->

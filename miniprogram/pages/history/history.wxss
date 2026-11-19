@@ -2,7 +2,7 @@
 
 .summary {
   font-size: 26rpx;
-  color: #9C7B8C;
+  color: var(--text-secondary, #9C7B8C);
   margin-bottom: 24rpx;
   padding-left: 8rpx;
 }
@@ -17,7 +17,7 @@
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: #FF8FB8;
+  background: var(--color-accent, #FF8FB8);
   z-index: 2;
 }
 .log-line {
@@ -26,7 +26,7 @@
   top: 60rpx;
   bottom: -20rpx;
   width: 2rpx;
-  background: #F8E3EC;
+  background: var(--border-default, #F8E3EC);
   z-index: 1;
 }
 
@@ -38,7 +38,8 @@
   flex-shrink: 0;
 }
 .log-img-ph {
-  background: #FFEAF2;
+  background: var(--bg-placeholder, #FFEAF2);
+  color: var(--color-accent, #FF8FB8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -46,13 +47,13 @@
 }
 .log-info { flex: 1; min-width: 0; }
 .log-name { font-size: 30rpx; font-weight: 600; margin-bottom: 4rpx; }
-.log-date { font-size: 22rpx; color: #C9A8B8; margin-bottom: 6rpx; }
-.log-note { font-size: 24rpx; color: #9C7B8C; }
-.log-arrow { color: #E5C9D8; font-size: 40rpx; flex-shrink: 0; }
+.log-date { font-size: 22rpx; color: var(--text-hint, #C9A8B8); margin-bottom: 6rpx; }
+.log-note { font-size: 24rpx; color: var(--text-secondary, #9C7B8C); }
+.log-arrow { color: var(--text-faint, #E5C9D8); font-size: 40rpx; flex-shrink: 0; }
 
 .loading-tip {
   text-align: center;
-  color: #C9A8B8;
+  color: var(--text-hint, #C9A8B8);
   font-size: 24rpx;
   padding: 30rpx 0;
 }

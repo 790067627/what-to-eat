@@ -1,9 +1,11 @@
-<!-- 沉浸式插画导航栏：背景层与内容层分离，fixed 常驻不随页面滚动 -->
-<view class="imm-nav" style="height: {{m.headerHeight}}px">
-  <!-- 背景层：从屏幕顶 top:0 铺满，aspectFill 裁切不变形 -->
-  <image wx:if="{{headerUrl}}" class="imm-nav-bg" src="{{headerUrl}}" mode="aspectFill" binderror="onError" />
-  <!-- 轻白罩：保证标题/状态栏文字可读 -->
-  <view class="imm-nav-veil"></view>
-  <!-- 底部渐隐：融入页面底色 #FFF7FA -->
+<!-- 顶部导航（主题资源层驱动）：背景层与内容层分离，fixed 常驻不随页面滚动
+     illustrated：云端厨房插画 + 轻罩 + 底部渐隐融入页面底色
+     minimal：Token 渐变兜底底 + 底部渐隐（无插画带，高度更小） -->
+<view class="imm-nav {{navMode}}" style="height: {{m.headerHeight}}px; {{themeVars}}">
+  <!-- 背景层：仅插画模式渲染，aspectFill 裁切不变形 -->
+  <image wx:if="{{navMode === 'illustrated' && headerUrl}}" class="imm-nav-bg" src="{{headerUrl}}" mode="aspectFill" binderror="onError" />
+  <!-- 轻白罩：仅插画模式（保证标题/状态栏文字可读） -->
+  <view wx:if="{{navMode === 'illustrated'}}" class="imm-nav-veil"></view>
+  <!-- 底部渐隐：融入页面底色（Token 控制渐变终点色） -->
   <view class="imm-nav-fade"></view>
 </view>

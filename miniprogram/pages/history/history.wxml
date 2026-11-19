@@ -1,3 +1,4 @@
+<page-meta page-style="{{themeVars}}" root-background-color="{{themeWindowBg}}" background-color="{{themeWindowBg}}" background-text-style="{{themeJs.mode === 'dark' ? 'light' : 'dark'}}" />
 <view class="page">
   <view class="summary" wx:if="{{total}}">共记录 {{total}} 次「今天吃了」<text class="bi"></text></view>
 

@@ -1,5 +1,6 @@
-<!-- 首页 Hello Kitty 装饰：漂浮+摇摆动效；widthFix 保持原始宽高比 -->
-<view wx:if="{{url}}" class="kitty-wrap {{paused ? 'paused' : ''}}">
+<!-- 首页 Hello Kitty 装饰：漂浮+摇摆动效；widthFix 保持原始宽高比
+     enabled 由主题资源层控制：GitHub 主题不渲染（fixed 层不占布局，无空白残留） -->
+<view wx:if="{{enabled && url}}" class="kitty-wrap {{paused ? 'paused' : ''}}">
   <view class="kitty-float">
     <view class="kitty-sway">
       <image

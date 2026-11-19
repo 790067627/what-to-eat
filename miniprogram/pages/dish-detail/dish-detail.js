@@ -1,5 +1,7 @@
 // pages/dish-detail/dish-detail.js - 菜品详情
 const api = require('../../services/db');
+const { withTheme } = require('../../theme/theme-page');
+const themeManager = require('../../theme/theme-manager');
 const { fenToYuan, timeAgo, formatDate } = require('../../utils/util');
 
 const STATUS_TEXT = { want: '想吃', often: '常吃', never: '不想再吃' };
@@ -9,7 +11,7 @@ const STATUS_LIST = [
   { key: 'never', text: '不想再吃', icon: '' }
 ];
 
-Page({
+Page(withTheme({
   data: {
     id: '',
     loading: true,
@@ -122,7 +124,7 @@ Page({
     const res = await wx.showModal({
       title: '删除菜品',
       content: `确定删除「${this.data.dish.name}」吗？删除后不再出现在随机推荐里。`,
-      confirmColor: '#FF8FB8'
+      confirmColor: themeManager.getJs().confirmColor
     });
     if (!res.confirm) return;
     try {
@@ -177,4 +179,4 @@ Page({
       api.handleErr(err, '保存失败');
     }
   }
-});
+}));

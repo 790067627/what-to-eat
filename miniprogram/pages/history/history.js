@@ -1,8 +1,9 @@
 // pages/history/history.js - 吃过时间线（分页加载）
 const api = require('../../services/db');
 const { formatDate } = require('../../utils/util');
+const { withTheme } = require('../../theme/theme-page');
 
-Page({
+Page(withTheme({
   data: {
     loading: true,
     logs: [],
@@ -50,4 +51,4 @@ Page({
     const { id } = e.currentTarget.dataset;
     wx.navigateTo({ url: `/pages/dish-detail/dish-detail?id=${id}` });
   }
-});
+}));

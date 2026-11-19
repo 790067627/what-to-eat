@@ -1,3 +1,6 @@
+<page-meta page-style="{{themeVars}}" root-background-color="{{themeWindowBg}}" background-color="{{themeWindowBg}}" background-text-style="{{themeJs.mode === 'dark' ? 'light' : 'dark'}}" />
+<!-- page-meta 必须是页面第一个节点：把主题 CSS 变量注入 page 根节点，全页样式即时生效 -->
+
 <sakura-bg id="kitty" />
 
 <immersive-nav />

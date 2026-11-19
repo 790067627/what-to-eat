@@ -1,4 +1,5 @@
-<view class="tab-bar safe-bottom {{hidden ? 'tb-hide' : ''}}">
+<!-- 根节点绑定 themeVars：tabBar 挂在页面根之外，CSS 变量必须自带（不依赖 page-meta 继承） -->
+<view class="tab-bar safe-bottom {{hidden ? 'tb-hide' : ''}}" style="{{themeVars}}">
   <view
     wx:for="{{list}}"
     wx:key="pagePath"
@@ -9,12 +10,15 @@
   >
     <block wx:if="{{item.center}}">
       <view class="center-btn">
-        <image src="{{selected === index ? item.selectedIconPath : item.iconPath}}" class="center-icon" />
+        <!-- 樱花主题用 PNG 图标；GitHub 主题用字体图标（颜色随 Token，无需新增图片资源） -->
+        <image wx:if="{{themeAssets.tabbar.iconMode === 'image'}}" src="{{selected === index ? item.selectedIconPath : item.iconPath}}" class="center-icon" />
+        <text wx:else class="bi center-icon-font">{{item.fontIcon}}</text>
       </view>
       <text class="tab-text center-text">{{item.text}}</text>
     </block>
     <block wx:else>
-      <image src="{{selected === index ? item.selectedIconPath : item.iconPath}}" class="tab-icon" />
+      <image wx:if="{{themeAssets.tabbar.iconMode === 'image'}}" src="{{selected === index ? item.selectedIconPath : item.iconPath}}" class="tab-icon" />
+      <text wx:else class="bi tab-icon-font">{{item.fontIcon}}</text>
       <text class="tab-text">{{item.text}}</text>
     </block>
   </view>

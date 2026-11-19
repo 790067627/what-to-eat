@@ -1,12 +1,13 @@
-// components/poster/index.js - 简约美食分享卡片（canvas 2d）
-// 设计：白色主体 + 淡粉点缀，菜品照片为视觉中心
+// components/poster/index.js - 简约美食分享卡片（canvas 2d，主题化）
+// 设计：主体底色 + 品牌色点缀，菜品照片为视觉中心；配色随主题 Token（theme/tokens.js js.poster）
 // 布局：品牌头 → 大图 → 菜名/分类/描述 → 分割线 → 品牌引导
+// 弹窗 UI 层 CSS 变量直接继承页面 page-meta（CSS 变量继承穿透样式隔离）；
+// Canvas 绘制色无法走 WXSS，每次生成时实时读 Theme Manager 的 js.poster Token。
 
-const BRAND = '#D4779A';
-const BRAND_LIGHT = '#FBE9F0';
-const TEXT_PRIMARY = '#292929';
-const TEXT_SECONDARY = '#777777';
-const DIVIDER = '#EEEEEE';
+const themeManager = require('../../theme/theme-manager');
+
+/** 当前主题的海报配色（每次生成时实时读取，切换主题后无需重启） */
+function P() { return themeManager.getJs().poster; }
 
 Component({
   properties: {
@@ -87,7 +88,7 @@ Component({
         ctx.scale(dpr, dpr);
 
         // 1. 纯白背景
-        ctx.fillStyle = '#FFFFFF';
+        ctx.fillStyle = P().bg;
         ctx.fillRect(0, 0, W, H);
 
         // 2. 品牌头部
@@ -168,12 +169,12 @@ Component({
     drawHeader(ctx, W) {
       ctx.textBaseline = 'alphabetic';
       ctx.textAlign = 'left';
-      ctx.fillStyle = BRAND;
+      ctx.fillStyle = P().brand;
       ctx.font = '600 15px -apple-system, "PingFang SC", "Helvetica Neue", sans-serif';
       ctx.fillText('Yuki小厨房', 20, 34);
       
       ctx.textAlign = 'right';
-      ctx.fillStyle = '#BBBBBB';
+      ctx.fillStyle = P().note;
       ctx.font = '12px -apple-system, "PingFang SC", sans-serif';
       ctx.fillText('今日菜单', W - 20, 33);
     },
@@ -195,15 +196,15 @@ Component({
       } else {
         // 无图占位：淡粉底 + 简约餐具线条
         this.roundRect(ctx, x, y, w, h, 14);
-        ctx.fillStyle = BRAND_LIGHT;
+        ctx.fillStyle = P().brandLight;
         ctx.fill();
         const cx = x + w / 2, cy = y + h / 2;
-        ctx.strokeStyle = '#E8C4D4';
+        ctx.strokeStyle = P().placeholderStroke;
         ctx.lineWidth = 2;
         ctx.beginPath(); ctx.arc(cx - 6, cy, 26, 0, Math.PI * 2); ctx.stroke();
         ctx.lineWidth = 1;
         ctx.beginPath(); ctx.arc(cx - 6, cy, 17, 0, Math.PI * 2); ctx.stroke();
-        ctx.strokeStyle = BRAND;
+        ctx.strokeStyle = P().brand;
         ctx.lineWidth = 2;
         ctx.beginPath(); ctx.moveTo(cx + 16, cy - 22); ctx.lineTo(cx + 24, cy + 20); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(cx + 22, cy - 23); ctx.lineTo(cx + 30, cy + 19); ctx.stroke();
@@ -220,7 +221,7 @@ Component({
 
       // 菜名：图→名间距 12
       let y = contentTop + L.gapImgName;
-      ctx.fillStyle = TEXT_PRIMARY;
+      ctx.fillStyle = P().textPrimary;
       ctx.font = 'bold 21px -apple-system, "PingFang SC", "Helvetica Neue", sans-serif';
       const name = String(dish.name || '').slice(0, 16);
       ctx.fillText(name, left, y + 19);           // 基线 ≈ 顶部 + 字号*0.9
@@ -233,14 +234,14 @@ Component({
       if (cat) {
         const tw = ctx.measureText(cat).width + 16;
         this.roundRect(ctx, chipX, y, tw, L.chipH, L.chipH / 2);
-        ctx.fillStyle = BRAND_LIGHT;
+        ctx.fillStyle = P().brandLight;
         ctx.fill();
-        ctx.fillStyle = BRAND;
+        ctx.fillStyle = P().brand;
         ctx.fillText(cat, chipX + 8, y + 15);
         chipX += tw + 8;
       }
       if (dish.priceYuan) {
-        ctx.fillStyle = BRAND;
+        ctx.fillStyle = P().brand;
         ctx.font = 'bold 13px -apple-system, "PingFang SC", sans-serif';
         ctx.fillText(`¥${dish.priceYuan}`, chipX, y + 15);
       }
@@ -249,13 +250,13 @@ Component({
       // 描述（浅灰，完整换行不限行数；无描述时展示 slogan）
       ctx.font = '13px -apple-system, "PingFang SC", sans-serif';
       if (descLines && descLines.length) {
-        ctx.fillStyle = TEXT_SECONDARY;
+        ctx.fillStyle = P().textSecondary;
         descLines.forEach((line, i) => {
           ctx.fillText(line, left, y + 12 + i * L.descLineH);
         });
         y += descLines.length * L.descLineH;
       } else {
-        ctx.fillStyle = '#BBBBBB';
+        ctx.fillStyle = P().note;
         ctx.fillText(this.properties.slogan, left, y + 12);
         y += L.descLineH;
       }
@@ -265,7 +266,7 @@ Component({
     // ④ 底部品牌区：浅灰分割线 + 左对齐两行文字（无厨师帽图标）
     drawFooter(ctx, W, fy) {
       // 细分割线
-      ctx.strokeStyle = DIVIDER;
+      ctx.strokeStyle = P().divider;
       ctx.lineWidth = 0.5;
       ctx.beginPath();
       ctx.moveTo(20, fy);
@@ -274,11 +275,11 @@ Component({
 
       ctx.textAlign = 'left';
       ctx.textBaseline = 'alphabetic';
-      ctx.fillStyle = TEXT_SECONDARY;
+      ctx.fillStyle = P().textSecondary;
       ctx.font = '12px -apple-system, "PingFang SC", sans-serif';
       ctx.fillText('发现更多家常美味', 20, fy + 22);
 
-      ctx.fillStyle = BRAND;
+      ctx.fillStyle = P().brand;
       ctx.fillText('微信搜索「Yuki 小厨房」', 20, fy + 42);
     },
 
@@ -327,7 +328,7 @@ Component({
             title: '需要相册权限',
             content: '保存海报需要允许访问相册，去设置里开启一下？',
             confirmText: '去设置',
-            confirmColor: BRAND,
+            confirmColor: themeManager.getJs().confirmColor,
             success: r => { if (r.confirm) wx.openSetting(); }
           });
         } else {

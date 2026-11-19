@@ -2,8 +2,9 @@
 const api = require('../../services/db');
 const { getNavMetrics } = require('../../utils/util');
 const { fenToYuan, shuffle } = require('../../utils/util');
+const { withTheme } = require('../../theme/theme-page');
 
-Page({
+Page(withTheme({
   data: {
     navHeight: 88,
     loading: true,
@@ -14,7 +15,7 @@ Page({
   },
 
   onLoad() {
-    // 沉浸式导航：内容区让位高度（与组件同一度量源）
+    // 沉浸式导航：内容区让位高度（与组件同一度量源，随主题布局策略变化）
     this.setData({ navHeight: getNavMetrics().headerHeight });
 
     this.setData({ greeting: this.buildGreeting() });
@@ -134,4 +135,4 @@ Page({
   onShareAppMessage() {
     return { title: 'Yuki小厨房｜不知道吃啥？帮你决定', path: '/pages/index/index' };
   }
-});
+}));

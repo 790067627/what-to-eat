@@ -4,12 +4,22 @@
   font-weight: normal;
   font-style: normal;
 }
+.bi {
+  font-family: 'bi' !important;
+  font-style: normal;
+  font-weight: normal;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+}
 
 /* 布局模型（三段式，互不侵占）：
    ① 导航内容区 112rpx：图标行(30~72) + 间距6 + 文字行(78~100) + 底呼吸12
    ② 中间凸起按钮 104rpx，上凸 28rpx（top:-28 ~ bottom:76），不压文字行
    ③ 底部安全区：.safe-bottom 的 env(safe-area-inset-bottom) 独立叠加
-   全局 border-box：height 必须 = 内容区 + 安全区，否则内容区被 padding 吃掉 */
+   全局 border-box：height 必须 = 内容区 + 安全区，否则内容区被 padding 吃掉
+   颜色全部走主题 Token（根节点 style 注入，见 index.wxml），回退值 = 樱花粉 */
 .tab-bar {
   position: fixed;
   bottom: 0;
@@ -17,9 +27,8 @@
   right: 0;
   height: calc(112rpx + constant(safe-area-inset-bottom));
   height: calc(112rpx + env(safe-area-inset-bottom));
-  /* 浅樱花粉底 + 顶部极细分割线，无阴影无悬浮玻璃 */
-  background: #F9D6E4;
-  border-top: 1rpx solid #F0C0D4;
+  background: var(--tabbar-bg, #F9D6E4);
+  border-top: 1rpx solid var(--tabbar-border, #F0C0D4);
   display: flex;
   z-index: 999;
   /* 常驻挂载：显隐只用 opacity 过渡（与抽屉滑入/滑出同帧同步），不卸载不重排 */
@@ -45,17 +54,27 @@
   width: 42rpx;
   height: 42rpx;
 }
+/* 字体图标模式（GitHub 主题）：尺寸与 PNG 对齐 */
+.tab-icon-font {
+  font-size: 40rpx;
+  line-height: 42rpx;
+  height: 42rpx;
+  color: var(--tabbar-text, #6B5360);
+}
+.tab-item.active .tab-icon-font {
+  color: var(--tabbar-text-active, #A73568);
+}
 
 /* 文字 22rpx（规范 22~24），与图标间距 6rpx（规范 6~8） */
 .tab-text {
   font-size: 22rpx;
-  color: #6B5360;
+  color: var(--tabbar-text, #6B5360);
   margin-top: 6rpx;
   line-height: 1;
 }
 
 .tab-item.active .tab-text {
-  color: #A73568;
+  color: var(--tabbar-text-active, #A73568);
   font-weight: 600;
 }
 
@@ -65,28 +84,33 @@
   width: 104rpx;
   height: 104rpx;
   border-radius: 50%;
-  background: #E85D91;
-  box-shadow: 0 4rpx 12rpx rgba(167, 53, 104, 0.3);
+  background: var(--tabbar-center-bg, #E85D91);
+  box-shadow: 0 4rpx 12rpx var(--tabbar-center-shadow, rgba(167, 53, 104, 0.3));
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: -65rpx;
-  border: 6rpx solid #FFFFFF;
+  border: 6rpx solid var(--tabbar-center-border, #FFFFFF);
 }
 
 .center-icon {
   width: 46rpx;
   height: 46rpx;
 }
+/* 凸起按钮内字体图标：恒白色（深色底按钮），三主题通用 */
+.center-icon-font {
+  font-size: 44rpx;
+  color: #FFFFFF;
+}
 
 /* 「抽一抽」文字：按钮上移后底边在 69rpx，margin-top 9rpx 把文字行
    推回 78~100rpx，与两侧标签基线一致；圆与文字间隙 9rpx */
 .center-text {
-  color: #6B5360;
+  color: var(--tabbar-text, #6B5360);
   margin-top: 9rpx;
 }
 
 .tab-item.active .center-text {
-  color: #A73568;
+  color: var(--tabbar-text-active, #A73568);
   font-weight: 600;
 }

@@ -40,10 +40,11 @@
   padding-left: 8rpx;
 }
 
+/* 透明导航覆盖在页面底色上：文字颜色跟随主题（樱花浅底白字带影，GitHub 深底白字/浅底深字由 Token 决定） */
 .navbar-back-icon {
   font-size: 40rpx;
-  color: #FFFFFF;
-  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
+  color: var(--navbar-fg, #FFFFFF);
+  text-shadow: var(--navbar-shadow, 0 2rpx 8rpx rgba(0, 0, 0, 0.3));
 }
 
 .navbar-title {
@@ -52,8 +53,8 @@
   transform: translateX(-50%);
   font-size: 32rpx;
   font-weight: 600;
-  color: #FFFFFF;
-  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
+  color: var(--navbar-fg, #FFFFFF);
+  text-shadow: var(--navbar-shadow, 0 2rpx 8rpx rgba(0, 0, 0, 0.3));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

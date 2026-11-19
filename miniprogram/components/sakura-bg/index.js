@@ -1,9 +1,12 @@
-// components/sakura-bg/index.js - 首页 Hello Kitty 装饰图组件
+// components/sakura-bg/index.js - 首页主题装饰组件（当前仅樱花主题渲染 Hello Kitty）
 // 装饰图存云存储（代码不存图）。免费环境存储不可设公开读，且临时链接会过期，
 // 故由云函数（管理员身份）下载图片返回 base64，组件写入手机本地用户目录持久缓存，
 // 之后直接读本地文件，永不过期；仅在本地缺失/损坏时才回源一次。
-// 加载失败时静默降级：不渲染装饰图，页面正常显示（#FFF7FA 底色）。
+// 主题资源层控制：GitHub 主题 decoration.kitty.show=false，不加载、不渲染；
+// 组件为 fixed + z-index:-1 不占布局，隐藏后无需调整页面高度。
+// 加载失败时静默降级：不渲染装饰图，页面正常显示（主题底色兜底）。
 const api = require('../../services/db');
+const themeManager = require('../../theme/theme-manager');
 const fs = wx.getFileSystemManager();
 
 const LOCAL_PATH = `${wx.env.USER_DATA_PATH}/kitty-deco.webp`;
@@ -12,15 +15,17 @@ const OLD_LOCAL_PATH = `${wx.env.USER_DATA_PATH}/sakura-bg.jpg`; // 旧整图背
 const OLD_FLAG_KEY = 'sakura_bg_saved';
 
 Component({
-  data: { url: '', paused: false, bouncing: false },
+  data: { url: '', paused: false, bouncing: false, enabled: true },
 
   lifetimes: {
     attached() {
       this.cleanupOld();
-      this.load();
+      this._unsubscribe = themeManager.subscribe(() => this.syncTheme());
+      this.syncTheme();
     },
     detached() {
       clearTimeout(this._bounceTimer);
+      if (this._unsubscribe) { this._unsubscribe(); this._unsubscribe = null; }
     }
   },
 
@@ -32,8 +37,17 @@ Component({
   },
 
   methods: {
+    /** 主题联动：按 theme-assets 开关决定是否加载/渲染装饰图（资源按需加载，不预取） */
+    syncTheme() {
+      const enabled = !!themeManager.getAssets().decoration.kitty.show;
+      this.setData({ enabled });
+      if (enabled) this.load();
+      // 关闭时保留本地缓存（切回樱花主题零网络恢复），仅停止渲染
+    },
+
     /** 页面级 tap 命中检测：坐标落在 Kitty 矩形内则触发一次弹跳（组件自身 pointer-events:none 不可点） */
     tryTapBounce(clientX, clientY) {
+      if (!this.data.enabled) return;
       if (this.data.bouncing || this.data.paused || !this.data.url) return;
       this.createSelectorQuery().select('.kitty-wrap').boundingClientRect(rect => {
         if (!rect) return;
@@ -56,6 +70,8 @@ Component({
     },
 
     load() {
+      // 已有内容（本会话加载过）不重复处理
+      if (this.data.url) return;
       // 1) 本地已有缓存：直接用，零网络
       try {
         if (wx.getStorageSync(FLAG_KEY)) {
@@ -74,7 +90,7 @@ Component({
           encoding: 'base64',
           success: () => {
             try { wx.setStorageSync(FLAG_KEY, 1); } catch (e) { /* 忽略 */ }
-            this.setData({ url: LOCAL_PATH });
+            if (this.data.enabled) this.setData({ url: LOCAL_PATH });
           },
           fail: () => this.fallback()
         });

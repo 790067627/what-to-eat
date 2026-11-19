@@ -6,9 +6,12 @@
 //      统一用 canvas(type=2d) 节点 raf，setTimeout(16) 兜底；
 //   2) preserve-3d 子树禁止跑 CSS transform 动画（合成层会压平 3D），
 //      卡牌 transform 全部由 JS 逐帧写入 cardTf。
+//   3) 粒子颜色不写死：每次生成时从 Theme Manager 读取当前主题 JS Token。
 const api = require('../../services/db');
 const { getNavMetrics } = require('../../utils/util');
 const { fenToYuan, timeAgo } = require('../../utils/util');
+const { withTheme } = require('../../theme/theme-page');
+const themeManager = require('../../theme/theme-manager');
 
 // 缓动
 const EASE = {
@@ -22,7 +25,7 @@ const LAND_MS = 420;      // 落位回弹
 const FLY_MS = 240;       // 换一道飞出
 const SWAP_MS = 420;      // 换一道翻入
 
-Page({
+Page(withTheme({
   data: {
     navHeight: 88,
     // 筛选条件
@@ -580,12 +583,13 @@ Page({
   spawnGather() {
     if (!this._ctx) return;
     const c = this.cardCenter();
+    const pal = themeManager.getJs().particles;
     for (let i = 0; i < 18; i++) {
       const a = Math.random() * Math.PI * 2, d = 160 + Math.random() * 130;
       this._particles.push({
         gather: true, x: c.x + Math.cos(a) * d, y: c.y + Math.sin(a) * d,
         tx: c.x, ty: c.y, t: 0, dur: 26 + Math.random() * 20,
-        s: 1.2 + Math.random() * 2.2, color: Math.random() < 0.7 ? '255,182,213' : '255,243,248'
+        s: 1.2 + Math.random() * 2.2, color: Math.random() < 0.7 ? pal.gather[0] : pal.gather[1]
       });
     }
     this.kickFx();
@@ -595,7 +599,8 @@ Page({
   spawnBurst() {
     if (!this._ctx) return;
     const c = this.cardCenter();
-    const colors = ['#FFD6E7', '#FF8FB8', '#FFF3F8', '#FFC9DE', '#FFD98A'];
+    const pal = themeManager.getJs().particles;
+    const colors = pal.burst;
     for (let i = 0; i < 52; i++) {
       const a = Math.random() * Math.PI * 2, sp = 2.4 + Math.random() * 7;
       this._particles.push({
@@ -605,8 +610,8 @@ Page({
         rot: Math.random() * Math.PI, spin: (Math.random() - 0.5) * 0.26
       });
     }
-    this._rings.push({ x: c.x, y: c.y, r: 10, max: 230, life: 1, decay: 0.026, w: 5, color: '255,182,213' });
-    this._rings.push({ x: c.x, y: c.y, r: 4, max: 150, life: 1, decay: 0.04, w: 3, color: '255,243,248' });
+    this._rings.push({ x: c.x, y: c.y, r: 10, max: 230, life: 1, decay: 0.026, w: 5, color: pal.rings[0] });
+    this._rings.push({ x: c.x, y: c.y, r: 4, max: 150, life: 1, decay: 0.04, w: 3, color: pal.rings[1] });
     this.kickFx();
   },
 
@@ -614,7 +619,7 @@ Page({
   spawnPop() {
     if (!this._ctx) return;
     const c = this.cardCenter();
-    const colors = ['#FFD6E7', '#FF8FB8', '#FFF3F8'];
+    const colors = themeManager.getJs().particles.pop;
     for (let i = 0; i < 18; i++) {
       const a = Math.random() * Math.PI * 2, sp = 1.2 + Math.random() * 3;
       this._particles.push({
@@ -693,4 +698,4 @@ Page({
       ctx.clearRect(0, 0, this._cw, this._ch);   // 特效播完即静止释放
     }
   }
-});
+}));

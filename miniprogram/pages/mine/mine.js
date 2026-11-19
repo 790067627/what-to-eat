@@ -1,8 +1,10 @@
 // pages/mine/mine.js - 我的：统计、分类管理、时间线、数据导出
 const api = require('../../services/db');
 const { getNavMetrics } = require('../../utils/util');
+const { withTheme } = require('../../theme/theme-page');
+const themeManager = require('../../theme/theme-manager');
 
-Page({
+Page(withTheme({
   data: {
     navHeight: 88,
     stats: { dishCount: 0, categoryCount: 0, eatCount: 0 },
@@ -60,6 +62,11 @@ Page({
     wx.navigateTo({ url: '/pages/dish-edit/dish-edit' });
   },
 
+  /** 外观设置：主题切换入口 */
+  goAppearance() {
+    wx.navigateTo({ url: '/pages/appearance/appearance' });
+  },
+
   // 导出数据：生成 JSON，复制到剪贴板（个人使用足够，防迁移丢失）
   async onExport() {
     wx.showLoading({ title: '导出中', mask: true });
@@ -82,7 +89,7 @@ Page({
           title: '导出预览',
           content: `共 ${data.categories.length} 个分类、${data.dishes.length} 道菜、${data.eatLogs.length} 条记录。完整数据已打印到控制台。`,
           showCancel: false,
-          confirmColor: '#FF8FB8'
+          confirmColor: themeManager.getJs().confirmColor
         });
       }
     } catch (err) {
@@ -230,7 +237,7 @@ Page({
     const confirm = await wx.showModal({
       title: '确认导入',
       content: `将合并导入 ${cats.length} 个分类、${dishes.length} 道菜、${logs.length} 条记录；已存在的自动跳过，不会覆盖现有数据。`,
-      confirmColor: '#FF8FB8'
+      confirmColor: themeManager.getJs().confirmColor
     }).catch(() => null);
     if (!confirm || !confirm.confirm) return;
 
@@ -257,7 +264,7 @@ Page({
       title: '关于「Yuki小厨房」',
       content: '个人点菜灵感小工具：不知道吃啥时来抽一抽，随手维护自己的菜品库。数据存于微信云开发，仅自己可见。',
       showCancel: false,
-      confirmColor: '#FF8FB8'
+      confirmColor: themeManager.getJs().confirmColor
     });
   }
-});
+}));

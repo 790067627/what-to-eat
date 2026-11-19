@@ -1,3 +1,4 @@
+<page-meta page-style="{{themeVars}}" root-background-color="{{themeWindowBg}}" background-color="{{themeWindowBg}}" background-text-style="{{themeJs.mode === 'dark' ? 'light' : 'dark'}}" />
 <immersive-nav />
 <view class="page" style="padding-top: {{navHeight}}px">
   <!-- 背景内容（弹层打开时整体暗化模糊；filter 只作用于此层，不含弹层） -->
@@ -10,8 +11,8 @@
           class="filter-slider"
           min="0" max="14" step="1"
           value="{{excludeDays}}"
-          activeColor="#FF8FB8"
-          backgroundColor="#F8E3EC"
+          activeColor="{{themeJs.slider.active}}"
+          backgroundColor="{{themeJs.slider.track}}"
           block-size="20"
           bindchanging="onDaysChange"
           bindchange="onDaysChange"
@@ -20,11 +21,11 @@
       </view>
       <view class="filter-row">
         <text class="filter-label">只从「想吃」里抽</text>
-        <switch checked="{{onlyWant}}" color="#FF8FB8" bindchange="toggleWant" />
+        <switch checked="{{onlyWant}}" color="{{themeJs.switchColor}}" bindchange="toggleWant" />
       </view>
       <view class="filter-row">
         <text class="filter-label">高分优先</text>
-        <switch checked="{{weightByRating}}" color="#FF8FB8" bindchange="toggleWeight" />
+        <switch checked="{{weightByRating}}" color="{{themeJs.switchColor}}" bindchange="toggleWeight" />
       </view>
       <view class="filter-row">
         <text class="filter-label">限定分类</text>

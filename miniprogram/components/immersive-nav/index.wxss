@@ -1,4 +1,5 @@
-/* 容器：fixed 常驻顶部；min-height 防首帧度量未就绪时塌陷 */
+/* 容器：fixed 常驻顶部；min-height 防首帧度量未就绪时塌陷
+   颜色走主题 Token（根节点 style 注入），回退值 = 樱花粉 */
 .imm-nav {
   position: fixed;
   top: 0;
@@ -7,8 +8,8 @@
   z-index: 900;
   overflow: hidden;
   min-height: 88px;
-  /* 图片缺失/加载中的兜底渐变 */
-  background: linear-gradient(180deg, #FFEAF2, #FFF7FA);
+  /* 图片缺失/加载中/minimal 模式的兜底渐变 */
+  background: var(--nav-fallback, linear-gradient(180deg, #FFEAF2, #FFF7FA));
 }
 
 /* 背景层：独立定位，不受内容层影响 */
@@ -23,7 +24,7 @@
 .imm-nav-veil {
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.16);
+  background: var(--nav-veil, rgba(255, 255, 255, 0.16));
 }
 
 .imm-nav-fade {
@@ -32,5 +33,5 @@
   right: 0;
   bottom: 0;
   height: 56rpx;
-  background: linear-gradient(180deg, rgba(255, 247, 250, 0), #FFF7FA);
+  background: var(--nav-fade, linear-gradient(180deg, rgba(255, 247, 250, 0), #FFF7FA));
 }

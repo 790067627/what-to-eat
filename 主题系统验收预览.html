@@ -1,0 +1,682 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Yuki小厨房 · 多主题系统验收预览</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"PingFang SC","Segoe UI",sans-serif;background:#0d1117;color:#e6edf3;padding:32px 24px 60px}
+h1{font-size:26px;font-weight:700;margin-bottom:6px}
+.sub{color:#8b949e;font-size:14px;margin-bottom:8px;line-height:1.6}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin:16px 0 28px;font-size:13px;color:#8b949e}
+.legend b{color:#e6edf3}
+section{margin-bottom:44px}
+section h2{font-size:18px;font-weight:600;margin-bottom:16px;padding-left:12px;border-left:4px solid #4493f8}
+.row3{display:flex;gap:24px;flex-wrap:wrap}
+.col{flex:0 0 auto}
+.col-head{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:10px;color:#c9d1d9}
+.col-head .dot{width:10px;height:10px;border-radius:50%}
+.phone{width:300px;height:620px;border-radius:32px;overflow:hidden;position:relative;border:1px solid rgba(255,255,255,.12);box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.scr{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg-page);color:var(--text-primary);font-size:12px}
+.body{flex:1;overflow-y:auto;padding:10px 12px}
+.body::-webkit-scrollbar{width:0}
+/* 导航 */
+.nav{position:relative;height:66px;flex-shrink:0;overflow:hidden}
+.nav-illus{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.85}
+.nav-fade{position:absolute;left:0;right:0;bottom:0;height:22px}
+.nav-title{position:absolute;top:26px;left:0;right:0;text-align:center;font-size:14px;font-weight:600;color:var(--navbar-fg);text-shadow:var(--navbar-shadow)}
+.capsule{position:absolute;top:22px;right:10px;display:flex;gap:0;background:rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:2px 8px;font-size:9px;color:var(--navbar-fg)}
+.capsule span:first-child{border-right:1px solid rgba(128,128,128,.3);padding-right:6px;margin-right:6px}
+.navbar-simple{height:44px;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;background:var(--bg-page);border-bottom:1px solid var(--border-soft)}
+.nb-back{position:absolute;left:14px;font-size:20px;color:var(--navbar-fg)}
+.nb-title{font-size:14px;font-weight:600;color:var(--text-primary)}
+/* 首页 */
+.hero{background:var(--gradient-hero);border-radius:14px;padding:16px;text-align:center;border:1px solid var(--card-border);box-shadow:var(--shadow-card);margin-bottom:12px}
+.hero-g{font-size:15px;font-weight:600}
+.hero-s{font-size:11px;color:var(--color-accent-deep);margin:5px 0 12px}
+.hero-btn{background:var(--color-accent);color:var(--text-on-accent);border-radius:20px;padding:9px;font-size:12px;font-weight:500;width:78%;margin:0 auto}
+.sec-title{font-size:13px;font-weight:600;margin:6px 0 8px}
+.row-between{display:flex;justify-content:space-between;align-items:center}
+.more{font-size:11px;color:var(--color-accent)}
+.today{display:flex;gap:10px;background:var(--bg-card);border:1px solid var(--card-border);border-radius:14px;padding:10px;box-shadow:var(--shadow-card);margin-bottom:12px}
+.today-img{width:64px;height:64px;border-radius:10px;background:var(--bg-placeholder);display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0}
+.today-info{flex:1;min-width:0}
+.today-name{font-size:13px;font-weight:600;margin-bottom:3px}
+.today-desc{font-size:10px;color:var(--text-secondary);line-height:1.5;margin-bottom:5px}
+.today-meta{display:flex;gap:6px;align-items:center}
+.rating{font-size:10px;color:var(--color-star)}
+.chip{background:var(--color-accent-soft);color:var(--color-accent);font-size:9px;border-radius:9px;padding:2px 7px}
+.chip-plain{background:var(--color-accent-softer);color:var(--text-secondary);font-size:9px;border-radius:9px;padding:2px 7px}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cat-cell{background:var(--bg-card);border:1px solid var(--card-border);border-radius:12px;padding:11px 4px;text-align:center;box-shadow:var(--shadow-card)}
+.cat-icon{font-size:20px;margin-bottom:4px}
+.cat-name{font-size:10px;color:var(--text-primary)}
+/* 菜品库 */
+.dbody{padding-bottom:60px}
+.search{display:flex;align-items:center;gap:6px;background:var(--bg-card-solid);border:1px solid var(--card-border);border-radius:18px;padding:8px 12px;margin-bottom:8px;font-size:11px}
+.search .ph{color:var(--text-hint)}
+.status-row{display:flex;gap:8px;margin-bottom:10px}
+.schip{background:var(--bg-card-solid);color:var(--text-secondary);border:1px solid var(--card-border);font-size:10px;border-radius:14px;padding:5px 12px}
+.schip.on{background:var(--color-accent);color:var(--text-on-accent);border-color:transparent;font-weight:500}
+.content{display:flex;gap:10px}
+.side{width:66px;flex-shrink:0;background:var(--color-accent-softer);border-radius:10px;padding:6px 4px}
+.side-item{font-size:10px;color:var(--text-secondary);text-align:center;padding:9px 2px;border-radius:8px;margin-bottom:3px}
+.side-item.on{background:var(--bg-card-solid);color:var(--color-accent);font-weight:600}
+.list{flex:1;min-width:0}
+.dish-card{display:flex;gap:9px;background:var(--bg-card);border:1px solid var(--card-border);border-radius:12px;padding:9px;box-shadow:var(--shadow-card);margin-bottom:8px}
+.dish-img{width:46px;height:46px;border-radius:8px;background:var(--bg-placeholder);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.dish-info{flex:1;min-width:0}
+.dish-name{font-size:12px;font-weight:600;margin-bottom:2px}
+.dish-sub{font-size:9px;color:var(--text-secondary);margin-bottom:4px}
+.dish-tags{display:flex;gap:4px}
+.fab{position:absolute;right:14px;bottom:66px;width:44px;height:44px;border-radius:50%;background:var(--gradient-fab);color:var(--text-on-accent);font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-fab)}
+/* 抽一抽 */
+.rbody{padding-bottom:6px}
+.filters{background:var(--bg-card);border:1px solid var(--card-border);border-radius:12px;padding:4px 12px;box-shadow:var(--shadow-card)}
+.frow{display:flex;align-items:center;height:38px;border-bottom:1px solid var(--border-soft)}
+.frow:last-child{border-bottom:none}
+.flabel{font-size:11px;color:var(--text-primary);width:100px}
+.ftrack{flex:1;height:4px;background:var(--slider-track,#F8E3EC);border-radius:2px;position:relative;margin:0 8px}
+.ffill{position:absolute;left:0;top:0;height:4px;width:30%;background:var(--color-accent);border-radius:2px}
+.fknob{position:absolute;left:30%;top:-5px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transform:translateX(-50%)}
+.fval{font-size:11px;color:var(--color-accent);font-weight:600;width:32px;text-align:right}
+.switch{width:34px;height:19px;border-radius:10px;background:var(--color-accent);position:relative;margin-left:auto}
+.switch::after{content:'';position:absolute;right:2px;top:2px;width:15px;height:15px;border-radius:50%;background:#fff}
+.fpicker{margin-left:auto;font-size:11px;color:var(--color-accent);background:var(--color-accent-soft);border-radius:12px;padding:4px 12px}
+.ov{position:absolute;inset:0;background:var(--gradient-overlay);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 22px 60px;z-index:5}
+.rv-card{width:100%;border-radius:22px;overflow:hidden;background:var(--gradient-card-face);border:2px solid var(--card-face-border);box-shadow:var(--shadow-card-heavy)}
+.rv-toolbar{display:flex;justify-content:space-between;align-items:center;height:34px;padding:0 12px;background:var(--gradient-toolbar);border-bottom:1px solid var(--border-soft)}
+.tb-count{font-size:9px;color:var(--text-secondary)}
+.tb-btns{font-size:11px;color:var(--text-secondary)}
+.rv-hero{height:120px;background:var(--bg-placeholder);display:flex;align-items:center;justify-content:center;font-size:56px}
+.rv-body{padding:12px 16px 16px;text-align:center}
+.rv-name{font-size:20px;font-weight:800;color:var(--text-primary);text-shadow:0 1px 0 var(--card-name-shadow)}
+.rv-chips{display:flex;gap:6px;justify-content:center;margin:8px 0}
+.rv-desc{font-size:10px;color:var(--text-secondary);line-height:1.5}
+.rv-link{font-size:11px;color:var(--color-accent-strong);font-weight:600;margin-top:8px}
+.rv-actions{display:flex;gap:8px;width:100%;margin-top:16px}
+.act-reject{flex:1;text-align:center;padding:11px;background:var(--btn-reject-bg);color:var(--btn-reject-text);border:2px solid var(--btn-reject-border);border-radius:20px;font-size:11px}
+.act-accept{flex:1.4;text-align:center;padding:11px;background:var(--color-accent);color:var(--text-on-accent);border-radius:20px;font-size:11px;font-weight:600;box-shadow:var(--shadow-accent)}
+/* 我的 */
+.stats{padding:16px}
+.stats-title{font-size:14px;font-weight:600;margin-bottom:14px}
+.stats-row{display:flex;align-items:center}
+.stat{flex:1;text-align:center}
+.stat-num{font-size:22px;font-weight:700;color:var(--color-accent)}
+.stat-label{font-size:10px;color:var(--color-accent-deep);margin-top:2px}
+.stat-div{width:1px;height:26px;background:var(--divider-strong)}
+.cal-card{background:var(--bg-card);border:1px solid var(--card-border);border-radius:14px;padding:12px;box-shadow:var(--shadow-card);margin-bottom:12px}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.cal-title{font-size:13px;font-weight:600}
+.cal-nav{width:22px;height:22px;line-height:20px;text-align:center;color:var(--color-accent-deep);background:var(--color-accent-soft);border-radius:50%;font-size:13px}
+.cal-nav.dis{opacity:.3}
+.cal-week,.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-week span{text-align:center;font-size:9px;color:var(--text-hint);padding:3px 0}
+.cal-cell{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.cal-day{font-size:10px;color:var(--text-primary)}
+.cal-cell.today .cal-day{color:var(--color-accent);font-weight:700}
+.cal-dot{position:absolute;bottom:1px;font-size:8px;color:#fff;border-radius:8px;min-width:14px;height:14px;line-height:14px;text-align:center;padding:0 3px}
+.cal-dot.heat-1{background:var(--heat-1)}.cal-dot.heat-2{background:var(--heat-2)}.cal-dot.heat-3{background:var(--heat-3)}
+.menu-card{background:var(--bg-card);border:1px solid var(--card-border);border-radius:14px;padding:4px 12px;box-shadow:var(--shadow-card)}
+.menu-item{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-soft)}
+.menu-item:last-child{border-bottom:none}
+.menu-icon{font-size:16px;width:28px}
+.menu-text{flex:1;font-size:12px;color:var(--text-primary)}
+.menu-arrow{color:var(--text-faint);font-size:16px}
+/* 外观 */
+.abody{padding-bottom:20px}
+.page-tip{font-size:11px;color:var(--text-secondary);line-height:1.6;margin-bottom:14px;padding:0 4px}
+.theme-card{position:relative;background:var(--bg-card);border:2px solid var(--border-default);border-radius:14px;padding:12px;box-shadow:var(--shadow-card);margin-bottom:12px}
+.theme-card.selected{border-color:var(--color-accent)}
+.pv{height:110px;border-radius:10px;overflow:hidden;padding:8px;display:flex;flex-direction:column;gap:6px}
+.pv-nav{height:12px;border-radius:4px;flex-shrink:0}
+.pv-card{display:flex;align-items:center;gap:6px;height:24px;border-radius:6px;border:1px solid;padding:0 6px;flex-shrink:0}
+.pv-thumb{width:16px;height:16px;border-radius:4px;flex-shrink:0}
+.pv-lines{flex:1;display:flex;flex-direction:column;gap:4px}
+.pv-line{height:4px;border-radius:2px;width:70%}.pv-line.short{width:40%}
+.pv-accent{height:14px;border-radius:8px;width:50%;align-self:center;flex-shrink:0}
+.pv-tabbar{margin-top:auto;height:18px;border-top:1px solid;display:flex;align-items:center;justify-content:space-around;padding:0 18px;flex-shrink:0}
+.pv-dot{width:6px;height:6px;border-radius:50%}.pv-dot.active{width:9px;height:9px}
+.theme-meta{margin-top:10px}
+.theme-name{font-size:13px;font-weight:600;color:var(--text-primary)}
+.theme-desc{font-size:10px;color:var(--text-secondary);margin-top:2px}
+.theme-check{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:var(--color-accent);color:var(--text-on-accent);font-size:12px;display:flex;align-items:center;justify-content:center}
+.foot-note{text-align:center;font-size:10px;color:var(--text-hint);margin-top:16px}
+/* TabBar */
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:54px;background:var(--tabbar-bg);border-top:1px solid var(--tabbar-border);display:flex;z-index:20}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;padding-top:9px}
+.tab-icon{font-size:17px;filter:grayscale(1) opacity(.5)}
+.tab-icon.on{filter:none}
+.tab-text{font-size:9px;color:var(--tabbar-text);margin-top:3px}
+.tab-text.on{color:var(--tabbar-text-active);font-weight:600}
+.tab-item.center{padding-top:0}
+.center-btn{width:42px;height:42px;border-radius:50%;background:var(--tabbar-center-bg);border:3px solid var(--tabbar-center-border);display:flex;align-items:center;justify-content:center;font-size:20px;margin-top:-14px;box-shadow:0 2px 6px var(--tabbar-center-shadow)}
+.center-text{font-size:9px;color:var(--tabbar-text);margin-top:3px}
+.center-text.on{color:var(--tabbar-text-active);font-weight:600}
+</style></head><body>
+<h1>🎨 Yuki小厨房 · 多主题系统验收预览</h1>
+<div class="sub">三套主题同构渲染：每个手机框注入对应主题的<b>全部 112 个 Design Token</b>（CSS 变量），界面元素一律 <code>var(--token)</code> 着色——与小程序 page-meta 注入机制完全一致，所见即真机效果。</div>
+<div class="legend">
+  <span>🌸 <b>Sakura Pink</b>：保留樱花粉 + Hello Kitty 插画带 + 凸起点</span>
+  <span>☀️ <b>GitHub Light</b>：Primer 浅色 #0969DA 强调 + minimal 导航 + 字体图标</span>
+  <span>🌙 <b>GitHub Dark</b>：Primer 深色 #4493F8 强调 + 深色卡片/弹层/遮罩</span>
+</div>
+<section><h2>首页</h2><div class="row3"><div class="col">
+          <div class="col-head"><span class="dot" style="background:#FF8FB8"></span>Sakura Pink 樱花粉</div>
+          <div class="phone" style="--bg-page:#FFF7FA;--bg-card:rgba(255, 255, 255, 0.88);--bg-card-solid:#FFFFFF;--bg-sunken:#FDF5F9;--bg-hover:#F7EDF1;--bg-active:#FBEFF5;--bg-placeholder:#FFEAF2;--bg-sheet:#FFFFFF;--text-primary:#4A2C3A;--text-secondary:#9C7B8C;--text-hint:#C9A8B8;--text-faint:#D8BAC9;--text-on-accent:#FFFFFF;--color-accent:#FF8FB8;--color-accent-strong:#E85D91;--color-accent-deep:#D96C99;--color-accent-dark:#A73568;--color-accent-soft:#FFF0F6;--color-accent-softer:#FBEFF5;--color-accent-border:#FFD6E7;--border-default:#F8E3EC;--border-soft:#FCEFF5;--border-strong:#F0C0D4;--card-border:rgba(255, 143, 184, 0.16);--card-face-border:rgba(255, 222, 236, 0.95);--color-success:#639922;--color-success-bg:#EAF3DE;--color-star:#FF9500;--star-off:#F8E3EC;--shadow-card:0 6rpx 24rpx rgba(217, 108, 153, 0.08);--shadow-panel:0 12rpx 48rpx rgba(217, 108, 153, 0.25);--shadow-fab:0 8rpx 24rpx rgba(255, 143, 184, 0.4);--shadow-fab-drag:0 12rpx 32rpx rgba(255, 143, 184, 0.55);--shadow-accent:0 16rpx 48rpx rgba(240, 99, 156, 0.5);--shadow-card-heavy:0 60rpx 140rpx rgba(14, 2, 10, 0.62), 0 0 0 10rpx rgba(255, 255, 255, 0.06), inset 0 2rpx 0 #fff, 0 0 120rpx rgba(255, 143, 184, 0.22);--gradient-hero:linear-gradient(135deg, rgba(255,240,246,0.92), rgba(255,227,239,0.92));--gradient-fab:linear-gradient(135deg, #FFB3D1, #FF8FB8);--gradient-primary:linear-gradient(135deg, #FFB3D1, #FF8FB8);--gradient-bar:linear-gradient(90deg, #FFB3D1, #FF8FB8);--gradient-card-back:linear-gradient(160deg, #E85D91 0%, #C74B7C 46%, #8E2F58 100%);--gradient-card-face:linear-gradient(172deg, #fff 55%, #FFF5F9 100%);--gradient-toolbar:linear-gradient(180deg, #FFFFFF, #FFF7FA);--gradient-sheet:linear-gradient(180deg, #FFF9FB, #FFF2F7);--gradient-overlay:radial-gradient(130% 95% at 50% 34%, rgba(78,30,52,0.58), rgba(32,10,24,0.86));--card-back-pattern:rgba(255, 214, 231, 0.5);--card-back-pattern-soft:rgba(255, 240, 247, 0.35);--card-back-emblem:#FFEAF3;--card-back-emblem-border:rgba(255, 222, 236, 0.65);--card-back-glow:rgba(255, 143, 184, 0.5);--card-back-arc:rgba(255, 214, 231, 0.5);--card-back-arc2:rgba(255, 214, 231, 0.22);--card-back-shadow:0 52rpx 128rpx rgba(14,2,10,0.6), inset 0 2rpx 0 rgba(255,255,255,0.28), inset 0 0 80rpx rgba(80,10,40,0.4);--card-back-inner:radial-gradient(circle at 34% 30%, rgba(255,255,255,0.3), rgba(255,255,255,0.08));--card-sheen-tint:rgba(255, 214, 231, 0.35);--card-face-fade:rgba(255, 255, 255, 0.94);--card-name-shadow:#fff;--glow-rgb:255, 143, 184;--flash-tint:rgba(255, 226, 240, 0.85);--flash-edge:rgba(255, 143, 184, 0.35);--mask-light:rgba(74, 44, 58, 0.45);--mask-heavy:rgba(20, 6, 16, 0.55);--mask-scan:rgba(20, 8, 15, 0.82);--tabbar-bg:#F9D6E4;--tabbar-border:#F0C0D4;--tabbar-text:#6B5360;--tabbar-text-active:#A73568;--tabbar-center-bg:#E85D91;--tabbar-center-border:#FFFFFF;--tabbar-center-shadow:rgba(167, 53, 104, 0.3);--nav-fallback:linear-gradient(180deg, #FFEAF2, #FFF7FA);--nav-veil:rgba(255, 255, 255, 0.16);--nav-fade:linear-gradient(180deg, rgba(255, 247, 250, 0), #FFF7FA);--navbar-fg:#FFFFFF;--navbar-shadow:0 2rpx 8rpx rgba(0, 0, 0, 0.3);--skeleton-base:#FBEFF5;--skeleton-shine:#FDF7FA;--grip-color:#E8CBD8;--btn-disabled-bg:#F5C9DD;--btn-disabled-text:#FFF0F6;--btn-reject-bg:rgba(255, 255, 255, 0.92);--btn-reject-text:#B25478;--btn-reject-border:#FFFFFF;--divider-strong:#F5C9DD;--heat-1:#F8C8DC;--heat-2:#FFB0CE;--heat-3:#FF8FB8;--bg-poster-full:#1c0c14;--poster-preview-fg:#FFEAF3;--poster-preview-border:rgba(255, 222, 236, 0.45);--poster-preview-btn-bg:rgba(255, 255, 255, 0.1);--gradient-poster-icon:linear-gradient(135deg, #FF8FB8, #E85D91);--badge-bg:rgba(255, 143, 184, 0.9);--border-dashed:#F0C9DD;--gradient-ai:linear-gradient(135deg, #7C5AE0 0%, #A78BFA 45%, #EC6FAE 100%);--gradient-ai-btn:linear-gradient(135deg, #A78BFA, #EC6FAE);--ai-color:#A78BFA;--ai-color-deep:#6D4FB8;--ai-shadow:rgba(167, 110, 220, 0.35);--ai-bg-soft:#FBEFF5;--ai-border-dashed:#C4A6FF;--scan-line-glow:rgba(196, 166, 255, 0.5);--ai-guide-bg:linear-gradient(135deg, rgba(167, 139, 250, 0.12), rgba(236, 111, 174, 0.12));--ai-pulse-glow:rgba(167, 139, 250, 0.5);--color-primary:#FF8FB8;--color-primary-light:#FFF0F6;--color-primary-dark:#D96C99;--color-bg:#FFF7FA;--color-card:#FFFFFF;--color-text:#4A2C3A;--color-text-sub:#9C7B8C;--color-text-hint:#C9A8B8;--color-border:#F8E3EC"><div class="scr"><div class="nav" style="background:var(--nav-fallback);">
+      <div class="nav-illus" style="background:linear-gradient(135deg,#FFD1E3,#FFEAF2);">
+        🍳🥘
+      </div>
+      <div class="nav-fade" style="background:var(--nav-fade);"></div>
+      <div class="nav-title">Yuki小厨房</div>
+      <div class="capsule"><span>•••</span><span>◎</span></div>
+    </div>
+      <div class="body">
+        <div class="hero">
+          <div class="hero-g">晚上好，今天吃点好的</div>
+          <div class="hero-s">纠结的话，交给运气吧 🎲</div>
+          <div class="hero-btn">🎲 帮我随机抽一道</div>
+        </div>
+        <div class="sec-title">今日推荐</div>
+        <div class="today">
+          <div class="today-img">🍝</div>
+          <div class="today-info">
+            <div class="today-name">番茄牛腩意面</div>
+            <div class="today-desc">番茄炒出沙，牛腩炖软烂，酸甜开胃</div>
+            <div class="today-meta"><span class="rating">★ 4.8</span><span class="chip-plain">面食</span><span class="chip">¥38</span></div>
+          </div>
+        </div>
+        <div class="row-between"><div class="sec-title">分类速览</div><div class="more">全部菜品 ›</div></div>
+        <div class="cat-grid"><div class="cat-cell">
+        <div class="cat-icon">🍜</div><div class="cat-name">面食</div></div><div class="cat-cell">
+        <div class="cat-icon">🍚</div><div class="cat-name">米饭</div></div><div class="cat-cell">
+        <div class="cat-icon">🥗</div><div class="cat-name">轻食</div></div><div class="cat-cell">
+        <div class="cat-icon">🍲</div><div class="cat-name">汤煲</div></div><div class="cat-cell">
+        <div class="cat-icon">🥟</div><div class="cat-name">点心</div></div><div class="cat-cell">
+        <div class="cat-icon">🍰</div><div class="cat-name">甜品</div></div></div>
+      </div><div class="tabbar"><div class="tab-item"><span class="tab-icon on">🏠</span><span class="tab-text on">首页</span></div><div class="tab-item"><span class="tab-icon">🍽</span><span class="tab-text">菜单</span></div><div class="tab-item center"><div class="center-btn">🎲</div><span class="center-text">抽一抽</span></div><div class="tab-item"><span class="tab-icon">👤</span><span class="tab-text">我的</span></div></div></div></div>
+        </div><div class="col">
+          <div class="col-head"><span class="dot" style="background:#0969DA"></span>GitHub Light</div>
+          <div class="phone" style="--bg-page:#F6F8FA;--bg-card:#FFFFFF;--bg-card-solid:#FFFFFF;--bg-sunken:#F6F8FA;--bg-hover:#EAEFF2;--bg-active:#EAEFF2;--bg-placeholder:#EAEFF2;--bg-sheet:#FFFFFF;--text-primary:#1F2328;--text-secondary:#59636E;--text-hint:#818B98;--text-faint:#A5ADB8;--text-on-accent:#FFFFFF;--color-accent:#0969DA;--color-accent-strong:#0550AE;--color-accent-deep:#0550AE;--color-accent-dark:#0969DA;--color-accent-soft:#DDF4FF;--color-accent-softer:#EAEFF2;--color-accent-border:#B6E3FF;--border-default:#D1D9E0;--border-soft:#D8DEE4;--border-strong:#AFB8C1;--card-border:rgba(31, 35, 40, 0.1);--card-face-border:#D1D9E0;--color-success:#1A7F37;--color-success-bg:#DAFBE1;--color-star:#BF8700;--star-off:#D1D9E0;--shadow-card:0 1px 2px rgba(31, 35, 40, 0.08);--shadow-panel:0 8px 24px rgba(31, 35, 40, 0.16);--shadow-fab:0 4px 12px rgba(9, 105, 218, 0.3);--shadow-fab-drag:0 6px 16px rgba(9, 105, 218, 0.45);--shadow-accent:0 8px 24px rgba(9, 105, 218, 0.35);--shadow-card-heavy:0 24px 64px rgba(31, 35, 40, 0.35), 0 0 0 1px rgba(31, 35, 40, 0.08), inset 0 1px 0 #fff, 0 0 80px rgba(9, 105, 218, 0.12);--gradient-hero:linear-gradient(135deg, #FFFFFF, #DDF4FF);--gradient-fab:linear-gradient(135deg, #218BFF, #0969DA);--gradient-primary:linear-gradient(135deg, #218BFF, #0969DA);--gradient-bar:linear-gradient(90deg, #54AEFF, #0969DA);--gradient-card-back:linear-gradient(160deg, #0969DA 0%, #0550AE 46%, #0A3069 100%);--gradient-card-face:linear-gradient(172deg, #FFFFFF 55%, #F6F8FA 100%);--gradient-toolbar:linear-gradient(180deg, #FFFFFF, #F6F8FA);--gradient-sheet:linear-gradient(180deg, #FFFFFF, #F6F8FA);--gradient-overlay:radial-gradient(130% 95% at 50% 34%, rgba(36,41,47,0.6), rgba(13,17,23,0.86));--card-back-pattern:rgba(255, 255, 255, 0.3);--card-back-pattern-soft:rgba(221, 244, 255, 0.25);--card-back-emblem:#DDF4FF;--card-back-emblem-border:rgba(182, 227, 255, 0.65);--card-back-glow:rgba(84, 174, 255, 0.55);--card-back-arc:rgba(255, 255, 255, 0.35);--card-back-arc2:rgba(255, 255, 255, 0.18);--card-back-shadow:0 52rpx 128rpx rgba(1,4,9,0.5), inset 0 2rpx 0 rgba(255,255,255,0.28), inset 0 0 80rpx rgba(10,48,105,0.4);--card-back-inner:radial-gradient(circle at 34% 30%, rgba(255,255,255,0.3), rgba(255,255,255,0.08));--card-sheen-tint:rgba(84, 174, 255, 0.3);--card-face-fade:rgba(255, 255, 255, 0.94);--card-name-shadow:#fff;--glow-rgb:9, 105, 218;--flash-tint:rgba(221, 244, 255, 0.85);--flash-edge:rgba(9, 105, 218, 0.35);--mask-light:rgba(31, 35, 40, 0.5);--mask-heavy:rgba(31, 35, 40, 0.55);--mask-scan:rgba(13, 17, 23, 0.82);--tabbar-bg:#FFFFFF;--tabbar-border:#D1D9E0;--tabbar-text:#59636E;--tabbar-text-active:#0969DA;--tabbar-center-bg:#0969DA;--tabbar-center-border:#FFFFFF;--tabbar-center-shadow:rgba(9, 105, 218, 0.35);--nav-fallback:linear-gradient(180deg, #FFFFFF, #F6F8FA);--nav-veil:rgba(255, 255, 255, 0);--nav-fade:linear-gradient(180deg, rgba(246, 248, 250, 0), #F6F8FA);--navbar-fg:#1F2328;--navbar-shadow:none;--skeleton-base:#EAEFF2;--skeleton-shine:#F6F8FA;--grip-color:#D1D9E0;--btn-disabled-bg:#EAEFF2;--btn-disabled-text:#9198A1;--btn-reject-bg:rgba(255, 255, 255, 0.92);--btn-reject-text:#0550AE;--btn-reject-border:#FFFFFF;--divider-strong:#D1D9E0;--heat-1:#B6E3FF;--heat-2:#54AEFF;--heat-3:#0969DA;--bg-poster-full:#24292F;--poster-preview-fg:#F0F6FC;--poster-preview-border:rgba(255, 255, 255, 0.3);--poster-preview-btn-bg:rgba(255, 255, 255, 0.12);--gradient-poster-icon:linear-gradient(135deg, #218BFF, #0550AE);--badge-bg:rgba(9, 105, 218, 0.9);--border-dashed:#AFB8C1;--gradient-ai:linear-gradient(135deg, #7C5AE0 0%, #A78BFA 45%, #EC6FAE 100%);--gradient-ai-btn:linear-gradient(135deg, #A78BFA, #EC6FAE);--ai-color:#8250DF;--ai-color-deep:#6639BA;--ai-shadow:rgba(130, 80, 223, 0.35);--ai-bg-soft:#FBEFFF;--ai-border-dashed:#C4A6FF;--scan-line-glow:rgba(196, 166, 255, 0.5);--ai-guide-bg:linear-gradient(135deg, rgba(130, 80, 223, 0.08), rgba(191, 75, 138, 0.08));--ai-pulse-glow:rgba(130, 80, 223, 0.45);--color-primary:#0969DA;--color-primary-light:#DDF4FF;--color-primary-dark:#0550AE;--color-bg:#F6F8FA;--color-card:#FFFFFF;--color-text:#1F2328;--color-text-sub:#59636E;--color-text-hint:#818B98;--color-border:#D1D9E0"><div class="scr"><div class="nav" style="background:var(--nav-fallback);">
+      <div class="nav-illus" style="background:transparent;opacity:0">
+        
+      </div>
+      <div class="nav-fade" style="background:var(--nav-fade);"></div>
+      <div class="nav-title">Yuki Kitchen</div>
+      <div class="capsule"><span>•••</span><span>◎</span></div>
+    </div>
+      <div class="body">
+        <div class="hero">
+          <div class="hero-g">晚上好，今天吃点好的</div>
+          <div class="hero-s">纠结的话，交给运气吧 🎲</div>
+          <div class="hero-btn">🎲 帮我随机抽一道</div>
+        </div>
+        <div class="sec-title">今日推荐</div>
+        <div class="today">
+          <div class="today-img">🍝</div>
+          <div class="today-info">
+            <div class="today-name">番茄牛腩意面</div>
+            <div class="today-desc">番茄炒出沙，牛腩炖软烂，酸甜开胃</div>
+            <div class="today-meta"><span class="rating">★ 4.8</span><span class="chip-plain">面食</span><span class="chip">¥38</span></div>
+          </div>
+        </div>
+        <div class="row-between"><div class="sec-title">分类速览</div><div class="more">全部菜品 ›</div></div>
+        <div class="cat-grid"><div class="cat-cell">
+        <div class="cat-icon">🍜</div><div class="cat-name">面食</div></div><div class="cat-cell">
+        <div class="cat-icon">🍚</div><div class="cat-name">米饭</div></div><div class="cat-cell">
+        <div class="cat-icon">🥗</div><div class="cat-name">轻食</div></div><div class="cat-cell">
+        <div class="cat-icon">🍲</div><div class="cat-name">汤煲</div></div><div class="cat-cell">
+        <div class="cat-icon">🥟</div><div class="cat-name">点心</div></div><div class="cat-cell">
+        <div class="cat-icon">🍰</div><div class="cat-name">甜品</div></div></div>
+      </div><div class="tabbar"><div class="tab-item"><span class="tab-icon on">🏠</span><span class="tab-text on">首页</span></div><div class="tab-item"><span class="tab-icon">🍽</span><span class="tab-text">菜单</span></div><div class="tab-item center"><div class="center-btn">🎲</div><span class="center-text">抽一抽</span></div><div class="tab-item"><span class="tab-icon">👤</span><span class="tab-text">我的</span></div></div></div></div>
+        </div><div class="col">
+          <div class="col-head"><span class="dot" style="background:#4493F8"></span>GitHub Dark</div>
+          <div class="phone" style="--bg-page:#0D1117;--bg-card:#151B23;--bg-card-solid:#151B23;--bg-sunken:#010409;--bg-hover:#212830;--bg-active:#212830;--bg-placeholder:#1C2128;--bg-sheet:#151B23;--text-primary:#F0F6FC;--text-secondary:#9198A1;--text-hint:#6E7681;--text-faint:#545C66;--text-on-accent:#FFFFFF;--color-accent:#4493F8;--color-accent-strong:#388BFD;--color-accent-deep:#79C0FF;--color-accent-dark:#4493F8;--color-accent-soft:#121D2F;--color-accent-softer:#1C2128;--color-accent-border:#1F6FEB;--border-default:#3D444D;--border-soft:#2F353D;--border-strong:#4A5159;--card-border:rgba(240, 246, 252, 0.08);--card-face-border:#3D444D;--color-success:#3FB950;--color-success-bg:#12261E;--color-star:#D29922;--star-off:#3D444D;--shadow-card:0 1px 2px rgba(1, 4, 9, 0.4);--shadow-panel:0 8px 24px rgba(1, 4, 9, 0.6);--shadow-fab:0 4px 12px rgba(31, 111, 235, 0.4);--shadow-fab-drag:0 6px 16px rgba(31, 111, 235, 0.55);--shadow-accent:0 8px 24px rgba(31, 111, 235, 0.45);--shadow-card-heavy:0 24px 64px rgba(1, 4, 9, 0.8), 0 0 0 1px rgba(240, 246, 252, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 80px rgba(68, 147, 248, 0.15);--gradient-hero:linear-gradient(135deg, #151B23, #1C2128);--gradient-fab:linear-gradient(135deg, #388BFD, #1F6FEB);--gradient-primary:linear-gradient(135deg, #388BFD, #1F6FEB);--gradient-bar:linear-gradient(90deg, #1F6FEB, #4493F8);--gradient-card-back:linear-gradient(160deg, #1F6FEB 0%, #1158C7 46%, #0A3069 100%);--gradient-card-face:linear-gradient(172deg, #151B23 55%, #0D1117 100%);--gradient-toolbar:linear-gradient(180deg, #1C2128, #151B23);--gradient-sheet:linear-gradient(180deg, #1C2128, #151B23);--gradient-overlay:radial-gradient(130% 95% at 50% 34%, rgba(13,17,23,0.6), rgba(1,4,9,0.88));--card-back-pattern:rgba(121, 192, 255, 0.35);--card-back-pattern-soft:rgba(18, 29, 47, 0.5);--card-back-emblem:#79C0FF;--card-back-emblem-border:rgba(121, 192, 255, 0.6);--card-back-glow:rgba(68, 147, 248, 0.5);--card-back-arc:rgba(121, 192, 255, 0.4);--card-back-arc2:rgba(121, 192, 255, 0.16);--card-back-shadow:0 52rpx 128rpx rgba(1,4,9,0.7), inset 0 2rpx 0 rgba(255,255,255,0.16), inset 0 0 80rpx rgba(10,48,105,0.5);--card-back-inner:radial-gradient(circle at 34% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.05));--card-sheen-tint:rgba(56, 139, 253, 0.35);--card-face-fade:rgba(21, 27, 35, 0.94);--card-name-shadow:rgba(1, 4, 9, 0.6);--glow-rgb:68, 147, 248;--flash-tint:rgba(121, 192, 255, 0.8);--flash-edge:rgba(68, 147, 248, 0.35);--mask-light:rgba(1, 4, 9, 0.6);--mask-heavy:rgba(1, 4, 9, 0.7);--mask-scan:rgba(1, 4, 9, 0.85);--tabbar-bg:#151B23;--tabbar-border:#3D444D;--tabbar-text:#9198A1;--tabbar-text-active:#4493F8;--tabbar-center-bg:#1F6FEB;--tabbar-center-border:#0D1117;--tabbar-center-shadow:rgba(1, 4, 9, 0.5);--nav-fallback:linear-gradient(180deg, #151B23, #0D1117);--nav-veil:rgba(0, 0, 0, 0);--nav-fade:linear-gradient(180deg, rgba(13, 17, 23, 0), #0D1117);--navbar-fg:#F0F6FC;--navbar-shadow:none;--skeleton-base:#212830;--skeleton-shine:#262C36;--grip-color:#3D444D;--btn-disabled-bg:#262C36;--btn-disabled-text:#545C66;--btn-reject-bg:rgba(21, 27, 35, 0.92);--btn-reject-text:#79C0FF;--btn-reject-border:#3D444D;--divider-strong:#3D444D;--heat-1:#0C2D6B;--heat-2:#1F6FEB;--heat-3:#4493F8;--bg-poster-full:#010409;--poster-preview-fg:#F0F6FC;--poster-preview-border:rgba(240, 246, 252, 0.25);--poster-preview-btn-bg:rgba(240, 246, 252, 0.1);--gradient-poster-icon:linear-gradient(135deg, #388BFD, #1158C7);--badge-bg:rgba(31, 111, 235, 0.9);--border-dashed:#4A5159;--gradient-ai:linear-gradient(135deg, #6639BA 0%, #8957E5 45%, #BF4B8A 100%);--gradient-ai-btn:linear-gradient(135deg, #8957E5, #BF4B8A);--ai-color:#AB7DF8;--ai-color-deep:#AB7DF8;--ai-shadow:rgba(137, 87, 229, 0.4);--ai-bg-soft:#212830;--ai-border-dashed:#8957E5;--scan-line-glow:rgba(171, 125, 248, 0.5);--ai-guide-bg:linear-gradient(135deg, rgba(137, 87, 229, 0.15), rgba(191, 75, 138, 0.15));--ai-pulse-glow:rgba(137, 87, 229, 0.5);--color-primary:#4493F8;--color-primary-light:#121D2F;--color-primary-dark:#79C0FF;--color-bg:#0D1117;--color-card:#151B23;--color-text:#F0F6FC;--color-text-sub:#9198A1;--color-text-hint:#6E7681;--color-border:#3D444D"><div class="scr"><div class="nav" style="background:var(--nav-fallback);">
+      <div class="nav-illus" style="background:transparent;opacity:0">
+        
+      </div>
+      <div class="nav-fade" style="background:var(--nav-fade);"></div>
+      <div class="nav-title">Yuki Kitchen</div>
+      <div class="capsule"><span>•••</span><span>◎</span></div>
+    </div>
+      <div class="body">
+        <div class="hero">
+          <div class="hero-g">晚上好，今天吃点好的</div>
+          <div class="hero-s">纠结的话，交给运气吧 🎲</div>
+          <div class="hero-btn">🎲 帮我随机抽一道</div>
+        </div>
+        <div class="sec-title">今日推荐</div>
+        <div class="today">
+          <div class="today-img">🍝</div>
+          <div class="today-info">
+            <div class="today-name">番茄牛腩意面</div>
+            <div class="today-desc">番茄炒出沙，牛腩炖软烂，酸甜开胃</div>
+            <div class="today-meta"><span class="rating">★ 4.8</span><span class="chip-plain">面食</span><span class="chip">¥38</span></div>
+          </div>
+        </div>
+        <div class="row-between"><div class="sec-title">分类速览</div><div class="more">全部菜品 ›</div></div>
+        <div class="cat-grid"><div class="cat-cell">
+        <div class="cat-icon">🍜</div><div class="cat-name">面食</div></div><div class="cat-cell">
+        <div class="cat-icon">🍚</div><div class="cat-name">米饭</div></div><div class="cat-cell">
+        <div class="cat-icon">🥗</div><div class="cat-name">轻食</div></div><div class="cat-cell">
+        <div class="cat-icon">🍲</div><div class="cat-name">汤煲</div></div><div class="cat-cell">
+        <div class="cat-icon">🥟</div><div class="cat-name">点心</div></div><div class="cat-cell">
+        <div class="cat-icon">🍰</div><div class="cat-name">甜品</div></div></div>
+      </div><div class="tabbar"><div class="tab-item"><span class="tab-icon on">🏠</span><span class="tab-text on">首页</span></div><div class="tab-item"><span class="tab-icon">🍽</span><span class="tab-text">菜单</span></div><div class="tab-item center"><div class="center-btn">🎲</div><span class="center-text">抽一抽</span></div><div class="tab-item"><span class="tab-icon">👤</span><span class="tab-text">我的</span></div></div></div></div>
+        </div></div></section><section><h2>菜品库</h2><div class="row3"><div class="col">
+          <div class="col-head"><span class="dot" style="background:#FF8FB8"></span>Sakura Pink 樱花粉</div>
+          <div class="phone" style="--bg-page:#FFF7FA;--bg-card:rgba(255, 255, 255, 0.88);--bg-card-solid:#FFFFFF;--bg-sunken:#FDF5F9;--bg-hover:#F7EDF1;--bg-active:#FBEFF5;--bg-placeholder:#FFEAF2;--bg-sheet:#FFFFFF;--text-primary:#4A2C3A;--text-secondary:#9C7B8C;--text-hint:#C9A8B8;--text-faint:#D8BAC9;--text-on-accent:#FFFFFF;--color-accent:#FF8FB8;--color-accent-strong:#E85D91;--color-accent-deep:#D96C99;--color-accent-dark:#A73568;--color-accent-soft:#FFF0F6;--color-accent-softer:#FBEFF5;--color-accent-border:#FFD6E7;--border-default:#F8E3EC;--border-soft:#FCEFF5;--border-strong:#F0C0D4;--card-border:rgba(255, 143, 184, 0.16);--card-face-border:rgba(255, 222, 236, 0.95);--color-success:#639922;--color-success-bg:#EAF3DE;--color-star:#FF9500;--star-off:#F8E3EC;--shadow-card:0 6rpx 24rpx rgba(217, 108, 153, 0.08);--shadow-panel:0 12rpx 48rpx rgba(217, 108, 153, 0.25);--shadow-fab:0 8rpx 24rpx rgba(255, 143, 184, 0.4);--shadow-fab-drag:0 12rpx 32rpx rgba(255, 143, 184, 0.55);--shadow-accent:0 16rpx 48rpx rgba(240, 99, 156, 0.5);--shadow-card-heavy:0 60rpx 140rpx rgba(14, 2, 10, 0.62), 0 0 0 10rpx rgba(255, 255, 255, 0.06), inset 0 2rpx 0 #fff, 0 0 120rpx rgba(255, 143, 184, 0.22);--gradient-hero:linear-gradient(135deg, rgba(255,240,246,0.92), rgba(255,227,239,0.92));--gradient-fab:linear-gradient(135deg, #FFB3D1, #FF8FB8);--gradient-primary:linear-gradient(135deg, #FFB3D1, #FF8FB8);--gradient-bar:linear-gradient(90deg, #FFB3D1, #FF8FB8);--gradient-card-back:linear-gradient(160deg, #E85D91 0%, #C74B7C 46%, #8E2F58 100%);--gradient-card-face:linear-gradient(172deg, #fff 55%, #FFF5F9 100%);--gradient-toolbar:linear-gradient(180deg, #FFFFFF, #FFF7FA);--gradient-sheet:linear-gradient(180deg, #FFF9FB, #FFF2F7);--gradient-overlay:radial-gradient(130% 95% at 50% 34%, rgba(78,30,52,0.58), rgba(32,10,24,0.86));--card-back-pattern:rgba(255, 214, 231, 0.5);--card-back-pattern-soft:rgba(255, 240, 247, 0.35);--card-back-emblem:#FFEAF3;--card-back-emblem-border:rgba(255, 222, 236, 0.65);--card-back-glow:rgba(255, 143, 184, 0.5);--card-back-arc:rgba(255, 214, 231, 0.5);--card-back-arc2:rgba(255, 214, 231, 0.22);--card-back-shadow:0 52rpx 128rpx rgba(14,2,10,0.6), inset 0 2rpx 0 rgba(255,255,255,0.28), inset 0 0 80rpx rgba(80,10,40,0.4);--card-back-inner:radial-gradient(circle at 34% 30%, rgba(255,255,255,0.3), rgba(255,255,255,0.08));--card-sheen-tint:rgba(255, 214, 231, 0.35);--card-face-fade:rgba(255, 255, 255, 0.94);--card-name-shadow:#fff;--glow-rgb:255, 143, 184;--flash-tint:rgba(255, 226, 240, 0.85);--flash-edge:rgba(255, 143, 184, 0.35);--mask-light:rgba(74, 44, 58, 0.45);--mask-heavy:rgba(20, 6, 16, 0.55);--mask-scan:rgba(20, 8, 15, 0.82);--tabbar-bg:#F9D6E4;--tabbar-border:#F0C0D4;--tabbar-text:#6B5360;--tabbar-text-active:#A73568;--tabbar-center-bg:#E85D91;--tabbar-center-border:#FFFFFF;--tabbar-center-shadow:rgba(167, 53, 104, 0.3);--nav-fallback:linear-gradient(180deg, #FFEAF2, #FFF7FA);--nav-veil:rgba(255, 255, 255, 0.16);--nav-fade:linear-gradient(180deg, rgba(255, 247, 250, 0), #FFF7FA);--navbar-fg:#FFFFFF;--navbar-shadow:0 2rpx 8rpx rgba(0, 0, 0, 0.3);--skeleton-base:#FBEFF5;--skeleton-shine:#FDF7FA;--grip-color:#E8CBD8;--btn-disabled-bg:#F5C9DD;--btn-disabled-text:#FFF0F6;--btn-reject-bg:rgba(255, 255, 255, 0.92);--btn-reject-text:#B25478;--btn-reject-border:#FFFFFF;--divider-strong:#F5C9DD;--heat-1:#F8C8DC;--heat-2:#FFB0CE;--heat-3:#FF8FB8;--bg-poster-full:#1c0c14;--poster-preview-fg:#FFEAF3;--poster-preview-border:rgba(255, 222, 236, 0.45);--poster-preview-btn-bg:rgba(255, 255, 255, 0.1);--gradient-poster-icon:linear-gradient(135deg, #FF8FB8, #E85D91);--badge-bg:rgba(255, 143, 184, 0.9);--border-dashed:#F0C9DD;--gradient-ai:linear-gradient(135deg, #7C5AE0 0%, #A78BFA 45%, #EC6FAE 100%);--gradient-ai-btn:linear-gradient(135deg, #A78BFA, #EC6FAE);--ai-color:#A78BFA;--ai-color-deep:#6D4FB8;--ai-shadow:rgba(167, 110, 220, 0.35);--ai-bg-soft:#FBEFF5;--ai-border-dashed:#C4A6FF;--scan-line-glow:rgba(196, 166, 255, 0.5);--ai-guide-bg:linear-gradient(135deg, rgba(167, 139, 250, 0.12), rgba(236, 111, 174, 0.12));--ai-pulse-glow:rgba(167, 139, 250, 0.5);--color-primary:#FF8FB8;--color-primary-light:#FFF0F6;--color-primary-dark:#D96C99;--color-bg:#FFF7FA;--color-card:#FFFFFF;--color-text:#4A2C3A;--color-text-sub:#9C7B8C;--color-text-hint:#C9A8B8;--color-border:#F8E3EC"><div class="scr"><div class="nav" style="background:var(--nav-fallback);">
+      <div class="nav-illus" style="background:linear-gradient(135deg,#FFD1E3,#FFEAF2);">
+        🍳🥘
+      </div>
+      <div class="nav-fade" style="background:var(--nav-fade);"></div>
+      <div class="nav-title">Yuki小厨房</div>
+      <div class="capsule"><span>•••</span><span>◎</span></div>
+    </div>
+      <div class="body dbody">
+        <div class="search">🔍 <span class="ph">搜索菜品、标签、介绍…</span></div>
+        <div class="status-row"><span class="schip on">想吃</span><span class="schip">常吃</span><span class="schip">不想再吃</span></div>
+        <div class="content"><div class="side"><div class="side-item on">全部</div><div class="side-item">🍜 面食</div><div class="side-item">🍚 米饭</div><div class="side-item">🥗 轻食</div><div class="side-item">🍲 汤煲</div><div class="side-item">🥟 点心</div></div><div class="list"><div class="dish-card"><div class="dish-img">🍜</div>
+      <div class="dish-info"><div class="dish-name">红烧牛肉面</div><div class="dish-sub">★4.9 · 面食 · ¥32</div>
+      <div class="dish-tags"><span class="chip">想吃</span><span class="chip-plain">快手</span></div></div></div><div class="dish-card"><div class="dish-img">🥘</div>
+      <div class="dish-info"><div class="dish-name">黄焖鸡米饭</div><div class="dish-sub">★4.5 · 米饭 · ¥26</div>
+      <div class="dish-tags"><span class="chip">常吃</span><span class="chip-plain">快手</span></div></div></div><div class="dish-card"><div class="dish-img">🥗</div>
+      <div class="dish-info"><div class="dish-name">鸡胸沙拉</div><div class="dish-sub">★4.2 · 轻食 · ¥28</div>
+      <div class="dish-tags"><span class="chip">想吃</span><span class="chip-plain">快手</span></div></div></div><div class="dish-card"><div class="dish-img">🍲</div>
+      <div class="dish-info"><div class="dish-name">番茄蛋汤</div><div class="dish-sub">★4.7 · 汤煲</div>
+      <div class="dish-tags"><span class="chip">常吃</span><span class="chip-plain">快手</span></div></div></div></div></div>
+      </div>
+      <div class="fab">＋</div><div class="tabbar"><div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-text">首页</span></div><div class="tab-item"><span class="tab-icon on">🍽</span><span class="tab-text on">菜单</span></div><div class="tab-item center"><div class="center-btn">🎲</div><span class="center-text">抽一抽</span></div><div class="tab-item"><span class="tab-icon">👤</span><span class="tab-text">我的</span></div></div></div></div>
+        </div><div class="col">
+          <div class="col-head"><span class="dot" style="background:#0969DA"></span>GitHub Light</div>
+          <div class="phone" style="--bg-page:#F6F8FA;--bg-card:#FFFFFF;--bg-card-solid:#FFFFFF;--bg-sunken:#F6F8FA;--bg-hover:#EAEFF2;--bg-active:#EAEFF2;--bg-placeholder:#EAEFF2;--bg-sheet:#FFFFFF;--text-primary:#1F2328;--text-secondary:#59636E;--text-hint:#818B98;--text-faint:#A5ADB8;--text-on-accent:#FFFFFF;--color-accent:#0969DA;--color-accent-strong:#0550AE;--color-accent-deep:#0550AE;--color-accent-dark:#0969DA;--color-accent-soft:#DDF4FF;--color-accent-softer:#EAEFF2;--color-accent-border:#B6E3FF;--border-default:#D1D9E0;--border-soft:#D8DEE4;--border-strong:#AFB8C1;--card-border:rgba(31, 35, 40, 0.1);--card-face-border:#D1D9E0;--color-success:#1A7F37;--color-success-bg:#DAFBE1;--color-star:#BF8700;--star-off:#D1D9E0;--shadow-card:0 1px 2px rgba(31, 35, 40, 0.08);--shadow-panel:0 8px 24px rgba(31, 35, 40, 0.16);--shadow-fab:0 4px 12px rgba(9, 105, 218, 0.3);--shadow-fab-drag:0 6px 16px rgba(9, 105, 218, 0.45);--shadow-accent:0 8px 24px rgba(9, 105, 218, 0.35);--shadow-card-heavy:0 24px 64px rgba(31, 35, 40, 0.35), 0 0 0 1px rgba(31, 35, 40, 0.08), inset 0 1px 0 #fff, 0 0 80px rgba(9, 105, 218, 0.12);--gradient-hero:linear-gradient(135deg, #FFFFFF, #DDF4FF);--gradient-fab:linear-gradient(135deg, #218BFF, #0969DA);--gradient-primary:linear-gradient(135deg, #218BFF, #0969DA);--gradient-bar:linear-gradient(90deg, #54AEFF, #0969DA);--gradient-card-back:linear-gradient(160deg, #0969DA 0%, #0550AE 46%, #0A3069 100%);--gradient-card-face:linear-gradient(172deg, #FFFFFF 55%, #F6F8FA 100%);--gradient-toolbar:linear-gradient(180deg, #FFFFFF, #F6F8FA);--gradient-sheet:linear-gradient(180deg, #FFFFFF, #F6F8FA);--gradient-overlay:radial-gradient(130% 95% at 50% 34%, rgba(36,41,47,0.6), rgba(13,17,23,0.86));--card-back-pattern:rgba(255, 255, 255, 0.3);--card-back-pattern-soft:rgba(221, 244, 255, 0.25);--card-back-emblem:#DDF4FF;--card-back-emblem-border:rgba(182, 227, 255, 0.65);--card-back-glow:rgba(84, 174, 255, 0.55);--card-back-arc:rgba(255, 255, 255, 0.35);--card-back-arc2:rgba(255, 255, 255, 0.18);--card-back-shadow:0 52rpx 128rpx rgba(1,4,9,0.5), inset 0 2rpx 0 rgba(255,255,255,0.28), inset 0 0 80rpx rgba(10,48,105,0.4);--card-back-inner:radial-gradient(circle at 34% 30%, rgba(255,255,255,0.3), rgba(255,255,255,0.08));--card-sheen-tint:rgba(84, 174, 255, 0.3);--card-face-fade:rgba(255, 255, 255, 0.94);--card-name-shadow:#fff;--glow-rgb:9, 105, 218;--flash-tint:rgba(221, 244, 255, 0.85);--flash-edge:rgba(9, 105, 218, 0.35);--mask-light:rgba(31, 35, 40, 0.5);--mask-heavy:rgba(31, 35, 40, 0.55);--mask-scan:rgba(13, 17, 23, 0.82);--tabbar-bg:#FFFFFF;--tabbar-border:#D1D9E0;--tabbar-text:#59636E;--tabbar-text-active:#0969DA;--tabbar-center-bg:#0969DA;--tabbar-center-border:#FFFFFF;--tabbar-center-shadow:rgba(9, 105, 218, 0.35);--nav-fallback:linear-gradient(180deg, #FFFFFF, #F6F8FA);--nav-veil:rgba(255, 255, 255, 0);--nav-fade:linear-gradient(180deg, rgba(246, 248, 250, 0), #F6F8FA);--navbar-fg:#1F2328;--navbar-shadow:none;--skeleton-base:#EAEFF2;--skeleton-shine:#F6F8FA;--grip-color:#D1D9E0;--btn-disabled-bg:#EAEFF2;--btn-disabled-text:#9198A1;--btn-reject-bg:rgba(255, 255, 255, 0.92);--btn-reject-text:#0550AE;--btn-reject-border:#FFFFFF;--divider-strong:#D1D9E0;--heat-1:#B6E3FF;--heat-2:#54AEFF;--heat-3:#0969DA;--bg-poster-full:#24292F;--poster-preview-fg:#F0F6FC;--poster-preview-border:rgba(255, 255, 255, 0.3);--poster-preview-btn-bg:rgba(255, 255, 255, 0.12);--gradient-poster-icon:linear-gradient(135deg, #218BFF, #0550AE);--badge-bg:rgba(9, 105, 218, 0.9);--border-dashed:#AFB8C1;--gradient-ai:linear-gradient(135deg, #7C5AE0 0%, #A78BFA 45%, #EC6FAE 100%);--gradient-ai-btn:linear-gradient(135deg, #A78BFA, #EC6FAE);--ai-color:#8250DF;--ai-color-deep:#6639BA;--ai-shadow:rgba(130, 80, 223, 0.35);--ai-bg-soft:#FBEFFF;--ai-border-dashed:#C4A6FF;--scan-line-glow:rgba(196, 166, 255, 0.5);--ai-guide-bg:linear-gradient(135deg, rgba(130, 80, 223, 0.08), rgba(191, 75, 138, 0.08));--ai-pulse-glow:rgba(130, 80, 223, 0.45);--color-primary:#0969DA;--color-primary-light:#DDF4FF;--color-primary-dark:#0550AE;--color-bg:#F6F8FA;--color-card:#FFFFFF;--color-text:#1F2328;--color-text-sub:#59636E;--color-text-hint:#818B98;--color-border:#D1D9E0"><div class="scr"><div class="nav" style="background:var(--nav-fallback);">
+      <div class="nav-illus" style="background:transparent;opacity:0">
+        
+      </div>
+      <div class="nav-fade" style="background:var(--nav-fade);"></div>
+      <div class="nav-title">Yuki Kitchen</div>
+      <div class="capsule"><span>•••</span><span>◎</span></div>
+    </div>
+      <div class="body dbody">
+        <div class="search">🔍 <span class="ph">搜索菜品、标签、介绍…</span></div>
+        <div class="status-row"><span class="schip on">想吃</span><span class="schip">常吃</span><span class="schip">不想再吃</span></div>
+        <div class="content"><div class="side"><div class="side-item on">全部</div><div class="side-item">🍜 面食</div><div class="side-item">🍚 米饭</div><div class="side-item">🥗 轻食</div><div class="side-item">🍲 汤煲</div><div class="side-item">🥟 点心</div></div><div class="list"><div class="dish-card"><div class="dish-img">🍜</div>
+      <div class="dish-info"><div class="dish-name">红烧牛肉面</div><div class="dish-sub">★4.9 · 面食 · ¥32</div>
+      <div class="dish-tags"><span class="chip">想吃</span><span class="chip-plain">快手</span></div></div></div><div class="dish-card"><div class="dish-img">🥘</div>
+      <div class="dish-info"><div class="dish-name">黄焖鸡米饭</div><div class="dish-sub">★4.5 · 米饭 · ¥26</div>
+      <div class="dish-tags"><span class="chip">常吃</span><span class="chip-plain">快手</span></div></div></div><div class="dish-card"><div class="dish-img">🥗</div>
+      <div class="dish-info"><div class="dish-name">鸡胸沙拉</div><div class="dish-sub">★4.2 · 轻食 · ¥28</div>
+      <div class="dish-tags"><span class="chip">想吃</span><span class="chip-plain">快手</span></div></div></div><div class="dish-card"><div class="dish-img">🍲</div>
+      <div class="dish-info"><div class="dish-name">番茄蛋汤</div><div class="dish-sub">★4.7 · 汤煲</div>
+      <div class="dish-tags"><span class="chip">常吃</span><span class="chip-plain">快手</span></div></div></div></div></div>
+      </div>
+      <div class="fab">＋</div><div class="tabbar"><div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-text">首页</span></div><div class="tab-item"><span class="tab-icon on">🍽</span><span class="tab-text on">菜单</span></div><div class="tab-item center"><div class="center-btn">🎲</div><span class="center-text">抽一抽</span></div><div class="tab-item"><span class="tab-icon">👤</span><span class="tab-text">我的</span></div></div></div></div>
+        </div><div class="col">
+          <div class="col-head"><span class="dot" style="background:#4493F8"></span>GitHub Dark</div>
+          <div class="phone" style="--bg-page:#0D1117;--bg-card:#151B23;--bg-card-solid:#151B23;--bg-sunken:#010409;--bg-hover:#212830;--bg-active:#212830;--bg-placeholder:#1C2128;--bg-sheet:#151B23;--text-primary:#F0F6FC;--text-secondary:#9198A1;--text-hint:#6E7681;--text-faint:#545C66;--text-on-accent:#FFFFFF;--color-accent:#4493F8;--color-accent-strong:#388BFD;--color-accent-deep:#79C0FF;--color-accent-dark:#4493F8;--color-accent-soft:#121D2F;--color-accent-softer:#1C2128;--color-accent-border:#1F6FEB;--border-default:#3D444D;--border-soft:#2F353D;--border-strong:#4A5159;--card-border:rgba(240, 246, 252, 0.08);--card-face-border:#3D444D;--color-success:#3FB950;--color-success-bg:#12261E;--color-star:#D29922;--star-off:#3D444D;--shadow-card:0 1px 2px rgba(1, 4, 9, 0.4);--shadow-panel:0 8px 24px rgba(1, 4, 9, 0.6);--shadow-fab:0 4px 12px rgba(31, 111, 235, 0.4);--shadow-fab-drag:0 6px 16px rgba(31, 111, 235, 0.55);--shadow-accent:0 8px 24px rgba(31, 111, 235, 0.45);--shadow-card-heavy:0 24px 64px rgba(1, 4, 9, 0.8), 0 0 0 1px rgba(240, 246, 252, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 80px rgba(68, 147, 248, 0.15);--gradient-hero:linear-gradient(135deg, #151B23, #1C2128);--gradient-fab:linear-gradient(135deg, #388BFD, #1F6FEB);--gradient-primary:linear-gradient(135deg, #388BFD, #1F6FEB);--gradient-bar:linear-gradient(90deg, #1F6FEB, #4493F8);--gradient-card-back:linear-gradient(160deg, #1F6FEB 0%, #1158C7 46%, #0A3069 100%);--gradient-card-face:linear-gradient(172deg, #151B23 55%, #0D1117 100%);--gradient-toolbar:linear-gradient(180deg, #1C2128, #151B23);--gradient-sheet:linear-gradient(180deg, #1C2128, #151B23);--gradient-overlay:radial-gradient(130% 95% at 50% 34%, rgba(13,17,23,0.6), rgba(1,4,9,0.88));--card-back-pattern:rgba(121, 192, 255, 0.35);--card-back-pattern-soft:rgba(18, 29, 47, 0.5);--card-back-emblem:#79C0FF;--card-back-emblem-border:rgba(121, 192, 255, 0.6);--card-back-glow:rgba(68, 147, 248, 0.5);--card-back-arc:rgba(121, 192, 255, 0.4);--card-back-arc2:rgba(121, 192, 255, 0.16);--card-back-shadow:0 52rpx 128rpx rgba(1,4,9,0.7), inset 0 2rpx 0 rgba(255,255,255,0.16), inset 0 0 80rpx rgba(10,48,105,0.5);--card-back-inner:radial-gradient(circle at 34% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.05));--card-sheen-tint:rgba(56, 139, 253, 0.35);--card-face-fade:rgba(21, 27, 35, 0.94);--card-name-shadow:rgba(1, 4, 9, 0.6);--glow-rgb:68, 147, 248;--flash-tint:rgba(121, 192, 255, 0.8);--flash-edge:rgba(68, 147, 248, 0.35);--mask-light:rgba(1, 4, 9, 0.6);--mask-heavy:rgba(1, 4, 9, 0.7);--mask-scan:rgba(1, 4, 9, 0.85);--tabbar-bg:#151B23;--tabbar-border:#3D444D;--tabbar-text:#9198A1;--tabbar-text-active:#4493F8;--tabbar-center-bg:#1F6FEB;--tabbar-center-border:#0D1117;--tabbar-center-shadow:rgba(1, 4, 9, 0.5);--nav-fallback:linear-gradient(180deg, #151B23, #0D1117);--nav-veil:rgba(0, 0, 0, 0);--nav-fade:linear-gradient(180deg, rgba(13, 17, 23, 0), #0D1117);--navbar-fg:#F0F6FC;--navbar-shadow:none;--skeleton-base:#212830;--skeleton-shine:#262C36;--grip-color:#3D444D;--btn-disabled-bg:#262C36;--btn-disabled-text:#545C66;--btn-reject-bg:rgba(21, 27, 35, 0.92);--btn-reject-text:#79C0FF;--btn-reject-border:#3D444D;--divider-strong:#3D444D;--heat-1:#0C2D6B;--heat-2:#1F6FEB;--heat-3:#4493F8;--bg-poster-full:#010409;--poster-preview-fg:#F0F6FC;--poster-preview-border:rgba(240, 246, 252, 0.25);--poster-preview-btn-bg:rgba(240, 246, 252, 0.1);--gradient-poster-icon:linear-gradient(135deg, #388BFD, #1158C7);--badge-bg:rgba(31, 111, 235, 0.9);--border-dashed:#4A5159;--gradient-ai:linear-gradient(135deg, #6639BA 0%, #8957E5 45%, #BF4B8A 100%);--gradient-ai-btn:linear-gradient(135deg, #8957E5, #BF4B8A);--ai-color:#AB7DF8;--ai-color-deep:#AB7DF8;--ai-shadow:rgba(137, 87, 229, 0.4);--ai-bg-soft:#212830;--ai-border-dashed:#8957E5;--scan-line-glow:rgba(171, 125, 248, 0.5);--ai-guide-bg:linear-gradient(135deg, rgba(137, 87, 229, 0.15), rgba(191, 75, 138, 0.15));--ai-pulse-glow:rgba(137, 87, 229, 0.5);--color-primary:#4493F8;--color-primary-light:#121D2F;--color-primary-dark:#79C0FF;--color-bg:#0D1117;--color-card:#151B23;--color-text:#F0F6FC;--color-text-sub:#9198A1;--color-text-hint:#6E7681;--color-border:#3D444D"><div class="scr"><div class="nav" style="background:var(--nav-fallback);">
+      <div class="nav-illus" style="background:transparent;opacity:0">
+        
+      </div>
+      <div class="nav-fade" style="background:var(--nav-fade);"></div>
+      <div class="nav-title">Yuki Kitchen</div>
+      <div class="capsule"><span>•••</span><span>◎</span></div>
+    </div>
+      <div class="body dbody">
+        <div class="search">🔍 <span class="ph">搜索菜品、标签、介绍…</span></div>
+        <div class="status-row"><span class="schip on">想吃</span><span class="schip">常吃</span><span class="schip">不想再吃</span></div>
+        <div class="content"><div class="side"><div class="side-item on">全部</div><div class="side-item">🍜 面食</div><div class="side-item">🍚 米饭</div><div class="side-item">🥗 轻食</div><div class="side-item">🍲 汤煲</div><div class="side-item">🥟 点心</div></div><div class="list"><div class="dish-card"><div class="dish-img">🍜</div>
+      <div class="dish-info"><div class="dish-name">红烧牛肉面</div><div class="dish-sub">★4.9 · 面食 · ¥32</div>
+      <div class="dish-tags"><span class="chip">想吃</span><span class="chip-plain">快手</span></div></div></div><div class="dish-card"><div class="dish-img">🥘</div>
+      <div class="dish-info"><div class="dish-name">黄焖鸡米饭</div><div class="dish-sub">★4.5 · 米饭 · ¥26</div>
+      <div class="dish-tags"><span class="chip">常吃</span><span class="chip-plain">快手</span></div></div></div><div class="dish-card"><div class="dish-img">🥗</div>
+      <div class="dish-info"><div class="dish-name">鸡胸沙拉</div><div class="dish-sub">★4.2 · 轻食 · ¥28</div>
+      <div class="dish-tags"><span class="chip">想吃</span><span class="chip-plain">快手</span></div></div></div><div class="dish-card"><div class="dish-img">🍲</div>
+      <div class="dish-info"><div class="dish-name">番茄蛋汤</div><div class="dish-sub">★4.7 · 汤煲</div>
+      <div class="dish-tags"><span class="chip">常吃</span><span class="chip-plain">快手</span></div></div></div></div></div>
+      </div>
+      <div class="fab">＋</div><div class="tabbar"><div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-text">首页</span></div><div class="tab-item"><span class="tab-icon on">🍽</span><span class="tab-text on">菜单</span></div><div class="tab-item center"><div class="center-btn">🎲</div><span class="center-text">抽一抽</span></div><div class="tab-item"><span class="tab-icon">👤</span><span class="tab-text">我的</span></div></div></div></div>
+        </div></div></section><section><h2>抽一抽</h2><div class="row3"><div class="col">
+          <div class="col-head"><span class="dot" style="background:#FF8FB8"></span>Sakura Pink 樱花粉</div>
+          <div class="phone" style="--bg-page:#FFF7FA;--bg-card:rgba(255, 255, 255, 0.88);--bg-card-solid:#FFFFFF;--bg-sunken:#FDF5F9;--bg-hover:#F7EDF1;--bg-active:#FBEFF5;--bg-placeholder:#FFEAF2;--bg-sheet:#FFFFFF;--text-primary:#4A2C3A;--text-secondary:#9C7B8C;--text-hint:#C9A8B8;--text-faint:#D8BAC9;--text-on-accent:#FFFFFF;--color-accent:#FF8FB8;--color-accent-strong:#E85D91;--color-accent-deep:#D96C99;--color-accent-dark:#A73568;--color-accent-soft:#FFF0F6;--color-accent-softer:#FBEFF5;--color-accent-border:#FFD6E7;--border-default:#F8E3EC;--border-soft:#FCEFF5;--border-strong:#F0C0D4;--card-border:rgba(255, 143, 184, 0.16);--card-face-border:rgba(255, 222, 236, 0.95);--color-success:#639922;--color-success-bg:#EAF3DE;--color-star:#FF9500;--star-off:#F8E3EC;--shadow-card:0 6rpx 24rpx rgba(217, 108, 153, 0.08);--shadow-panel:0 12rpx 48rpx rgba(217, 108, 153, 0.25);--shadow-fab:0 8rpx 24rpx rgba(255, 143, 184, 0.4);--shadow-fab-drag:0 12rpx 32rpx rgba(255, 143, 184, 0.55);--shadow-accent:0 16rpx 48rpx rgba(240, 99, 156, 0.5);--shadow-card-heavy:0 60rpx 140rpx rgba(14, 2, 10, 0.62), 0 0 0 10rpx rgba(255, 255, 255, 0.06), inset 0 2rpx 0 #fff, 0 0 120rpx rgba(255, 143, 184, 0.22);--gradient-hero:linear-gradient(135deg, rgba(255,240,246,0.92), rgba(255,227,239,0.92));--gradient-fab:linear-gradient(135deg, #FFB3D1, #FF8FB8);--gradient-primary:linear-gradient(135deg, #FFB3D1, #FF8FB8);--gradient-bar:linear-gradient(90deg, #FFB3D1, #FF8FB8);--gradient-card-back:linear-gradient(160deg, #E85D91 0%, #C74B7C 46%, #8E2F58 100%);--gradient-card-face:linear-gradient(172deg, #fff 55%, #FFF5F9 100%);--gradient-toolbar:linear-gradient(180deg, #FFFFFF, #FFF7FA);--gradient-sheet:linear-gradient(180deg, #FFF9FB, #FFF2F7);--gradient-overlay:radial-gradient(130% 95% at 50% 34%, rgba(78,30,52,0.58), rgba(32,10,24,0.86));--card-back-pattern:rgba(255, 214, 231, 0.5);--card-back-pattern-soft:rgba(255, 240, 247, 0.35);--card-back-emblem:#FFEAF3;--card-back-emblem-border:rgba(255, 222, 236, 0.65);--card-back-glow:rgba(255, 143, 184, 0.5);--card-back-arc:rgba(255, 214, 231, 0.5);--card-back-arc2:rgba(255, 214, 231, 0.22);--card-back-shadow:0 52rpx 128rpx rgba(14,2,10,0.6), inset 0 2rpx 0 rgba(255,255,255,0.28), inset 0 0 80rpx rgba(80,10,40,0.4);--card-back-inner:radial-gradient(circle at 34% 30%, rgba(255,255,255,0.3), rgba(255,255,255,0.08));--card-sheen-tint:rgba(255, 214, 231, 0.35);--card-face-fade:rgba(255, 255, 255, 0.94);--card-name-shadow:#fff;--glow-rgb:255, 143, 184;--flash-tint:rgba(255, 226, 240, 0.85);--flash-edge:rgba(255, 143, 184, 0.35);--mask-light:rgba(74, 44, 58, 0.45);--mask-heavy:rgba(20, 6, 16, 0.55);--mask-scan:rgba(20, 8, 15, 0.82);--tabbar-bg:#F9D6E4;--tabbar-border:#F0C0D4;--tabbar-text:#6B5360;--tabbar-text-active:#A73568;--tabbar-center-bg:#E85D91;--tabbar-center-border:#FFFFFF;--tabbar-center-shadow:rgba(167, 53, 104, 0.3);--nav-fallback:linear-gradient(180deg, #FFEAF2, #FFF7FA);--nav-veil:rgba(255, 255, 255, 0.16);--nav-fade:linear-gradient(180deg, rgba(255, 247, 250, 0), #FFF7FA);--navbar-fg:#FFFFFF;--navbar-shadow:0 2rpx 8rpx rgba(0, 0, 0, 0.3);--skeleton-base:#FBEFF5;--skeleton-shine:#FDF7FA;--grip-color:#E8CBD8;--btn-disabled-bg:#F5C9DD;--btn-disabled-text:#FFF0F6;--btn-reject-bg:rgba(255, 255, 255, 0.92);--btn-reject-text:#B25478;--btn-reject-border:#FFFFFF;--divider-strong:#F5C9DD;--heat-1:#F8C8DC;--heat-2:#FFB0CE;--heat-3:#FF8FB8;--bg-poster-full:#1c0c14;--poster-preview-fg:#FFEAF3;--poster-preview-border:rgba(255, 222, 236, 0.45);--poster-preview-btn-bg:rgba(255, 255, 255, 0.1);--gradient-poster-icon:linear-gradient(135deg, #FF8FB8, #E85D91);--badge-bg:rgba(255, 143, 184, 0.9);--border-dashed:#F0C9DD;--gradient-ai:linear-gradient(135deg, #7C5AE0 0%, #A78BFA 45%, #EC6FAE 100%);--gradient-ai-btn:linear-gradient(135deg, #A78BFA, #EC6FAE);--ai-color:#A78BFA;--ai-color-deep:#6D4FB8;--ai-shadow:rgba(167, 110, 220, 0.35);--ai-bg-soft:#FBEFF5;--ai-border-dashed:#C4A6FF;--scan-line-glow:rgba(196, 166, 255, 0.5);--ai-guide-bg:linear-gradient(135deg, rgba(167, 139, 250, 0.12), rgba(236, 111, 174, 0.12));--ai-pulse-glow:rgba(167, 139, 250, 0.5);--color-primary:#FF8FB8;--color-primary-light:#FFF0F6;--color-primary-dark:#D96C99;--color-bg:#FFF7FA;--color-card:#FFFFFF;--color-text:#4A2C3A;--color-text-sub:#9C7B8C;--color-text-hint:#C9A8B8;--color-border:#F8E3EC"><div class="scr"><div class="nav" style="background:var(--nav-fallback);">
+      <div class="nav-illus" style="background:linear-gradient(135deg,#FFD1E3,#FFEAF2);">
+        🍳🥘
+      </div>
+      <div class="nav-fade" style="background:var(--nav-fade);"></div>
+      <div class="nav-title">Yuki小厨房</div>
+      <div class="capsule"><span>•••</span><span>◎</span></div>
+    </div>
+      <div class="body rbody">
+        <div class="filters">
+          <div class="frow"><span class="flabel">排除最近吃过的</span><span class="ftrack"><span class="ffill"></span><span class="fknob"></span></span><span class="fval">3天</span></div>
+          <div class="frow"><span class="flabel">只从「想吃」里抽</span><span class="switch on"></span></div>
+          <div class="frow"><span class="flabel">高分优先</span><span class="switch on"></span></div>
+          <div class="frow"><span class="flabel">限定分类</span><span class="fpicker">不限 ▾</span></div>
+        </div>
+      </div>
+      <div class="ov"><div class="ov-bg"></div>
+        <div class="rv-card">
+          <div class="rv-toolbar"><span class="tb-count">从 24 道里抽中</span><span class="tb-btns">↗ ✕</span></div>
+          <div class="rv-hero">🍝</div>
+          <div class="rv-body"><div class="rv-name">番茄牛腩意面</div>
+            <div class="rv-chips"><span class="chip-plain">面食</span><span class="chip">¥38</span><span class="chip-plain">★4.8</span></div>
+            <div class="rv-desc">番茄炒出沙，牛腩炖软烂，酸甜开胃的家常意面</div>
+            <div class="rv-link">查看详情 ›</div></div>
+        </div>
+        <div class="rv-actions"><span class="act-reject">↺ 不想吃，换一个</span><span class="act-accept">✓ 就它了，记一笔</span></div>
+      </div><div class="tabbar"><div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-text">首页</span></div><div class="tab-item"><span class="tab-icon">🍽</span><span class="tab-text">菜单</span></div><div class="tab-item center"><div class="center-btn">🎲</div><span class="center-text on">抽一抽</span></div><div class="tab-item"><span class="tab-icon">👤</span><span class="tab-text">我的</span></div></div></div></div>
+        </div><div class="col">
+          <div class="col-head"><span class="dot" style="background:#0969DA"></span>GitHub Light</div>
+          <div class="phone" style="--bg-page:#F6F8FA;--bg-card:#FFFFFF;--bg-card-solid:#FFFFFF;--bg-sunken:#F6F8FA;--bg-hover:#EAEFF2;--bg-active:#EAEFF2;--bg-placeholder:#EAEFF2;--bg-sheet:#FFFFFF;--text-primary:#1F2328;--text-secondary:#59636E;--text-hint:#818B98;--text-faint:#A5ADB8;--text-on-accent:#FFFFFF;--color-accent:#0969DA;--color-accent-strong:#0550AE;--color-accent-deep:#0550AE;--color-accent-dark:#0969DA;--color-accent-soft:#DDF4FF;--color-accent-softer:#EAEFF2;--color-accent-border:#B6E3FF;--border-default:#D1D9E0;--border-soft:#D8DEE4;--border-strong:#AFB8C1;--card-border:rgba(31, 35, 40, 0.1);--card-face-border:#D1D9E0;--color-success:#1A7F37;--color-success-bg:#DAFBE1;--color-star:#BF8700;--star-off:#D1D9E0;--shadow-card:0 1px 2px rgba(31, 35, 40, 0.08);--shadow-panel:0 8px 24px rgba(31, 35, 40, 0.16);--shadow-fab:0 4px 12px rgba(9, 105, 218, 0.3);--shadow-fab-drag:0 6px 16px rgba(9, 105, 218, 0.45);--shadow-accent:0 8px 24px rgba(9, 105, 218, 0.35);--shadow-card-heavy:0 24px 64px rgba(31, 35, 40, 0.35), 0 0 0 1px rgba(31, 35, 40, 0.08), inset 0 1px 0 #fff, 0 0 80px rgba(9, 105, 218, 0.12);--gradient-hero:linear-gradient(135deg, #FFFFFF, #DDF4FF);--gradient-fab:linear-gradient(135deg, #218BFF, #0969DA);--gradient-primary:linear-gradient(135deg, #218BFF, #0969DA);--gradient-bar:linear-gradient(90deg, #54AEFF, #0969DA);--gradient-card-back:linear-gradient(160deg, #0969DA 0%, #0550AE 46%, #0A3069 100%);--gradient-card-face:linear-gradient(172deg, #FFFFFF 55%, #F6F8FA 100%);--gradient-toolbar:linear-gradient(180deg, #FFFFFF, #F6F8FA);--gradient-sheet:linear-gradient(180deg, #FFFFFF, #F6F8FA);--gradient-overlay:radial-gradient(130% 95% at 50% 34%, rgba(36,41,47,0.6), rgba(13,17,23,0.86));--card-back-pattern:rgba(255, 255, 255, 0.3);--card-back-pattern-soft:rgba(221, 244, 255, 0.25);--card-back-emblem:#DDF4FF;--card-back-emblem-border:rgba(182, 227, 255, 0.65);--card-back-glow:rgba(84, 174, 255, 0.55);--card-back-arc:rgba(255, 255, 255, 0.35);--card-back-arc2:rgba(255, 255, 255, 0.18);--card-back-shadow:0 52rpx 128rpx rgba(1,4,9,0.5), inset 0 2rpx 0 rgba(255,255,255,0.28), inset 0 0 80rpx rgba(10,48,105,0.4);--card-back-inner:radial-gradient(circle at 34% 30%, rgba(255,255,255,0.3), rgba(255,255,255,0.08));--card-sheen-tint:rgba(84, 174, 255, 0.3);--card-face-fade:rgba(255, 255, 255, 0.94);--card-name-shadow:#fff;--glow-rgb:9, 105, 218;--flash-tint:rgba(221, 244, 255, 0.85);--flash-edge:rgba(9, 105, 218, 0.35);--mask-light:rgba(31, 35, 40, 0.5);--mask-heavy:rgba(31, 35, 40, 0.55);--mask-scan:rgba(13, 17, 23, 0.82);--tabbar-bg:#FFFFFF;--tabbar-border:#D1D9E0;--tabbar-text:#59636E;--tabbar-text-active:#0969DA;--tabbar-center-bg:#0969DA;--tabbar-center-border:#FFFFFF;--tabbar-center-shadow:rgba(9, 105, 218, 0.35);--nav-fallback:linear-gradient(180deg, #FFFFFF, #F6F8FA);--nav-veil:rgba(255, 255, 255, 0);--nav-fade:linear-gradient(180deg, rgba(246, 248, 250, 0), #F6F8FA);--navbar-fg:#1F2328;--navbar-shadow:none;--skeleton-base:#EAEFF2;--skeleton-shine:#F6F8FA;--grip-color:#D1D9E0;--btn-disabled-bg:#EAEFF2;--btn-disabled-text:#9198A1;--btn-reject-bg:rgba(255, 255, 255, 0.92);--btn-reject-text:#0550AE;--btn-reject-border:#FFFFFF;--divider-strong:#D1D9E0;--heat-1:#B6E3FF;--heat-2:#54AEFF;--heat-3:#0969DA;--bg-poster-full:#24292F;--poster-preview-fg:#F0F6FC;--poster-preview-border:rgba(255, 255, 255, 0.3);--poster-preview-btn-bg:rgba(255, 255, 255, 0.12);--gradient-poster-icon:linear-gradient(135deg, #218BFF, #0550AE);--badge-bg:rgba(9, 105, 218, 0.9);--border-dashed:#AFB8C1;--gradient-ai:linear-gradient(135deg, #7C5AE0 0%, #A78BFA 45%, #EC6FAE 100%);--gradient-ai-btn:linear-gradient(135deg, #A78BFA, #EC6FAE);--ai-color:#8250DF;--ai-color-deep:#6639BA;--ai-shadow:rgba(130, 80, 223, 0.35);--ai-bg-soft:#FBEFFF;--ai-border-dashed:#C4A6FF;--scan-line-glow:rgba(196, 166, 255, 0.5);--ai-guide-bg:linear-gradient(135deg, rgba(130, 80, 223, 0.08), rgba(191, 75, 138, 0.08));--ai-pulse-glow:rgba(130, 80, 223, 0.45);--color-primary:#0969DA;--color-primary-light:#DDF4FF;--color-primary-dark:#0550AE;--color-bg:#F6F8FA;--color-card:#FFFFFF;--color-text:#1F2328;--color-text-sub:#59636E;--color-text-hint:#818B98;--color-border:#D1D9E0"><div class="scr"><div class="nav" style="background:var(--nav-fallback);">
+      <div class="nav-illus" style="background:transparent;opacity:0">
+        
+      </div>
+      <div class="nav-fade" style="background:var(--nav-fade);"></div>
+      <div class="nav-title">Yuki Kitchen</div>
+      <div class="capsule"><span>•••</span><span>◎</span></div>
+    </div>
+      <div class="body rbody">
+        <div class="filters">
+          <div class="frow"><span class="flabel">排除最近吃过的</span><span class="ftrack"><span class="ffill"></span><span class="fknob"></span></span><span class="fval">3天</span></div>
+          <div class="frow"><span class="flabel">只从「想吃」里抽</span><span class="switch on"></span></div>
+          <div class="frow"><span class="flabel">高分优先</span><span class="switch on"></span></div>
+          <div class="frow"><span class="flabel">限定分类</span><span class="fpicker">不限 ▾</span></div>
+        </div>
+      </div>
+      <div class="ov"><div class="ov-bg"></div>
+        <div class="rv-card">
+          <div class="rv-toolbar"><span class="tb-count">从 24 道里抽中</span><span class="tb-btns">↗ ✕</span></div>
+          <div class="rv-hero">🍝</div>
+          <div class="rv-body"><div class="rv-name">番茄牛腩意面</div>
+            <div class="rv-chips"><span class="chip-plain">面食</span><span class="chip">¥38</span><span class="chip-plain">★4.8</span></div>
+            <div class="rv-desc">番茄炒出沙，牛腩炖软烂，酸甜开胃的家常意面</div>
+            <div class="rv-link">查看详情 ›</div></div>
+        </div>
+        <div class="rv-actions"><span class="act-reject">↺ 不想吃，换一个</span><span class="act-accept">✓ 就它了，记一笔</span></div>
+      </div><div class="tabbar"><div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-text">首页</span></div><div class="tab-item"><span class="tab-icon">🍽</span><span class="tab-text">菜单</span></div><div class="tab-item center"><div class="center-btn">🎲</div><span class="center-text on">抽一抽</span></div><div class="tab-item"><span class="tab-icon">👤</span><span class="tab-text">我的</span></div></div></div></div>
+        </div><div class="col">
+          <div class="col-head"><span class="dot" style="background:#4493F8"></span>GitHub Dark</div>
+          <div class="phone" style="--bg-page:#0D1117;--bg-card:#151B23;--bg-card-solid:#151B23;--bg-sunken:#010409;--bg-hover:#212830;--bg-active:#212830;--bg-placeholder:#1C2128;--bg-sheet:#151B23;--text-primary:#F0F6FC;--text-secondary:#9198A1;--text-hint:#6E7681;--text-faint:#545C66;--text-on-accent:#FFFFFF;--color-accent:#4493F8;--color-accent-strong:#388BFD;--color-accent-deep:#79C0FF;--color-accent-dark:#4493F8;--color-accent-soft:#121D2F;--color-accent-softer:#1C2128;--color-accent-border:#1F6FEB;--border-default:#3D444D;--border-soft:#2F353D;--border-strong:#4A5159;--card-border:rgba(240, 246, 252, 0.08);--card-face-border:#3D444D;--color-success:#3FB950;--color-success-bg:#12261E;--color-star:#D29922;--star-off:#3D444D;--shadow-card:0 1px 2px rgba(1, 4, 9, 0.4);--shadow-panel:0 8px 24px rgba(1, 4, 9, 0.6);--shadow-fab:0 4px 12px rgba(31, 111, 235, 0.4);--shadow-fab-drag:0 6px 16px rgba(31, 111, 235, 0.55);--shadow-accent:0 8px 24px rgba(31, 111, 235, 0.45);--shadow-card-heavy:0 24px 64px rgba(1, 4, 9, 0.8), 0 0 0 1px rgba(240, 246, 252, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 80px rgba(68, 147, 248, 0.15);--gradient-hero:linear-gradient(135deg, #151B23, #1C2128);--gradient-fab:linear-gradient(135deg, #388BFD, #1F6FEB);--gradient-primary:linear-gradient(135deg, #388BFD, #1F6FEB);--gradient-bar:linear-gradient(90deg, #1F6FEB, #4493F8);--gradient-card-back:linear-gradient(160deg, #1F6FEB 0%, #1158C7 46%, #0A3069 100%);--gradient-card-face:linear-gradient(172deg, #151B23 55%, #0D1117 100%);--gradient-toolbar:linear-gradient(180deg, #1C2128, #151B23);--gradient-sheet:linear-gradient(180deg, #1C2128, #151B23);--gradient-overlay:radial-gradient(130% 95% at 50% 34%, rgba(13,17,23,0.6), rgba(1,4,9,0.88));--card-back-pattern:rgba(121, 192, 255, 0.35);--card-back-pattern-soft:rgba(18, 29, 47, 0.5);--card-back-emblem:#79C0FF;--card-back-emblem-border:rgba(121, 192, 255, 0.6);--card-back-glow:rgba(68, 147, 248, 0.5);--card-back-arc:rgba(121, 192, 255, 0.4);--card-back-arc2:rgba(121, 192, 255, 0.16);--card-back-shadow:0 52rpx 128rpx rgba(1,4,9,0.7), inset 0 2rpx 0 rgba(255,255,255,0.16), inset 0 0 80rpx rgba(10,48,105,0.5);--card-back-inner:radial-gradient(circle at 34% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.05));--card-sheen-tint:rgba(56, 139, 253, 0.35);--card-face-fade:rgba(21, 27, 35, 0.94);--card-name-shadow:rgba(1, 4, 9, 0.6);--glow-rgb:68, 147, 248;--flash-tint:rgba(121, 192, 255, 0.8);--flash-edge:rgba(68, 147, 248, 0.35);--mask-light:rgba(1, 4, 9, 0.6);--mask-heavy:rgba(1, 4, 9, 0.7);--mask-scan:rgba(1, 4, 9, 0.85);--tabbar-bg:#151B23;--tabbar-border:#3D444D;--tabbar-text:#9198A1;--tabbar-text-active:#4493F8;--tabbar-center-bg:#1F6FEB;--tabbar-center-border:#0D1117;--tabbar-center-shadow:rgba(1, 4, 9, 0.5);--nav-fallback:linear-gradient(180deg, #151B23, #0D1117);--nav-veil:rgba(0, 0, 0, 0);--nav-fade:linear-gradient(180deg, rgba(13, 17, 23, 0), #0D1117);--navbar-fg:#F0F6FC;--navbar-shadow:none;--skeleton-base:#212830;--skeleton-shine:#262C36;--grip-color:#3D444D;--btn-disabled-bg:#262C36;--btn-disabled-text:#545C66;--btn-reject-bg:rgba(21, 27, 35, 0.92);--btn-reject-text:#79C0FF;--btn-reject-border:#3D444D;--divider-strong:#3D444D;--heat-1:#0C2D6B;--heat-2:#1F6FEB;--heat-3:#4493F8;--bg-poster-full:#010409;--poster-preview-fg:#F0F6FC;--poster-preview-border:rgba(240, 246, 252, 0.25);--poster-preview-btn-bg:rgba(240, 246, 252, 0.1);--gradient-poster-icon:linear-gradient(135deg, #388BFD, #1158C7);--badge-bg:rgba(31, 111, 235, 0.9);--border-dashed:#4A5159;--gradient-ai:linear-gradient(135deg, #6639BA 0%, #8957E5 45%, #BF4B8A 100%);--gradient-ai-btn:linear-gradient(135deg, #8957E5, #BF4B8A);--ai-color:#AB7DF8;--ai-color-deep:#AB7DF8;--ai-shadow:rgba(137, 87, 229, 0.4);--ai-bg-soft:#212830;--ai-border-dashed:#8957E5;--scan-line-glow:rgba(171, 125, 248, 0.5);--ai-guide-bg:linear-gradient(135deg, rgba(137, 87, 229, 0.15), rgba(191, 75, 138, 0.15));--ai-pulse-glow:rgba(137, 87, 229, 0.5);--color-primary:#4493F8;--color-primary-light:#121D2F;--color-primary-dark:#79C0FF;--color-bg:#0D1117;--color-card:#151B23;--color-text:#F0F6FC;--color-text-sub:#9198A1;--color-text-hint:#6E7681;--color-border:#3D444D"><div class="scr"><div class="nav" style="background:var(--nav-fallback);">
+      <div class="nav-illus" style="background:transparent;opacity:0">
+        
+      </div>
+      <div class="nav-fade" style="background:var(--nav-fade);"></div>
+      <div class="nav-title">Yuki Kitchen</div>
+      <div class="capsule"><span>•••</span><span>◎</span></div>
+    </div>
+      <div class="body rbody">
+        <div class="filters">
+          <div class="frow"><span class="flabel">排除最近吃过的</span><span class="ftrack"><span class="ffill"></span><span class="fknob"></span></span><span class="fval">3天</span></div>
+          <div class="frow"><span class="flabel">只从「想吃」里抽</span><span class="switch on"></span></div>
+          <div class="frow"><span class="flabel">高分优先</span><span class="switch on"></span></div>
+          <div class="frow"><span class="flabel">限定分类</span><span class="fpicker">不限 ▾</span></div>
+        </div>
+      </div>
+      <div class="ov"><div class="ov-bg"></div>
+        <div class="rv-card">
+          <div class="rv-toolbar"><span class="tb-count">从 24 道里抽中</span><span class="tb-btns">↗ ✕</span></div>
+          <div class="rv-hero">🍝</div>
+          <div class="rv-body"><div class="rv-name">番茄牛腩意面</div>
+            <div class="rv-chips"><span class="chip-plain">面食</span><span class="chip">¥38</span><span class="chip-plain">★4.8</span></div>
+            <div class="rv-desc">番茄炒出沙，牛腩炖软烂，酸甜开胃的家常意面</div>
+            <div class="rv-link">查看详情 ›</div></div>
+        </div>
+        <div class="rv-actions"><span class="act-reject">↺ 不想吃，换一个</span><span class="act-accept">✓ 就它了，记一笔</span></div>
+      </div><div class="tabbar"><div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-text">首页</span></div><div class="tab-item"><span class="tab-icon">🍽</span><span class="tab-text">菜单</span></div><div class="tab-item center"><div class="center-btn">🎲</div><span class="center-text on">抽一抽</span></div><div class="tab-item"><span class="tab-icon">👤</span><span class="tab-text">我的</span></div></div></div></div>
+        </div></div></section><section><h2>我的</h2><div class="row3"><div class="col">
+          <div class="col-head"><span class="dot" style="background:#FF8FB8"></span>Sakura Pink 樱花粉</div>
+          <div class="phone" style="--bg-page:#FFF7FA;--bg-card:rgba(255, 255, 255, 0.88);--bg-card-solid:#FFFFFF;--bg-sunken:#FDF5F9;--bg-hover:#F7EDF1;--bg-active:#FBEFF5;--bg-placeholder:#FFEAF2;--bg-sheet:#FFFFFF;--text-primary:#4A2C3A;--text-secondary:#9C7B8C;--text-hint:#C9A8B8;--text-faint:#D8BAC9;--text-on-accent:#FFFFFF;--color-accent:#FF8FB8;--color-accent-strong:#E85D91;--color-accent-deep:#D96C99;--color-accent-dark:#A73568;--color-accent-soft:#FFF0F6;--color-accent-softer:#FBEFF5;--color-accent-border:#FFD6E7;--border-default:#F8E3EC;--border-soft:#FCEFF5;--border-strong:#F0C0D4;--card-border:rgba(255, 143, 184, 0.16);--card-face-border:rgba(255, 222, 236, 0.95);--color-success:#639922;--color-success-bg:#EAF3DE;--color-star:#FF9500;--star-off:#F8E3EC;--shadow-card:0 6rpx 24rpx rgba(217, 108, 153, 0.08);--shadow-panel:0 12rpx 48rpx rgba(217, 108, 153, 0.25);--shadow-fab:0 8rpx 24rpx rgba(255, 143, 184, 0.4);--shadow-fab-drag:0 12rpx 32rpx rgba(255, 143, 184, 0.55);--shadow-accent:0 16rpx 48rpx rgba(240, 99, 156, 0.5);--shadow-card-heavy:0 60rpx 140rpx rgba(14, 2, 10, 0.62), 0 0 0 10rpx rgba(255, 255, 255, 0.06), inset 0 2rpx 0 #fff, 0 0 120rpx rgba(255, 143, 184, 0.22);--gradient-hero:linear-gradient(135deg, rgba(255,240,246,0.92), rgba(255,227,239,0.92));--gradient-fab:linear-gradient(135deg, #FFB3D1, #FF8FB8);--gradient-primary:linear-gradient(135deg, #FFB3D1, #FF8FB8);--gradient-bar:linear-gradient(90deg, #FFB3D1, #FF8FB8);--gradient-card-back:linear-gradient(160deg, #E85D91 0%, #C74B7C 46%, #8E2F58 100%);--gradient-card-face:linear-gradient(172deg, #fff 55%, #FFF5F9 100%);--gradient-toolbar:linear-gradient(180deg, #FFFFFF, #FFF7FA);--gradient-sheet:linear-gradient(180deg, #FFF9FB, #FFF2F7);--gradient-overlay:radial-gradient(130% 95% at 50% 34%, rgba(78,30,52,0.58), rgba(32,10,24,0.86));--card-back-pattern:rgba(255, 214, 231, 0.5);--card-back-pattern-soft:rgba(255, 240, 247, 0.35);--card-back-emblem:#FFEAF3;--card-back-emblem-border:rgba(255, 222, 236, 0.65);--card-back-glow:rgba(255, 143, 184, 0.5);--card-back-arc:rgba(255, 214, 231, 0.5);--card-back-arc2:rgba(255, 214, 231, 0.22);--card-back-shadow:0 52rpx 128rpx rgba(14,2,10,0.6), inset 0 2rpx 0 rgba(255,255,255,0.28), inset 0 0 80rpx rgba(80,10,40,0.4);--card-back-inner:radial-gradient(circle at 34% 30%, rgba(255,255,255,0.3), rgba(255,255,255,0.08));--card-sheen-tint:rgba(255, 214, 231, 0.35);--card-face-fade:rgba(255, 255, 255, 0.94);--card-name-shadow:#fff;--glow-rgb:255, 143, 184;--flash-tint:rgba(255, 226, 240, 0.85);--flash-edge:rgba(255, 143, 184, 0.35);--mask-light:rgba(74, 44, 58, 0.45);--mask-heavy:rgba(20, 6, 16, 0.55);--mask-scan:rgba(20, 8, 15, 0.82);--tabbar-bg:#F9D6E4;--tabbar-border:#F0C0D4;--tabbar-text:#6B5360;--tabbar-text-active:#A73568;--tabbar-center-bg:#E85D91;--tabbar-center-border:#FFFFFF;--tabbar-center-shadow:rgba(167, 53, 104, 0.3);--nav-fallback:linear-gradient(180deg, #FFEAF2, #FFF7FA);--nav-veil:rgba(255, 255, 255, 0.16);--nav-fade:linear-gradient(180deg, rgba(255, 247, 250, 0), #FFF7FA);--navbar-fg:#FFFFFF;--navbar-shadow:0 2rpx 8rpx rgba(0, 0, 0, 0.3);--skeleton-base:#FBEFF5;--skeleton-shine:#FDF7FA;--grip-color:#E8CBD8;--btn-disabled-bg:#F5C9DD;--btn-disabled-text:#FFF0F6;--btn-reject-bg:rgba(255, 255, 255, 0.92);--btn-reject-text:#B25478;--btn-reject-border:#FFFFFF;--divider-strong:#F5C9DD;--heat-1:#F8C8DC;--heat-2:#FFB0CE;--heat-3:#FF8FB8;--bg-poster-full:#1c0c14;--poster-preview-fg:#FFEAF3;--poster-preview-border:rgba(255, 222, 236, 0.45);--poster-preview-btn-bg:rgba(255, 255, 255, 0.1);--gradient-poster-icon:linear-gradient(135deg, #FF8FB8, #E85D91);--badge-bg:rgba(255, 143, 184, 0.9);--border-dashed:#F0C9DD;--gradient-ai:linear-gradient(135deg, #7C5AE0 0%, #A78BFA 45%, #EC6FAE 100%);--gradient-ai-btn:linear-gradient(135deg, #A78BFA, #EC6FAE);--ai-color:#A78BFA;--ai-color-deep:#6D4FB8;--ai-shadow:rgba(167, 110, 220, 0.35);--ai-bg-soft:#FBEFF5;--ai-border-dashed:#C4A6FF;--scan-line-glow:rgba(196, 166, 255, 0.5);--ai-guide-bg:linear-gradient(135deg, rgba(167, 139, 250, 0.12), rgba(236, 111, 174, 0.12));--ai-pulse-glow:rgba(167, 139, 250, 0.5);--color-primary:#FF8FB8;--color-primary-light:#FFF0F6;--color-primary-dark:#D96C99;--color-bg:#FFF7FA;--color-card:#FFFFFF;--color-text:#4A2C3A;--color-text-sub:#9C7B8C;--color-text-hint:#C9A8B8;--color-border:#F8E3EC"><div class="scr"><div class="nav" style="background:var(--nav-fallback);">
+      <div class="nav-illus" style="background:linear-gradient(135deg,#FFD1E3,#FFEAF2);">
+        🍳🥘
+      </div>
+      <div class="nav-fade" style="background:var(--nav-fade);"></div>
+      <div class="nav-title">Yuki小厨房</div>
+      <div class="capsule"><span>•••</span><span>◎</span></div>
+    </div>
+      <div class="body">
+        <div class="hero stats">
+          <div class="stats-title">我的小厨房 🎀</div>
+          <div class="stats-row"><div class="stat"><div class="stat-num">24</div><div class="stat-label">菜品</div></div>
+            <div class="stat-div"></div><div class="stat"><div class="stat-num">6</div><div class="stat-label">分类</div></div>
+            <div class="stat-div"></div><div class="stat"><div class="stat-num">128</div><div class="stat-label">吃过记录</div></div></div>
+        </div>
+        <div class="cal-card">
+          <div class="cal-head"><span class="cal-nav">‹</span><span class="cal-title">2026年11月</span><span class="cal-nav dis">›</span></div>
+          <div class="cal-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+          <div class="cal-grid"><div class="cal-cell"><span class="cal-day">1</span></div><div class="cal-cell"><span class="cal-day">2</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">3</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">4</span></div><div class="cal-cell"><span class="cal-day">5</span><span class="cal-dot heat-3">3</span></div><div class="cal-cell"><span class="cal-day">6</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">7</span></div><div class="cal-cell"><span class="cal-day">8</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">9</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">10</span><span class="cal-dot heat-3">3</span></div><div class="cal-cell"><span class="cal-day">11</span></div><div class="cal-cell"><span class="cal-day">12</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">13</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">14</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">15</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">16</span></div><div class="cal-cell"><span class="cal-day">17</span><span class="cal-dot heat-3">3</span></div><div class="cal-cell"><span class="cal-day">18</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell today"><span class="cal-day">19</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">20</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">21</span></div><div class="cal-cell"><span class="cal-day">22</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">23</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">24</span><span class="cal-dot heat-3">3</span></div><div class="cal-cell"><span class="cal-day">25</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">26</span></div><div class="cal-cell"><span class="cal-day">27</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">28</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">29</span></div><div class="cal-cell"><span class="cal-day">30</span></div><div class="cal-cell"><span class="cal-day">31</span></div></div>
+        </div>
+        <div class="menu-card"><div class="menu-item"><span class="menu-icon">＋</span><span class="menu-text">添加菜品</span><span class="menu-arrow">›</span></div><div class="menu-item"><span class="menu-icon">🗂</span><span class="menu-text">分类管理</span><span class="menu-arrow">›</span></div><div class="menu-item"><span class="menu-icon">🕐</span><span class="menu-text">吃过时间线</span><span class="menu-arrow">›</span></div><div class="menu-item"><span class="menu-icon">🎨</span><span class="menu-text">外观</span><span class="menu-arrow">›</span></div><div class="menu-item"><span class="menu-icon">📤</span><span class="menu-text">导出数据</span><span class="menu-arrow">›</span></div><div class="menu-item"><span class="menu-icon">ⓘ</span><span class="menu-text">关于</span><span class="menu-arrow">›</span></div></div>
+      </div><div class="tabbar"><div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-text">首页</span></div><div class="tab-item"><span class="tab-icon">🍽</span><span class="tab-text">菜单</span></div><div class="tab-item center"><div class="center-btn">🎲</div><span class="center-text">抽一抽</span></div><div class="tab-item"><span class="tab-icon on">👤</span><span class="tab-text on">我的</span></div></div></div></div>
+        </div><div class="col">
+          <div class="col-head"><span class="dot" style="background:#0969DA"></span>GitHub Light</div>
+          <div class="phone" style="--bg-page:#F6F8FA;--bg-card:#FFFFFF;--bg-card-solid:#FFFFFF;--bg-sunken:#F6F8FA;--bg-hover:#EAEFF2;--bg-active:#EAEFF2;--bg-placeholder:#EAEFF2;--bg-sheet:#FFFFFF;--text-primary:#1F2328;--text-secondary:#59636E;--text-hint:#818B98;--text-faint:#A5ADB8;--text-on-accent:#FFFFFF;--color-accent:#0969DA;--color-accent-strong:#0550AE;--color-accent-deep:#0550AE;--color-accent-dark:#0969DA;--color-accent-soft:#DDF4FF;--color-accent-softer:#EAEFF2;--color-accent-border:#B6E3FF;--border-default:#D1D9E0;--border-soft:#D8DEE4;--border-strong:#AFB8C1;--card-border:rgba(31, 35, 40, 0.1);--card-face-border:#D1D9E0;--color-success:#1A7F37;--color-success-bg:#DAFBE1;--color-star:#BF8700;--star-off:#D1D9E0;--shadow-card:0 1px 2px rgba(31, 35, 40, 0.08);--shadow-panel:0 8px 24px rgba(31, 35, 40, 0.16);--shadow-fab:0 4px 12px rgba(9, 105, 218, 0.3);--shadow-fab-drag:0 6px 16px rgba(9, 105, 218, 0.45);--shadow-accent:0 8px 24px rgba(9, 105, 218, 0.35);--shadow-card-heavy:0 24px 64px rgba(31, 35, 40, 0.35), 0 0 0 1px rgba(31, 35, 40, 0.08), inset 0 1px 0 #fff, 0 0 80px rgba(9, 105, 218, 0.12);--gradient-hero:linear-gradient(135deg, #FFFFFF, #DDF4FF);--gradient-fab:linear-gradient(135deg, #218BFF, #0969DA);--gradient-primary:linear-gradient(135deg, #218BFF, #0969DA);--gradient-bar:linear-gradient(90deg, #54AEFF, #0969DA);--gradient-card-back:linear-gradient(160deg, #0969DA 0%, #0550AE 46%, #0A3069 100%);--gradient-card-face:linear-gradient(172deg, #FFFFFF 55%, #F6F8FA 100%);--gradient-toolbar:linear-gradient(180deg, #FFFFFF, #F6F8FA);--gradient-sheet:linear-gradient(180deg, #FFFFFF, #F6F8FA);--gradient-overlay:radial-gradient(130% 95% at 50% 34%, rgba(36,41,47,0.6), rgba(13,17,23,0.86));--card-back-pattern:rgba(255, 255, 255, 0.3);--card-back-pattern-soft:rgba(221, 244, 255, 0.25);--card-back-emblem:#DDF4FF;--card-back-emblem-border:rgba(182, 227, 255, 0.65);--card-back-glow:rgba(84, 174, 255, 0.55);--card-back-arc:rgba(255, 255, 255, 0.35);--card-back-arc2:rgba(255, 255, 255, 0.18);--card-back-shadow:0 52rpx 128rpx rgba(1,4,9,0.5), inset 0 2rpx 0 rgba(255,255,255,0.28), inset 0 0 80rpx rgba(10,48,105,0.4);--card-back-inner:radial-gradient(circle at 34% 30%, rgba(255,255,255,0.3), rgba(255,255,255,0.08));--card-sheen-tint:rgba(84, 174, 255, 0.3);--card-face-fade:rgba(255, 255, 255, 0.94);--card-name-shadow:#fff;--glow-rgb:9, 105, 218;--flash-tint:rgba(221, 244, 255, 0.85);--flash-edge:rgba(9, 105, 218, 0.35);--mask-light:rgba(31, 35, 40, 0.5);--mask-heavy:rgba(31, 35, 40, 0.55);--mask-scan:rgba(13, 17, 23, 0.82);--tabbar-bg:#FFFFFF;--tabbar-border:#D1D9E0;--tabbar-text:#59636E;--tabbar-text-active:#0969DA;--tabbar-center-bg:#0969DA;--tabbar-center-border:#FFFFFF;--tabbar-center-shadow:rgba(9, 105, 218, 0.35);--nav-fallback:linear-gradient(180deg, #FFFFFF, #F6F8FA);--nav-veil:rgba(255, 255, 255, 0);--nav-fade:linear-gradient(180deg, rgba(246, 248, 250, 0), #F6F8FA);--navbar-fg:#1F2328;--navbar-shadow:none;--skeleton-base:#EAEFF2;--skeleton-shine:#F6F8FA;--grip-color:#D1D9E0;--btn-disabled-bg:#EAEFF2;--btn-disabled-text:#9198A1;--btn-reject-bg:rgba(255, 255, 255, 0.92);--btn-reject-text:#0550AE;--btn-reject-border:#FFFFFF;--divider-strong:#D1D9E0;--heat-1:#B6E3FF;--heat-2:#54AEFF;--heat-3:#0969DA;--bg-poster-full:#24292F;--poster-preview-fg:#F0F6FC;--poster-preview-border:rgba(255, 255, 255, 0.3);--poster-preview-btn-bg:rgba(255, 255, 255, 0.12);--gradient-poster-icon:linear-gradient(135deg, #218BFF, #0550AE);--badge-bg:rgba(9, 105, 218, 0.9);--border-dashed:#AFB8C1;--gradient-ai:linear-gradient(135deg, #7C5AE0 0%, #A78BFA 45%, #EC6FAE 100%);--gradient-ai-btn:linear-gradient(135deg, #A78BFA, #EC6FAE);--ai-color:#8250DF;--ai-color-deep:#6639BA;--ai-shadow:rgba(130, 80, 223, 0.35);--ai-bg-soft:#FBEFFF;--ai-border-dashed:#C4A6FF;--scan-line-glow:rgba(196, 166, 255, 0.5);--ai-guide-bg:linear-gradient(135deg, rgba(130, 80, 223, 0.08), rgba(191, 75, 138, 0.08));--ai-pulse-glow:rgba(130, 80, 223, 0.45);--color-primary:#0969DA;--color-primary-light:#DDF4FF;--color-primary-dark:#0550AE;--color-bg:#F6F8FA;--color-card:#FFFFFF;--color-text:#1F2328;--color-text-sub:#59636E;--color-text-hint:#818B98;--color-border:#D1D9E0"><div class="scr"><div class="nav" style="background:var(--nav-fallback);">
+      <div class="nav-illus" style="background:transparent;opacity:0">
+        
+      </div>
+      <div class="nav-fade" style="background:var(--nav-fade);"></div>
+      <div class="nav-title">Yuki Kitchen</div>
+      <div class="capsule"><span>•••</span><span>◎</span></div>
+    </div>
+      <div class="body">
+        <div class="hero stats">
+          <div class="stats-title">我的小厨房 🎀</div>
+          <div class="stats-row"><div class="stat"><div class="stat-num">24</div><div class="stat-label">菜品</div></div>
+            <div class="stat-div"></div><div class="stat"><div class="stat-num">6</div><div class="stat-label">分类</div></div>
+            <div class="stat-div"></div><div class="stat"><div class="stat-num">128</div><div class="stat-label">吃过记录</div></div></div>
+        </div>
+        <div class="cal-card">
+          <div class="cal-head"><span class="cal-nav">‹</span><span class="cal-title">2026年11月</span><span class="cal-nav dis">›</span></div>
+          <div class="cal-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+          <div class="cal-grid"><div class="cal-cell"><span class="cal-day">1</span></div><div class="cal-cell"><span class="cal-day">2</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">3</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">4</span></div><div class="cal-cell"><span class="cal-day">5</span><span class="cal-dot heat-3">3</span></div><div class="cal-cell"><span class="cal-day">6</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">7</span></div><div class="cal-cell"><span class="cal-day">8</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">9</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">10</span><span class="cal-dot heat-3">3</span></div><div class="cal-cell"><span class="cal-day">11</span></div><div class="cal-cell"><span class="cal-day">12</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">13</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">14</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">15</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">16</span></div><div class="cal-cell"><span class="cal-day">17</span><span class="cal-dot heat-3">3</span></div><div class="cal-cell"><span class="cal-day">18</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell today"><span class="cal-day">19</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">20</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">21</span></div><div class="cal-cell"><span class="cal-day">22</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">23</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">24</span><span class="cal-dot heat-3">3</span></div><div class="cal-cell"><span class="cal-day">25</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">26</span></div><div class="cal-cell"><span class="cal-day">27</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">28</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">29</span></div><div class="cal-cell"><span class="cal-day">30</span></div><div class="cal-cell"><span class="cal-day">31</span></div></div>
+        </div>
+        <div class="menu-card"><div class="menu-item"><span class="menu-icon">＋</span><span class="menu-text">添加菜品</span><span class="menu-arrow">›</span></div><div class="menu-item"><span class="menu-icon">🗂</span><span class="menu-text">分类管理</span><span class="menu-arrow">›</span></div><div class="menu-item"><span class="menu-icon">🕐</span><span class="menu-text">吃过时间线</span><span class="menu-arrow">›</span></div><div class="menu-item"><span class="menu-icon">🎨</span><span class="menu-text">外观</span><span class="menu-arrow">›</span></div><div class="menu-item"><span class="menu-icon">📤</span><span class="menu-text">导出数据</span><span class="menu-arrow">›</span></div><div class="menu-item"><span class="menu-icon">ⓘ</span><span class="menu-text">关于</span><span class="menu-arrow">›</span></div></div>
+      </div><div class="tabbar"><div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-text">首页</span></div><div class="tab-item"><span class="tab-icon">🍽</span><span class="tab-text">菜单</span></div><div class="tab-item center"><div class="center-btn">🎲</div><span class="center-text">抽一抽</span></div><div class="tab-item"><span class="tab-icon on">👤</span><span class="tab-text on">我的</span></div></div></div></div>
+        </div><div class="col">
+          <div class="col-head"><span class="dot" style="background:#4493F8"></span>GitHub Dark</div>
+          <div class="phone" style="--bg-page:#0D1117;--bg-card:#151B23;--bg-card-solid:#151B23;--bg-sunken:#010409;--bg-hover:#212830;--bg-active:#212830;--bg-placeholder:#1C2128;--bg-sheet:#151B23;--text-primary:#F0F6FC;--text-secondary:#9198A1;--text-hint:#6E7681;--text-faint:#545C66;--text-on-accent:#FFFFFF;--color-accent:#4493F8;--color-accent-strong:#388BFD;--color-accent-deep:#79C0FF;--color-accent-dark:#4493F8;--color-accent-soft:#121D2F;--color-accent-softer:#1C2128;--color-accent-border:#1F6FEB;--border-default:#3D444D;--border-soft:#2F353D;--border-strong:#4A5159;--card-border:rgba(240, 246, 252, 0.08);--card-face-border:#3D444D;--color-success:#3FB950;--color-success-bg:#12261E;--color-star:#D29922;--star-off:#3D444D;--shadow-card:0 1px 2px rgba(1, 4, 9, 0.4);--shadow-panel:0 8px 24px rgba(1, 4, 9, 0.6);--shadow-fab:0 4px 12px rgba(31, 111, 235, 0.4);--shadow-fab-drag:0 6px 16px rgba(31, 111, 235, 0.55);--shadow-accent:0 8px 24px rgba(31, 111, 235, 0.45);--shadow-card-heavy:0 24px 64px rgba(1, 4, 9, 0.8), 0 0 0 1px rgba(240, 246, 252, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 80px rgba(68, 147, 248, 0.15);--gradient-hero:linear-gradient(135deg, #151B23, #1C2128);--gradient-fab:linear-gradient(135deg, #388BFD, #1F6FEB);--gradient-primary:linear-gradient(135deg, #388BFD, #1F6FEB);--gradient-bar:linear-gradient(90deg, #1F6FEB, #4493F8);--gradient-card-back:linear-gradient(160deg, #1F6FEB 0%, #1158C7 46%, #0A3069 100%);--gradient-card-face:linear-gradient(172deg, #151B23 55%, #0D1117 100%);--gradient-toolbar:linear-gradient(180deg, #1C2128, #151B23);--gradient-sheet:linear-gradient(180deg, #1C2128, #151B23);--gradient-overlay:radial-gradient(130% 95% at 50% 34%, rgba(13,17,23,0.6), rgba(1,4,9,0.88));--card-back-pattern:rgba(121, 192, 255, 0.35);--card-back-pattern-soft:rgba(18, 29, 47, 0.5);--card-back-emblem:#79C0FF;--card-back-emblem-border:rgba(121, 192, 255, 0.6);--card-back-glow:rgba(68, 147, 248, 0.5);--card-back-arc:rgba(121, 192, 255, 0.4);--card-back-arc2:rgba(121, 192, 255, 0.16);--card-back-shadow:0 52rpx 128rpx rgba(1,4,9,0.7), inset 0 2rpx 0 rgba(255,255,255,0.16), inset 0 0 80rpx rgba(10,48,105,0.5);--card-back-inner:radial-gradient(circle at 34% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.05));--card-sheen-tint:rgba(56, 139, 253, 0.35);--card-face-fade:rgba(21, 27, 35, 0.94);--card-name-shadow:rgba(1, 4, 9, 0.6);--glow-rgb:68, 147, 248;--flash-tint:rgba(121, 192, 255, 0.8);--flash-edge:rgba(68, 147, 248, 0.35);--mask-light:rgba(1, 4, 9, 0.6);--mask-heavy:rgba(1, 4, 9, 0.7);--mask-scan:rgba(1, 4, 9, 0.85);--tabbar-bg:#151B23;--tabbar-border:#3D444D;--tabbar-text:#9198A1;--tabbar-text-active:#4493F8;--tabbar-center-bg:#1F6FEB;--tabbar-center-border:#0D1117;--tabbar-center-shadow:rgba(1, 4, 9, 0.5);--nav-fallback:linear-gradient(180deg, #151B23, #0D1117);--nav-veil:rgba(0, 0, 0, 0);--nav-fade:linear-gradient(180deg, rgba(13, 17, 23, 0), #0D1117);--navbar-fg:#F0F6FC;--navbar-shadow:none;--skeleton-base:#212830;--skeleton-shine:#262C36;--grip-color:#3D444D;--btn-disabled-bg:#262C36;--btn-disabled-text:#545C66;--btn-reject-bg:rgba(21, 27, 35, 0.92);--btn-reject-text:#79C0FF;--btn-reject-border:#3D444D;--divider-strong:#3D444D;--heat-1:#0C2D6B;--heat-2:#1F6FEB;--heat-3:#4493F8;--bg-poster-full:#010409;--poster-preview-fg:#F0F6FC;--poster-preview-border:rgba(240, 246, 252, 0.25);--poster-preview-btn-bg:rgba(240, 246, 252, 0.1);--gradient-poster-icon:linear-gradient(135deg, #388BFD, #1158C7);--badge-bg:rgba(31, 111, 235, 0.9);--border-dashed:#4A5159;--gradient-ai:linear-gradient(135deg, #6639BA 0%, #8957E5 45%, #BF4B8A 100%);--gradient-ai-btn:linear-gradient(135deg, #8957E5, #BF4B8A);--ai-color:#AB7DF8;--ai-color-deep:#AB7DF8;--ai-shadow:rgba(137, 87, 229, 0.4);--ai-bg-soft:#212830;--ai-border-dashed:#8957E5;--scan-line-glow:rgba(171, 125, 248, 0.5);--ai-guide-bg:linear-gradient(135deg, rgba(137, 87, 229, 0.15), rgba(191, 75, 138, 0.15));--ai-pulse-glow:rgba(137, 87, 229, 0.5);--color-primary:#4493F8;--color-primary-light:#121D2F;--color-primary-dark:#79C0FF;--color-bg:#0D1117;--color-card:#151B23;--color-text:#F0F6FC;--color-text-sub:#9198A1;--color-text-hint:#6E7681;--color-border:#3D444D"><div class="scr"><div class="nav" style="background:var(--nav-fallback);">
+      <div class="nav-illus" style="background:transparent;opacity:0">
+        
+      </div>
+      <div class="nav-fade" style="background:var(--nav-fade);"></div>
+      <div class="nav-title">Yuki Kitchen</div>
+      <div class="capsule"><span>•••</span><span>◎</span></div>
+    </div>
+      <div class="body">
+        <div class="hero stats">
+          <div class="stats-title">我的小厨房 🎀</div>
+          <div class="stats-row"><div class="stat"><div class="stat-num">24</div><div class="stat-label">菜品</div></div>
+            <div class="stat-div"></div><div class="stat"><div class="stat-num">6</div><div class="stat-label">分类</div></div>
+            <div class="stat-div"></div><div class="stat"><div class="stat-num">128</div><div class="stat-label">吃过记录</div></div></div>
+        </div>
+        <div class="cal-card">
+          <div class="cal-head"><span class="cal-nav">‹</span><span class="cal-title">2026年11月</span><span class="cal-nav dis">›</span></div>
+          <div class="cal-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+          <div class="cal-grid"><div class="cal-cell"><span class="cal-day">1</span></div><div class="cal-cell"><span class="cal-day">2</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">3</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">4</span></div><div class="cal-cell"><span class="cal-day">5</span><span class="cal-dot heat-3">3</span></div><div class="cal-cell"><span class="cal-day">6</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">7</span></div><div class="cal-cell"><span class="cal-day">8</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">9</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">10</span><span class="cal-dot heat-3">3</span></div><div class="cal-cell"><span class="cal-day">11</span></div><div class="cal-cell"><span class="cal-day">12</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">13</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">14</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">15</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">16</span></div><div class="cal-cell"><span class="cal-day">17</span><span class="cal-dot heat-3">3</span></div><div class="cal-cell"><span class="cal-day">18</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell today"><span class="cal-day">19</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">20</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">21</span></div><div class="cal-cell"><span class="cal-day">22</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">23</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">24</span><span class="cal-dot heat-3">3</span></div><div class="cal-cell"><span class="cal-day">25</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">26</span></div><div class="cal-cell"><span class="cal-day">27</span><span class="cal-dot heat-2">2</span></div><div class="cal-cell"><span class="cal-day">28</span><span class="cal-dot heat-1">1</span></div><div class="cal-cell"><span class="cal-day">29</span></div><div class="cal-cell"><span class="cal-day">30</span></div><div class="cal-cell"><span class="cal-day">31</span></div></div>
+        </div>
+        <div class="menu-card"><div class="menu-item"><span class="menu-icon">＋</span><span class="menu-text">添加菜品</span><span class="menu-arrow">›</span></div><div class="menu-item"><span class="menu-icon">🗂</span><span class="menu-text">分类管理</span><span class="menu-arrow">›</span></div><div class="menu-item"><span class="menu-icon">🕐</span><span class="menu-text">吃过时间线</span><span class="menu-arrow">›</span></div><div class="menu-item"><span class="menu-icon">🎨</span><span class="menu-text">外观</span><span class="menu-arrow">›</span></div><div class="menu-item"><span class="menu-icon">📤</span><span class="menu-text">导出数据</span><span class="menu-arrow">›</span></div><div class="menu-item"><span class="menu-icon">ⓘ</span><span class="menu-text">关于</span><span class="menu-arrow">›</span></div></div>
+      </div><div class="tabbar"><div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-text">首页</span></div><div class="tab-item"><span class="tab-icon">🍽</span><span class="tab-text">菜单</span></div><div class="tab-item center"><div class="center-btn">🎲</div><span class="center-text">抽一抽</span></div><div class="tab-item"><span class="tab-icon on">👤</span><span class="tab-text on">我的</span></div></div></div></div>
+        </div></div></section><section><h2>外观</h2><div class="row3"><div class="col">
+          <div class="col-head"><span class="dot" style="background:#FF8FB8"></span>Sakura Pink 樱花粉</div>
+          <div class="phone" style="--bg-page:#FFF7FA;--bg-card:rgba(255, 255, 255, 0.88);--bg-card-solid:#FFFFFF;--bg-sunken:#FDF5F9;--bg-hover:#F7EDF1;--bg-active:#FBEFF5;--bg-placeholder:#FFEAF2;--bg-sheet:#FFFFFF;--text-primary:#4A2C3A;--text-secondary:#9C7B8C;--text-hint:#C9A8B8;--text-faint:#D8BAC9;--text-on-accent:#FFFFFF;--color-accent:#FF8FB8;--color-accent-strong:#E85D91;--color-accent-deep:#D96C99;--color-accent-dark:#A73568;--color-accent-soft:#FFF0F6;--color-accent-softer:#FBEFF5;--color-accent-border:#FFD6E7;--border-default:#F8E3EC;--border-soft:#FCEFF5;--border-strong:#F0C0D4;--card-border:rgba(255, 143, 184, 0.16);--card-face-border:rgba(255, 222, 236, 0.95);--color-success:#639922;--color-success-bg:#EAF3DE;--color-star:#FF9500;--star-off:#F8E3EC;--shadow-card:0 6rpx 24rpx rgba(217, 108, 153, 0.08);--shadow-panel:0 12rpx 48rpx rgba(217, 108, 153, 0.25);--shadow-fab:0 8rpx 24rpx rgba(255, 143, 184, 0.4);--shadow-fab-drag:0 12rpx 32rpx rgba(255, 143, 184, 0.55);--shadow-accent:0 16rpx 48rpx rgba(240, 99, 156, 0.5);--shadow-card-heavy:0 60rpx 140rpx rgba(14, 2, 10, 0.62), 0 0 0 10rpx rgba(255, 255, 255, 0.06), inset 0 2rpx 0 #fff, 0 0 120rpx rgba(255, 143, 184, 0.22);--gradient-hero:linear-gradient(135deg, rgba(255,240,246,0.92), rgba(255,227,239,0.92));--gradient-fab:linear-gradient(135deg, #FFB3D1, #FF8FB8);--gradient-primary:linear-gradient(135deg, #FFB3D1, #FF8FB8);--gradient-bar:linear-gradient(90deg, #FFB3D1, #FF8FB8);--gradient-card-back:linear-gradient(160deg, #E85D91 0%, #C74B7C 46%, #8E2F58 100%);--gradient-card-face:linear-gradient(172deg, #fff 55%, #FFF5F9 100%);--gradient-toolbar:linear-gradient(180deg, #FFFFFF, #FFF7FA);--gradient-sheet:linear-gradient(180deg, #FFF9FB, #FFF2F7);--gradient-overlay:radial-gradient(130% 95% at 50% 34%, rgba(78,30,52,0.58), rgba(32,10,24,0.86));--card-back-pattern:rgba(255, 214, 231, 0.5);--card-back-pattern-soft:rgba(255, 240, 247, 0.35);--card-back-emblem:#FFEAF3;--card-back-emblem-border:rgba(255, 222, 236, 0.65);--card-back-glow:rgba(255, 143, 184, 0.5);--card-back-arc:rgba(255, 214, 231, 0.5);--card-back-arc2:rgba(255, 214, 231, 0.22);--card-back-shadow:0 52rpx 128rpx rgba(14,2,10,0.6), inset 0 2rpx 0 rgba(255,255,255,0.28), inset 0 0 80rpx rgba(80,10,40,0.4);--card-back-inner:radial-gradient(circle at 34% 30%, rgba(255,255,255,0.3), rgba(255,255,255,0.08));--card-sheen-tint:rgba(255, 214, 231, 0.35);--card-face-fade:rgba(255, 255, 255, 0.94);--card-name-shadow:#fff;--glow-rgb:255, 143, 184;--flash-tint:rgba(255, 226, 240, 0.85);--flash-edge:rgba(255, 143, 184, 0.35);--mask-light:rgba(74, 44, 58, 0.45);--mask-heavy:rgba(20, 6, 16, 0.55);--mask-scan:rgba(20, 8, 15, 0.82);--tabbar-bg:#F9D6E4;--tabbar-border:#F0C0D4;--tabbar-text:#6B5360;--tabbar-text-active:#A73568;--tabbar-center-bg:#E85D91;--tabbar-center-border:#FFFFFF;--tabbar-center-shadow:rgba(167, 53, 104, 0.3);--nav-fallback:linear-gradient(180deg, #FFEAF2, #FFF7FA);--nav-veil:rgba(255, 255, 255, 0.16);--nav-fade:linear-gradient(180deg, rgba(255, 247, 250, 0), #FFF7FA);--navbar-fg:#FFFFFF;--navbar-shadow:0 2rpx 8rpx rgba(0, 0, 0, 0.3);--skeleton-base:#FBEFF5;--skeleton-shine:#FDF7FA;--grip-color:#E8CBD8;--btn-disabled-bg:#F5C9DD;--btn-disabled-text:#FFF0F6;--btn-reject-bg:rgba(255, 255, 255, 0.92);--btn-reject-text:#B25478;--btn-reject-border:#FFFFFF;--divider-strong:#F5C9DD;--heat-1:#F8C8DC;--heat-2:#FFB0CE;--heat-3:#FF8FB8;--bg-poster-full:#1c0c14;--poster-preview-fg:#FFEAF3;--poster-preview-border:rgba(255, 222, 236, 0.45);--poster-preview-btn-bg:rgba(255, 255, 255, 0.1);--gradient-poster-icon:linear-gradient(135deg, #FF8FB8, #E85D91);--badge-bg:rgba(255, 143, 184, 0.9);--border-dashed:#F0C9DD;--gradient-ai:linear-gradient(135deg, #7C5AE0 0%, #A78BFA 45%, #EC6FAE 100%);--gradient-ai-btn:linear-gradient(135deg, #A78BFA, #EC6FAE);--ai-color:#A78BFA;--ai-color-deep:#6D4FB8;--ai-shadow:rgba(167, 110, 220, 0.35);--ai-bg-soft:#FBEFF5;--ai-border-dashed:#C4A6FF;--scan-line-glow:rgba(196, 166, 255, 0.5);--ai-guide-bg:linear-gradient(135deg, rgba(167, 139, 250, 0.12), rgba(236, 111, 174, 0.12));--ai-pulse-glow:rgba(167, 139, 250, 0.5);--color-primary:#FF8FB8;--color-primary-light:#FFF0F6;--color-primary-dark:#D96C99;--color-bg:#FFF7FA;--color-card:#FFFFFF;--color-text:#4A2C3A;--color-text-sub:#9C7B8C;--color-text-hint:#C9A8B8;--color-border:#F8E3EC"><div class="scr"><div class="navbar-simple"><span class="nb-back">‹</span><span class="nb-title">外观</span></div>
+      <div class="body abody">
+        <div class="page-tip">选择一套外观主题，立即生效并自动记住。切换只改变视觉，不影响任何菜品数据。</div>
+        <div class="theme-card selected">
+          <div class="pv" style="background:#FFF7FA">
+            <div class="pv-nav" style="background:#FFF0F6"></div>
+            <div class="pv-card" style="background:#FFFFFF;border-color:#F8E3EC">
+              <div class="pv-thumb" style="background:#FFF0F6"></div>
+              <div class="pv-lines"><div class="pv-line" style="background:#4A2C3A;opacity:.85"></div><div class="pv-line short" style="background:#4A2C3A;opacity:.4"></div></div>
+            </div>
+            <div class="pv-card" style="background:#FFFFFF;border-color:#F8E3EC">
+              <div class="pv-thumb" style="background:#FFF0F6"></div>
+              <div class="pv-lines"><div class="pv-line" style="background:#4A2C3A;opacity:.85"></div><div class="pv-line short" style="background:#4A2C3A;opacity:.4"></div></div>
+            </div>
+            <div class="pv-accent" style="background:#FF8FB8"></div>
+            <div class="pv-tabbar" style="background:#FFFFFF;border-top-color:#F8E3EC">
+              <div class="pv-dot" style="background:#4A2C3A;opacity:.35"></div><div class="pv-dot active" style="background:#FF8FB8"></div><div class="pv-dot" style="background:#4A2C3A;opacity:.35"></div>
+            </div>
+          </div>
+          <div class="theme-meta"><div class="theme-name">樱花粉</div><div class="theme-desc">Yuki 小厨房经典主题</div></div>
+          <div class="theme-check">✓</div>
+        </div><div class="theme-card">
+          <div class="pv" style="background:#F6F8FA">
+            <div class="pv-nav" style="background:#DDF4FF"></div>
+            <div class="pv-card" style="background:#FFFFFF;border-color:#D1D9E0">
+              <div class="pv-thumb" style="background:#DDF4FF"></div>
+              <div class="pv-lines"><div class="pv-line" style="background:#1F2328;opacity:.85"></div><div class="pv-line short" style="background:#1F2328;opacity:.4"></div></div>
+            </div>
+            <div class="pv-card" style="background:#FFFFFF;border-color:#D1D9E0">
+              <div class="pv-thumb" style="background:#DDF4FF"></div>
+              <div class="pv-lines"><div class="pv-line" style="background:#1F2328;opacity:.85"></div><div class="pv-line short" style="background:#1F2328;opacity:.4"></div></div>
+            </div>
+            <div class="pv-accent" style="background:#0969DA"></div>
+            <div class="pv-tabbar" style="background:#FFFFFF;border-top-color:#D1D9E0">
+              <div class="pv-dot" style="background:#1F2328;opacity:.35"></div><div class="pv-dot active" style="background:#0969DA"></div><div class="pv-dot" style="background:#1F2328;opacity:.35"></div>
+            </div>
+          </div>
+          <div class="theme-meta"><div class="theme-name">GitHub Light</div><div class="theme-desc">Primer 浅色 · 简洁克制</div></div>
+          
+        </div><div class="theme-card">
+          <div class="pv" style="background:#0D1117">
+            <div class="pv-nav" style="background:#121D2F"></div>
+            <div class="pv-card" style="background:#151B23;border-color:#3D444D">
+              <div class="pv-thumb" style="background:#121D2F"></div>
+              <div class="pv-lines"><div class="pv-line" style="background:#F0F6FC;opacity:.85"></div><div class="pv-line short" style="background:#F0F6FC;opacity:.4"></div></div>
+            </div>
+            <div class="pv-card" style="background:#151B23;border-color:#3D444D">
+              <div class="pv-thumb" style="background:#121D2F"></div>
+              <div class="pv-lines"><div class="pv-line" style="background:#F0F6FC;opacity:.85"></div><div class="pv-line short" style="background:#F0F6FC;opacity:.4"></div></div>
+            </div>
+            <div class="pv-accent" style="background:#4493F8"></div>
+            <div class="pv-tabbar" style="background:#151B23;border-top-color:#3D444D">
+              <div class="pv-dot" style="background:#F0F6FC;opacity:.35"></div><div class="pv-dot active" style="background:#4493F8"></div><div class="pv-dot" style="background:#F0F6FC;opacity:.35"></div>
+            </div>
+          </div>
+          <div class="theme-meta"><div class="theme-name">GitHub Dark</div><div class="theme-desc">Primer 深色 · 低对比护眼</div></div>
+          
+        </div>
+        <div class="foot-note">后续将支持「跟随系统」深浅色自动切换</div>
+      </div></div></div>
+        </div><div class="col">
+          <div class="col-head"><span class="dot" style="background:#0969DA"></span>GitHub Light</div>
+          <div class="phone" style="--bg-page:#F6F8FA;--bg-card:#FFFFFF;--bg-card-solid:#FFFFFF;--bg-sunken:#F6F8FA;--bg-hover:#EAEFF2;--bg-active:#EAEFF2;--bg-placeholder:#EAEFF2;--bg-sheet:#FFFFFF;--text-primary:#1F2328;--text-secondary:#59636E;--text-hint:#818B98;--text-faint:#A5ADB8;--text-on-accent:#FFFFFF;--color-accent:#0969DA;--color-accent-strong:#0550AE;--color-accent-deep:#0550AE;--color-accent-dark:#0969DA;--color-accent-soft:#DDF4FF;--color-accent-softer:#EAEFF2;--color-accent-border:#B6E3FF;--border-default:#D1D9E0;--border-soft:#D8DEE4;--border-strong:#AFB8C1;--card-border:rgba(31, 35, 40, 0.1);--card-face-border:#D1D9E0;--color-success:#1A7F37;--color-success-bg:#DAFBE1;--color-star:#BF8700;--star-off:#D1D9E0;--shadow-card:0 1px 2px rgba(31, 35, 40, 0.08);--shadow-panel:0 8px 24px rgba(31, 35, 40, 0.16);--shadow-fab:0 4px 12px rgba(9, 105, 218, 0.3);--shadow-fab-drag:0 6px 16px rgba(9, 105, 218, 0.45);--shadow-accent:0 8px 24px rgba(9, 105, 218, 0.35);--shadow-card-heavy:0 24px 64px rgba(31, 35, 40, 0.35), 0 0 0 1px rgba(31, 35, 40, 0.08), inset 0 1px 0 #fff, 0 0 80px rgba(9, 105, 218, 0.12);--gradient-hero:linear-gradient(135deg, #FFFFFF, #DDF4FF);--gradient-fab:linear-gradient(135deg, #218BFF, #0969DA);--gradient-primary:linear-gradient(135deg, #218BFF, #0969DA);--gradient-bar:linear-gradient(90deg, #54AEFF, #0969DA);--gradient-card-back:linear-gradient(160deg, #0969DA 0%, #0550AE 46%, #0A3069 100%);--gradient-card-face:linear-gradient(172deg, #FFFFFF 55%, #F6F8FA 100%);--gradient-toolbar:linear-gradient(180deg, #FFFFFF, #F6F8FA);--gradient-sheet:linear-gradient(180deg, #FFFFFF, #F6F8FA);--gradient-overlay:radial-gradient(130% 95% at 50% 34%, rgba(36,41,47,0.6), rgba(13,17,23,0.86));--card-back-pattern:rgba(255, 255, 255, 0.3);--card-back-pattern-soft:rgba(221, 244, 255, 0.25);--card-back-emblem:#DDF4FF;--card-back-emblem-border:rgba(182, 227, 255, 0.65);--card-back-glow:rgba(84, 174, 255, 0.55);--card-back-arc:rgba(255, 255, 255, 0.35);--card-back-arc2:rgba(255, 255, 255, 0.18);--card-back-shadow:0 52rpx 128rpx rgba(1,4,9,0.5), inset 0 2rpx 0 rgba(255,255,255,0.28), inset 0 0 80rpx rgba(10,48,105,0.4);--card-back-inner:radial-gradient(circle at 34% 30%, rgba(255,255,255,0.3), rgba(255,255,255,0.08));--card-sheen-tint:rgba(84, 174, 255, 0.3);--card-face-fade:rgba(255, 255, 255, 0.94);--card-name-shadow:#fff;--glow-rgb:9, 105, 218;--flash-tint:rgba(221, 244, 255, 0.85);--flash-edge:rgba(9, 105, 218, 0.35);--mask-light:rgba(31, 35, 40, 0.5);--mask-heavy:rgba(31, 35, 40, 0.55);--mask-scan:rgba(13, 17, 23, 0.82);--tabbar-bg:#FFFFFF;--tabbar-border:#D1D9E0;--tabbar-text:#59636E;--tabbar-text-active:#0969DA;--tabbar-center-bg:#0969DA;--tabbar-center-border:#FFFFFF;--tabbar-center-shadow:rgba(9, 105, 218, 0.35);--nav-fallback:linear-gradient(180deg, #FFFFFF, #F6F8FA);--nav-veil:rgba(255, 255, 255, 0);--nav-fade:linear-gradient(180deg, rgba(246, 248, 250, 0), #F6F8FA);--navbar-fg:#1F2328;--navbar-shadow:none;--skeleton-base:#EAEFF2;--skeleton-shine:#F6F8FA;--grip-color:#D1D9E0;--btn-disabled-bg:#EAEFF2;--btn-disabled-text:#9198A1;--btn-reject-bg:rgba(255, 255, 255, 0.92);--btn-reject-text:#0550AE;--btn-reject-border:#FFFFFF;--divider-strong:#D1D9E0;--heat-1:#B6E3FF;--heat-2:#54AEFF;--heat-3:#0969DA;--bg-poster-full:#24292F;--poster-preview-fg:#F0F6FC;--poster-preview-border:rgba(255, 255, 255, 0.3);--poster-preview-btn-bg:rgba(255, 255, 255, 0.12);--gradient-poster-icon:linear-gradient(135deg, #218BFF, #0550AE);--badge-bg:rgba(9, 105, 218, 0.9);--border-dashed:#AFB8C1;--gradient-ai:linear-gradient(135deg, #7C5AE0 0%, #A78BFA 45%, #EC6FAE 100%);--gradient-ai-btn:linear-gradient(135deg, #A78BFA, #EC6FAE);--ai-color:#8250DF;--ai-color-deep:#6639BA;--ai-shadow:rgba(130, 80, 223, 0.35);--ai-bg-soft:#FBEFFF;--ai-border-dashed:#C4A6FF;--scan-line-glow:rgba(196, 166, 255, 0.5);--ai-guide-bg:linear-gradient(135deg, rgba(130, 80, 223, 0.08), rgba(191, 75, 138, 0.08));--ai-pulse-glow:rgba(130, 80, 223, 0.45);--color-primary:#0969DA;--color-primary-light:#DDF4FF;--color-primary-dark:#0550AE;--color-bg:#F6F8FA;--color-card:#FFFFFF;--color-text:#1F2328;--color-text-sub:#59636E;--color-text-hint:#818B98;--color-border:#D1D9E0"><div class="scr"><div class="navbar-simple"><span class="nb-back">‹</span><span class="nb-title">外观</span></div>
+      <div class="body abody">
+        <div class="page-tip">选择一套外观主题，立即生效并自动记住。切换只改变视觉，不影响任何菜品数据。</div>
+        <div class="theme-card">
+          <div class="pv" style="background:#FFF7FA">
+            <div class="pv-nav" style="background:#FFF0F6"></div>
+            <div class="pv-card" style="background:#FFFFFF;border-color:#F8E3EC">
+              <div class="pv-thumb" style="background:#FFF0F6"></div>
+              <div class="pv-lines"><div class="pv-line" style="background:#4A2C3A;opacity:.85"></div><div class="pv-line short" style="background:#4A2C3A;opacity:.4"></div></div>
+            </div>
+            <div class="pv-card" style="background:#FFFFFF;border-color:#F8E3EC">
+              <div class="pv-thumb" style="background:#FFF0F6"></div>
+              <div class="pv-lines"><div class="pv-line" style="background:#4A2C3A;opacity:.85"></div><div class="pv-line short" style="background:#4A2C3A;opacity:.4"></div></div>
+            </div>
+            <div class="pv-accent" style="background:#FF8FB8"></div>
+            <div class="pv-tabbar" style="background:#FFFFFF;border-top-color:#F8E3EC">
+              <div class="pv-dot" style="background:#4A2C3A;opacity:.35"></div><div class="pv-dot active" style="background:#FF8FB8"></div><div class="pv-dot" style="background:#4A2C3A;opacity:.35"></div>
+            </div>
+          </div>
+          <div class="theme-meta"><div class="theme-name">樱花粉</div><div class="theme-desc">Yuki 小厨房经典主题</div></div>
+          
+        </div><div class="theme-card selected">
+          <div class="pv" style="background:#F6F8FA">
+            <div class="pv-nav" style="background:#DDF4FF"></div>
+            <div class="pv-card" style="background:#FFFFFF;border-color:#D1D9E0">
+              <div class="pv-thumb" style="background:#DDF4FF"></div>
+              <div class="pv-lines"><div class="pv-line" style="background:#1F2328;opacity:.85"></div><div class="pv-line short" style="background:#1F2328;opacity:.4"></div></div>
+            </div>
+            <div class="pv-card" style="background:#FFFFFF;border-color:#D1D9E0">
+              <div class="pv-thumb" style="background:#DDF4FF"></div>
+              <div class="pv-lines"><div class="pv-line" style="background:#1F2328;opacity:.85"></div><div class="pv-line short" style="background:#1F2328;opacity:.4"></div></div>
+            </div>
+            <div class="pv-accent" style="background:#0969DA"></div>
+            <div class="pv-tabbar" style="background:#FFFFFF;border-top-color:#D1D9E0">
+              <div class="pv-dot" style="background:#1F2328;opacity:.35"></div><div class="pv-dot active" style="background:#0969DA"></div><div class="pv-dot" style="background:#1F2328;opacity:.35"></div>
+            </div>
+          </div>
+          <div class="theme-meta"><div class="theme-name">GitHub Light</div><div class="theme-desc">Primer 浅色 · 简洁克制</div></div>
+          <div class="theme-check">✓</div>
+        </div><div class="theme-card">
+          <div class="pv" style="background:#0D1117">
+            <div class="pv-nav" style="background:#121D2F"></div>
+            <div class="pv-card" style="background:#151B23;border-color:#3D444D">
+              <div class="pv-thumb" style="background:#121D2F"></div>
+              <div class="pv-lines"><div class="pv-line" style="background:#F0F6FC;opacity:.85"></div><div class="pv-line short" style="background:#F0F6FC;opacity:.4"></div></div>
+            </div>
+            <div class="pv-card" style="background:#151B23;border-color:#3D444D">
+              <div class="pv-thumb" style="background:#121D2F"></div>
+              <div class="pv-lines"><div class="pv-line" style="background:#F0F6FC;opacity:.85"></div><div class="pv-line short" style="background:#F0F6FC;opacity:.4"></div></div>
+            </div>
+            <div class="pv-accent" style="background:#4493F8"></div>
+            <div class="pv-tabbar" style="background:#151B23;border-top-color:#3D444D">
+              <div class="pv-dot" style="background:#F0F6FC;opacity:.35"></div><div class="pv-dot active" style="background:#4493F8"></div><div class="pv-dot" style="background:#F0F6FC;opacity:.35"></div>
+            </div>
+          </div>
+          <div class="theme-meta"><div class="theme-name">GitHub Dark</div><div class="theme-desc">Primer 深色 · 低对比护眼</div></div>
+          
+        </div>
+        <div class="foot-note">后续将支持「跟随系统」深浅色自动切换</div>
+      </div></div></div>
+        </div><div class="col">
+          <div class="col-head"><span class="dot" style="background:#4493F8"></span>GitHub Dark</div>
+          <div class="phone" style="--bg-page:#0D1117;--bg-card:#151B23;--bg-card-solid:#151B23;--bg-sunken:#010409;--bg-hover:#212830;--bg-active:#212830;--bg-placeholder:#1C2128;--bg-sheet:#151B23;--text-primary:#F0F6FC;--text-secondary:#9198A1;--text-hint:#6E7681;--text-faint:#545C66;--text-on-accent:#FFFFFF;--color-accent:#4493F8;--color-accent-strong:#388BFD;--color-accent-deep:#79C0FF;--color-accent-dark:#4493F8;--color-accent-soft:#121D2F;--color-accent-softer:#1C2128;--color-accent-border:#1F6FEB;--border-default:#3D444D;--border-soft:#2F353D;--border-strong:#4A5159;--card-border:rgba(240, 246, 252, 0.08);--card-face-border:#3D444D;--color-success:#3FB950;--color-success-bg:#12261E;--color-star:#D29922;--star-off:#3D444D;--shadow-card:0 1px 2px rgba(1, 4, 9, 0.4);--shadow-panel:0 8px 24px rgba(1, 4, 9, 0.6);--shadow-fab:0 4px 12px rgba(31, 111, 235, 0.4);--shadow-fab-drag:0 6px 16px rgba(31, 111, 235, 0.55);--shadow-accent:0 8px 24px rgba(31, 111, 235, 0.45);--shadow-card-heavy:0 24px 64px rgba(1, 4, 9, 0.8), 0 0 0 1px rgba(240, 246, 252, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 80px rgba(68, 147, 248, 0.15);--gradient-hero:linear-gradient(135deg, #151B23, #1C2128);--gradient-fab:linear-gradient(135deg, #388BFD, #1F6FEB);--gradient-primary:linear-gradient(135deg, #388BFD, #1F6FEB);--gradient-bar:linear-gradient(90deg, #1F6FEB, #4493F8);--gradient-card-back:linear-gradient(160deg, #1F6FEB 0%, #1158C7 46%, #0A3069 100%);--gradient-card-face:linear-gradient(172deg, #151B23 55%, #0D1117 100%);--gradient-toolbar:linear-gradient(180deg, #1C2128, #151B23);--gradient-sheet:linear-gradient(180deg, #1C2128, #151B23);--gradient-overlay:radial-gradient(130% 95% at 50% 34%, rgba(13,17,23,0.6), rgba(1,4,9,0.88));--card-back-pattern:rgba(121, 192, 255, 0.35);--card-back-pattern-soft:rgba(18, 29, 47, 0.5);--card-back-emblem:#79C0FF;--card-back-emblem-border:rgba(121, 192, 255, 0.6);--card-back-glow:rgba(68, 147, 248, 0.5);--card-back-arc:rgba(121, 192, 255, 0.4);--card-back-arc2:rgba(121, 192, 255, 0.16);--card-back-shadow:0 52rpx 128rpx rgba(1,4,9,0.7), inset 0 2rpx 0 rgba(255,255,255,0.16), inset 0 0 80rpx rgba(10,48,105,0.5);--card-back-inner:radial-gradient(circle at 34% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.05));--card-sheen-tint:rgba(56, 139, 253, 0.35);--card-face-fade:rgba(21, 27, 35, 0.94);--card-name-shadow:rgba(1, 4, 9, 0.6);--glow-rgb:68, 147, 248;--flash-tint:rgba(121, 192, 255, 0.8);--flash-edge:rgba(68, 147, 248, 0.35);--mask-light:rgba(1, 4, 9, 0.6);--mask-heavy:rgba(1, 4, 9, 0.7);--mask-scan:rgba(1, 4, 9, 0.85);--tabbar-bg:#151B23;--tabbar-border:#3D444D;--tabbar-text:#9198A1;--tabbar-text-active:#4493F8;--tabbar-center-bg:#1F6FEB;--tabbar-center-border:#0D1117;--tabbar-center-shadow:rgba(1, 4, 9, 0.5);--nav-fallback:linear-gradient(180deg, #151B23, #0D1117);--nav-veil:rgba(0, 0, 0, 0);--nav-fade:linear-gradient(180deg, rgba(13, 17, 23, 0), #0D1117);--navbar-fg:#F0F6FC;--navbar-shadow:none;--skeleton-base:#212830;--skeleton-shine:#262C36;--grip-color:#3D444D;--btn-disabled-bg:#262C36;--btn-disabled-text:#545C66;--btn-reject-bg:rgba(21, 27, 35, 0.92);--btn-reject-text:#79C0FF;--btn-reject-border:#3D444D;--divider-strong:#3D444D;--heat-1:#0C2D6B;--heat-2:#1F6FEB;--heat-3:#4493F8;--bg-poster-full:#010409;--poster-preview-fg:#F0F6FC;--poster-preview-border:rgba(240, 246, 252, 0.25);--poster-preview-btn-bg:rgba(240, 246, 252, 0.1);--gradient-poster-icon:linear-gradient(135deg, #388BFD, #1158C7);--badge-bg:rgba(31, 111, 235, 0.9);--border-dashed:#4A5159;--gradient-ai:linear-gradient(135deg, #6639BA 0%, #8957E5 45%, #BF4B8A 100%);--gradient-ai-btn:linear-gradient(135deg, #8957E5, #BF4B8A);--ai-color:#AB7DF8;--ai-color-deep:#AB7DF8;--ai-shadow:rgba(137, 87, 229, 0.4);--ai-bg-soft:#212830;--ai-border-dashed:#8957E5;--scan-line-glow:rgba(171, 125, 248, 0.5);--ai-guide-bg:linear-gradient(135deg, rgba(137, 87, 229, 0.15), rgba(191, 75, 138, 0.15));--ai-pulse-glow:rgba(137, 87, 229, 0.5);--color-primary:#4493F8;--color-primary-light:#121D2F;--color-primary-dark:#79C0FF;--color-bg:#0D1117;--color-card:#151B23;--color-text:#F0F6FC;--color-text-sub:#9198A1;--color-text-hint:#6E7681;--color-border:#3D444D"><div class="scr"><div class="navbar-simple"><span class="nb-back">‹</span><span class="nb-title">外观</span></div>
+      <div class="body abody">
+        <div class="page-tip">选择一套外观主题，立即生效并自动记住。切换只改变视觉，不影响任何菜品数据。</div>
+        <div class="theme-card">
+          <div class="pv" style="background:#FFF7FA">
+            <div class="pv-nav" style="background:#FFF0F6"></div>
+            <div class="pv-card" style="background:#FFFFFF;border-color:#F8E3EC">
+              <div class="pv-thumb" style="background:#FFF0F6"></div>
+              <div class="pv-lines"><div class="pv-line" style="background:#4A2C3A;opacity:.85"></div><div class="pv-line short" style="background:#4A2C3A;opacity:.4"></div></div>
+            </div>
+            <div class="pv-card" style="background:#FFFFFF;border-color:#F8E3EC">
+              <div class="pv-thumb" style="background:#FFF0F6"></div>
+              <div class="pv-lines"><div class="pv-line" style="background:#4A2C3A;opacity:.85"></div><div class="pv-line short" style="background:#4A2C3A;opacity:.4"></div></div>
+            </div>
+            <div class="pv-accent" style="background:#FF8FB8"></div>
+            <div class="pv-tabbar" style="background:#FFFFFF;border-top-color:#F8E3EC">
+              <div class="pv-dot" style="background:#4A2C3A;opacity:.35"></div><div class="pv-dot active" style="background:#FF8FB8"></div><div class="pv-dot" style="background:#4A2C3A;opacity:.35"></div>
+            </div>
+          </div>
+          <div class="theme-meta"><div class="theme-name">樱花粉</div><div class="theme-desc">Yuki 小厨房经典主题</div></div>
+          
+        </div><div class="theme-card">
+          <div class="pv" style="background:#F6F8FA">
+            <div class="pv-nav" style="background:#DDF4FF"></div>
+            <div class="pv-card" style="background:#FFFFFF;border-color:#D1D9E0">
+              <div class="pv-thumb" style="background:#DDF4FF"></div>
+              <div class="pv-lines"><div class="pv-line" style="background:#1F2328;opacity:.85"></div><div class="pv-line short" style="background:#1F2328;opacity:.4"></div></div>
+            </div>
+            <div class="pv-card" style="background:#FFFFFF;border-color:#D1D9E0">
+              <div class="pv-thumb" style="background:#DDF4FF"></div>
+              <div class="pv-lines"><div class="pv-line" style="background:#1F2328;opacity:.85"></div><div class="pv-line short" style="background:#1F2328;opacity:.4"></div></div>
+            </div>
+            <div class="pv-accent" style="background:#0969DA"></div>
+            <div class="pv-tabbar" style="background:#FFFFFF;border-top-color:#D1D9E0">
+              <div class="pv-dot" style="background:#1F2328;opacity:.35"></div><div class="pv-dot active" style="background:#0969DA"></div><div class="pv-dot" style="background:#1F2328;opacity:.35"></div>
+            </div>
+          </div>
+          <div class="theme-meta"><div class="theme-name">GitHub Light</div><div class="theme-desc">Primer 浅色 · 简洁克制</div></div>
+          
+        </div><div class="theme-card selected">
+          <div class="pv" style="background:#0D1117">
+            <div class="pv-nav" style="background:#121D2F"></div>
+            <div class="pv-card" style="background:#151B23;border-color:#3D444D">
+              <div class="pv-thumb" style="background:#121D2F"></div>
+              <div class="pv-lines"><div class="pv-line" style="background:#F0F6FC;opacity:.85"></div><div class="pv-line short" style="background:#F0F6FC;opacity:.4"></div></div>
+            </div>
+            <div class="pv-card" style="background:#151B23;border-color:#3D444D">
+              <div class="pv-thumb" style="background:#121D2F"></div>
+              <div class="pv-lines"><div class="pv-line" style="background:#F0F6FC;opacity:.85"></div><div class="pv-line short" style="background:#F0F6FC;opacity:.4"></div></div>
+            </div>
+            <div class="pv-accent" style="background:#4493F8"></div>
+            <div class="pv-tabbar" style="background:#151B23;border-top-color:#3D444D">
+              <div class="pv-dot" style="background:#F0F6FC;opacity:.35"></div><div class="pv-dot active" style="background:#4493F8"></div><div class="pv-dot" style="background:#F0F6FC;opacity:.35"></div>
+            </div>
+          </div>
+          <div class="theme-meta"><div class="theme-name">GitHub Dark</div><div class="theme-desc">Primer 深色 · 低对比护眼</div></div>
+          <div class="theme-check">✓</div>
+        </div>
+        <div class="foot-note">后续将支持「跟随系统」深浅色自动切换</div>
+      </div></div></div>
+        </div></div></section>
+</body></html>

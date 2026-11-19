@@ -20,7 +20,7 @@
 
 .tip {
   font-size: 22rpx;
-  color: #C9A8B8;
+  color: var(--text-hint, #C9A8B8);
   line-height: 1.6;
   margin-bottom: 20rpx;
   padding: 0 8rpx;
@@ -44,8 +44,8 @@
   align-items: center;
   justify-content: center;
   font-size: 30rpx;
-  color: #9C7B8C;
-  background: #FBEFF5;
+  color: var(--text-secondary, #9C7B8C);
+  background: var(--color-accent-softer, #FBEFF5);
   border-radius: 50%;
 }
 .op-del { font-size: 26rpx; }
@@ -56,7 +56,7 @@
 .mask {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--mask-light, rgba(0, 0, 0, 0.45));
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -64,9 +64,10 @@
 }
 .modal {
   width: 600rpx;
-  background: #fff;
+  background: var(--bg-card-solid, #fff);
   border-radius: var(--radius-lg);
   padding: 40rpx 36rpx 28rpx;
+  box-shadow: var(--shadow-panel, 0 12rpx 48rpx rgba(217, 108, 153, 0.25));
 }
 .modal-title {
   font-size: 34rpx;
@@ -77,17 +78,18 @@
 
 .field { display: flex; align-items: center; margin-bottom: 28rpx; }
 .field-col { margin-bottom: 28rpx; }
-.field-label { font-size: 28rpx; color: #9C7B8C; width: 100rpx; flex-shrink: 0; margin-bottom: 16rpx; display: inline-block; }
+.field-label { font-size: 28rpx; color: var(--text-secondary, #9C7B8C); width: 100rpx; flex-shrink: 0; margin-bottom: 16rpx; display: inline-block; }
 .field .field-label { margin-bottom: 0; }
 .field-input {
   flex: 1;
-  background: #FDF5F9;
+  background: var(--bg-sunken, #FDF5F9);
+  color: var(--text-primary, #4A2C3A);
   border-radius: 16rpx;
   height: 88rpx;
   padding: 0 24rpx;
   font-size: 28rpx;
 }
-.ph { color: #D8BAC9; }
+.ph { color: var(--text-faint, #D8BAC9); }
 
 /* 图标选择区：限高内部滚动，取消/保存按钮在滚动区外固定 */
 .icon-scroll {
@@ -101,13 +103,13 @@
   align-items: center;
   justify-content: center;
   font-size: 44rpx;
-  background: #FDF5F9;
+  background: var(--bg-sunken, #FDF5F9);
   border-radius: 18rpx;
   border: 3rpx solid transparent;
 }
 .icon-cell.on {
-  background: #FFF0F6;
-  border-color: #FF8FB8;
+  background: var(--color-accent-soft, #FFF0F6);
+  border-color: var(--color-accent, #FF8FB8);
 }
 
 .modal-btns { display: flex; gap: 20rpx; margin-top: 12rpx; }
@@ -118,5 +120,5 @@
   border-radius: 44rpx;
   font-size: 30rpx;
 }
-.cancel { background: #FBEFF5; color: #9C7B8C; }
-.confirm { background: #FF8FB8; color: #fff; font-weight: 500; }
+.cancel { background: var(--color-accent-softer, #FBEFF5); color: var(--text-secondary, #9C7B8C); }
+.confirm { background: var(--color-accent, #FF8FB8); color: var(--text-on-accent, #fff); font-weight: 500; }

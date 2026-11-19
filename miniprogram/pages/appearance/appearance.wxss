@@ -1,0 +1,117 @@
+/* 外观设置页：主题预览卡片网格，颜色全部走主题 Token */
+.page {
+  padding: 24rpx 24rpx calc(40rpx + env(safe-area-inset-bottom));
+  min-height: 100vh;
+}
+
+.page-tip {
+  font-size: 24rpx;
+  color: var(--text-secondary, #9C7B8C);
+  line-height: 1.6;
+  margin-bottom: 28rpx;
+  padding: 0 8rpx;
+}
+
+.theme-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.theme-card {
+  position: relative;
+  background: var(--bg-card, rgba(255,255,255,0.88));
+  border: 2rpx solid var(--border-default, #F8E3EC);
+  border-radius: var(--radius-lg);
+  padding: 24rpx;
+  box-shadow: var(--shadow-card, 0 6rpx 24rpx rgba(217,108,153,0.08));
+  transition: border-color 0.2s ease, transform 0.15s ease;
+}
+.theme-card:active { transform: scale(0.99); }
+.theme-card.selected {
+  border-color: var(--color-accent, #FF8FB8);
+  box-shadow: 0 0 0 2rpx var(--color-accent, #FF8FB8), var(--shadow-card, 0 6rpx 24rpx rgba(217,108,153,0.08));
+}
+
+/* ============ 迷你预览（用主题自身色板内联，非当前主题变量） ============ */
+.pv {
+  position: relative;
+  height: 260rpx;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  padding: 16rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+.pv-nav {
+  height: 28rpx;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}
+.pv-card {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  height: 56rpx;
+  border-radius: 12rpx;
+  border: 1rpx solid;
+  padding: 0 12rpx;
+  flex-shrink: 0;
+}
+.pv-thumb {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}
+.pv-lines { flex: 1; display: flex; flex-direction: column; gap: 8rpx; }
+.pv-line { height: 8rpx; border-radius: 4rpx; width: 70%; }
+.pv-line.short { width: 40%; }
+.pv-accent {
+  height: 32rpx;
+  border-radius: 999rpx;
+  width: 50%;
+  align-self: center;
+  flex-shrink: 0;
+}
+.pv-tabbar {
+  margin-top: auto;
+  height: 40rpx;
+  border-top: 1rpx solid;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 40rpx;
+  flex-shrink: 0;
+}
+.pv-dot { width: 14rpx; height: 14rpx; border-radius: 50%; }
+.pv-dot.active { width: 20rpx; height: 20rpx; }
+
+/* ============ 文字信息 ============ */
+.theme-meta { margin-top: 20rpx; }
+.theme-name { font-size: 30rpx; font-weight: 600; color: var(--text-primary, #4A2C3A); }
+.theme-desc { font-size: 24rpx; color: var(--text-secondary, #9C7B8C); margin-top: 6rpx; }
+
+/* 选中勾：右上角圆形徽标 */
+.theme-check {
+  position: absolute;
+  top: 16rpx;
+  right: 16rpx;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: var(--color-accent, #FF8FB8);
+  color: var(--text-on-accent, #fff);
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.foot-note {
+  text-align: center;
+  font-size: 22rpx;
+  color: var(--text-hint, #C9A8B8);
+  margin-top: 40rpx;
+}
