@@ -29,6 +29,7 @@ Page(withTheme({
   data: {
     navHeight: 88,
     // 筛选条件
+    settingsOpen: false,     // 抽取设置卡片折叠态（默认收起，仅展示摘要）
     excludeDays: 3,          // 排除最近 N 天吃过的（0 = 不排除）
     onlyWant: false,         // 只从"想吃"里抽
     weightByRating: true,    // 高分优先：按评分加权抽取
@@ -193,6 +194,10 @@ Page(withTheme({
   },
 
   // ---- 筛选交互 ----
+  /** 折叠/展开抽取设置卡片（纯视图状态，不影响抽取逻辑） */
+  toggleSettings() {
+    this.setData({ settingsOpen: !this.data.settingsOpen });
+  },
   onDaysChange(e) {
     this.setData({ excludeDays: Number(e.detail.value) });
   },

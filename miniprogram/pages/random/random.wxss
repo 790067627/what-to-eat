@@ -4,12 +4,16 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  /* border-box：100vh 含 padding，顶部让位导航(内联)、底部让位 TabBar（内容区 112rpx + 24rpx 呼吸）。
-     结果揭晓已移入全屏弹层，其避让在 .ov-actions 内独立计算 */
-  padding: 0 24rpx calc(136rpx + constant(safe-area-inset-bottom));
-  padding: 0 24rpx calc(136rpx + env(safe-area-inset-bottom));
+  /* border-box：100vh 含 padding。顶部让位导航（内联实测 navHeight）。
+     底部避让 = TabBar 内容区 112rpx + 凸起上探 35rpx（TabBar 高度模型事实值）
+     作为最小净空，呼吸增量用 clamp 随视口高度伸缩——小屏收紧、大屏适度放大；
+     safe-area 由 env() 弹性提供。结果揭晓在全屏弹层内独立避让（.ov-spacer 实测） */
+  padding: 0 24rpx calc(constant(safe-area-inset-bottom) + 147rpx + clamp(0rpx, 2vh, 40rpx));
+  padding: 0 24rpx calc(env(safe-area-inset-bottom) + 147rpx + clamp(0rpx, 2vh, 40rpx));
 }
-/* 背景内容层：弹层打开时暗化模糊（filter 只作用于此，不含弹层） */
+/* 背景内容层：弹层打开时暗化模糊（filter 只作用于此，不含弹层）。
+   本身不滚动：设置卡固定高度 + 抽取卡区(.idle-stage)内部自适应，
+   滚动职责集中在 .idle-stage，避免双滚动容器嵌套 */
 .page-body {
   flex: 1;
   min-height: 0;
@@ -19,11 +23,55 @@
 }
 .page-body.dimmed { filter: blur(14rpx) brightness(0.5) saturate(0.7); }
 
-/* 筛选区：自然高度不滚动 */
-.filters { flex-shrink: 0; }
+/* ============ ① 抽取设置：可折叠卡片 ============ */
+.settings { flex-shrink: 0; padding: 0; overflow: hidden; }
+.settings-head {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 26rpx 28rpx;
+}
+.settings-head-hover { background: var(--bg-hover, rgba(255, 143, 184, 0.06)); }
+.settings-titles { flex: 1; min-width: 0; }
+.settings-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-primary, #4A2C3A);
+}
+.settings-summary {
+  margin-top: 8rpx;
+  font-size: 23rpx;
+  color: var(--text-secondary, #9C7B8C);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* 纯 CSS 箭头（无图标依赖），展开时旋转 180° */
+.settings-arrow {
+  flex-shrink: 0;
+  width: 18rpx;
+  height: 18rpx;
+  border-right: 3rpx solid var(--text-hint, #C9A8B8);
+  border-bottom: 3rpx solid var(--text-hint, #C9A8B8);
+  transform: rotate(45deg) translate(-4rpx, -4rpx);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.settings.open .settings-arrow { transform: rotate(225deg) translate(-4rpx, -4rpx); }
+/* 折叠动画：grid-template-rows 0fr→1fr（内容自适应高度，无写死高度） */
+.settings-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.settings.open .settings-body { grid-template-rows: 1fr; }
+.settings-inner {
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 28rpx;
+}
+.settings.open .settings-inner { padding-bottom: 8rpx; }
 
-/* 筛选卡：行高统一 92rpx，行间细分割线，控件右缘对齐 */
-.filters { padding: 16rpx 28rpx; }
+/* 筛选行：行高统一 92rpx，行间细分割线，控件右缘对齐 */
 .filter-row {
   display: flex;
   align-items: center;
@@ -44,23 +92,53 @@
   padding: 8rpx 28rpx;
 }
 
-/* 初始态舞台：占满剩余空间居中 */
+/* ============ ② 抽取交互卡片（控制台视觉焦点） ============ */
+/* 抽取卡区舞台：占满设置卡之外的全部剩余空间。
+   收起态——内容不足，auto margin 垂直安全居中（大屏不过度空旷）；
+   展开态——设置卡占去较多高度，小屏剩余空间不足以容纳完整卡片，
+   此时切换为顶部对齐 + 紧凑抽取卡 + 区域自身滚动，保证「开始抽取」
+   主按钮始终在首屏可见、绝不被裁切（规避 justify-content:center 顶部盲区）。 */
 .idle-stage {
   flex: 1;
   min-height: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: clamp(8rpx, 2vh, 36rpx) 0;
 }
-.idle { text-align: center; width: 100%; }
+.roll-card {
+  width: 100%;
+  text-align: center;
+  padding: clamp(28rpx, 4.5vh, 72rpx) 40rpx clamp(32rpx, 5vh, 68rpx);
+  margin-top: auto;     /* 与 .add-hint 的 margin-bottom:auto 配对实现安全居中 */
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
 .dice { font-size: 120rpx; margin-bottom: 20rpx; color: var(--color-accent, #FF8FB8); animation: float 2.4s ease-in-out infinite; }
-/* 开始抽按钮：距说明 56rpx（48~64 区间） */
-.roll-btn { width: 70%; margin: 56rpx auto 0; }
+/* 开始抽取按钮：距说明弹性留白（48~64rpx 基准，随视口高度微调） */
+.roll-btn { width: 70%; margin: clamp(40rpx, 5vh, 64rpx) auto 0; }
 .add-hint {
-  margin-top: 24rpx;
+  margin-top: clamp(20rpx, 3vh, 40rpx);
+  margin-bottom: auto;    /* 与 .roll-card 的 margin-top:auto 配对，安全居中 */
+  padding: 12rpx 24rpx;   /* 扩大点按热区，视觉仍是轻量文字 */
   font-size: 24rpx;
   color: var(--text-hint, #C9A8B8);
   text-align: center;
+  flex-shrink: 0;
+}
+
+/* 设置展开态：中小屏剩余空间不足以容纳完整抽取卡，切换紧凑卡，
+   保证主按钮与次级入口同屏完整可见、不裁切；大屏（视口高>880px）保留完整卡。
+   居中仍由 auto margin 承担：内容放得下即居中，放不下自动顶对齐+本区滚动。 */
+@media (max-height: 880px) {
+  .settings-open .roll-card { padding: 16rpx 40rpx 20rpx; }
+  .settings-open .dice { font-size: 84rpx; margin-bottom: 8rpx; }
+  .settings-open .idle-title { font-size: 32rpx; }
+  .settings-open .idle-sub { font-size: 24rpx; margin-top: 6rpx; }
+  .settings-open .roll-btn { margin-top: 24rpx; }
+  .settings-open .add-hint { margin-top: 12rpx; padding: 6rpx 24rpx; }
 }
 @keyframes float {
   0%, 100% { transform: translateY(0); }

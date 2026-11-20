@@ -2,9 +2,18 @@
 <immersive-nav />
 <view class="page" style="padding-top: {{navHeight}}px">
   <!-- 背景内容（弹层打开时整体暗化模糊；filter 只作用于此层，不含弹层） -->
-  <view class="page-body {{ovShow ? 'dimmed' : ''}}">
-    <!-- ① 顶部筛选区：自然高度，不滚动 -->
-    <view class="card filters">
+  <view class="page-body {{ovShow ? 'dimmed' : ''}} {{settingsOpen ? 'settings-open' : ''}}">
+    <!-- ① 抽取设置：可折叠卡片，默认收起展示当前设置摘要 -->
+    <view class="card settings {{settingsOpen ? 'open' : ''}}">
+      <view class="settings-head" bindtap="toggleSettings" hover-class="settings-head-hover" hover-stay-time="80">
+        <view class="settings-titles">
+          <view class="settings-title">抽取设置</view>
+          <view class="settings-summary">{{excludeDays === 0 ? '不排除近期' : '排除近' + excludeDays + '天'}}{{onlyWant ? ' · 仅想吃' : ''}}{{weightByRating ? ' · 高分优先' : ''}}{{categoryFilterName ? ' · ' + categoryFilterName : ''}}</view>
+        </view>
+        <view class="settings-arrow"></view>
+      </view>
+      <view class="settings-body">
+      <view class="settings-inner">
       <view class="filter-row">
         <text class="filter-label">排除最近吃过的</text>
         <slider
@@ -33,18 +42,21 @@
           <view class="filter-picker">{{categoryFilterName || '不限'}} ▾</view>
         </picker>
       </view>
+      </view>
+      </view>
     </view>
 
-    <!-- ② 初始态：骰子+标题+说明+开始抽 -->
+    <!-- ② 抽取交互卡片：骰子+标题+辅助文案+开始抽取，统一视觉焦点 -->
     <view class="idle-stage">
-      <view class="idle">
+      <view class="card roll-card">
         <view class="dice bi"><text class="bi"></text></view>
-        <view class="idle-title">今天吃啥？</view>
+        <view class="idle-title">今天吃点什么？</view>
         <view class="idle-sub">让命运替你决定</view>
         <view wx:if="{{errorMessage}}" class="error-tip">{{errorMessage}}</view>
-        <view class="btn-primary roll-btn" bindtap="onRoll">开始抽</view>
-        <view class="add-hint" bindtap="goAdd">菜品库不够丰富？去加几道 ›</view>
+        <view class="btn-primary roll-btn" bindtap="onRoll">开始抽取</view>
       </view>
+      <!-- 次级文字入口：核心卡片下方 -->
+      <view class="add-hint" bindtap="goAdd">菜品库不够丰富？去加几道 ›</view>
     </view>
   </view>
 
