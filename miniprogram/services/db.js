@@ -84,6 +84,9 @@ module.exports = {
   
   // ---- 用户信息 ----
   getUserInfo: () => call('getUserInfo'),
+  // 用户资料（头像 fileID / 昵称）：按 openid 云端持久化
+  getProfile: () => call('getProfile'),
+  saveProfile: (data) => call('saveProfile', data),
   
   // ---- 分享菜品 ----
   saveSharedDish: (dishId) => call('saveSharedDish', { dishId }),

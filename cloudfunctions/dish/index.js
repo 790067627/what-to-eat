@@ -49,6 +49,8 @@ exports.main = async (event, context) => {
       
       // ---- 用户信息 / 分享 ----
       case 'getUserInfo': return await getUserInfo(ctx);
+      case 'getProfile': return await getProfile(ctx);
+      case 'saveProfile': return await saveProfile(ctx);
       case 'saveSharedDish': return await saveSharedDish(ctx);
 
       default: return fail(`未知操作: ${action}`);
@@ -698,6 +700,43 @@ async function importData({ openid, event }) {
 /** 获取当前用户信息（前端用来判断是否是自己的菜） */
 async function getUserInfo({ openid }) {
   return ok({ openid });
+}
+
+/** 读取用户资料（头像 fileID / 昵称）。首次进入无记录时返回空资料，前端用默认头像 */
+async function getProfile({ openid }) {
+  try {
+    const res = await db.collection('profiles').where({ openid }).limit(1).get();
+    const p = res.data && res.data[0];
+    return ok({
+      avatarFileID: (p && p.avatarFileID) || '',
+      nickname: (p && p.nickname) || ''
+    });
+  } catch (e) {
+    // profiles 集合尚未创建：视为无资料
+    return ok({ avatarFileID: '', nickname: '' });
+  }
+}
+
+/** 保存用户资料（按 openid upsert）。头像上传由前端完成，这里只存 fileID/昵称。
+ *  avatarFileID 传空串表示不改动头像字段（仅更新昵称场景）。 */
+async function saveProfile({ openid, event }) {
+  const col = db.collection('profiles');
+  const { avatarFileID, nickname } = event;
+
+  const data = { updatedAt: db.serverDate() };
+  if (typeof avatarFileID === 'string' && avatarFileID) data.avatarFileID = avatarFileID;
+  if (typeof nickname === 'string') data.nickname = nickname.slice(0, 32);
+
+  // 首次写入确保集合存在
+  try { await db.createCollection('profiles'); } catch (e) { /* 已存在，忽略 */ }
+
+  const exist = await col.where({ openid }).limit(1).get();
+  if (exist.data && exist.data.length) {
+    await col.where({ openid }).update({ data });
+    return ok({ updated: true });
+  }
+  await col.add({ data: { openid, avatarFileID: data.avatarFileID || '', nickname: data.nickname || '', createdAt: db.serverDate(), updatedAt: data.updatedAt } });
+  return ok({ created: true });
 }
 
 /** 保存别人分享的菜品到自己的菜单 */

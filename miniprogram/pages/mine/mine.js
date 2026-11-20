@@ -9,6 +9,9 @@ Page(withTheme({
     navHeight: 88,
     stats: { dishCount: 0, categoryCount: 0, eatCount: 0 },
     loading: true,
+    // 用户资料
+    avatarUrl: '',        // 头像展示地址（云存储 fileID，image 组件可直接渲染临时/云路径）
+    avatarLoading: false, // 头像上传中标记（防重复点击）
     // 吃历
     weekNames: ['日', '一', '二', '三', '四', '五', '六'],
     calTitle: '',
@@ -33,6 +36,7 @@ Page(withTheme({
       this.getTabBar().setData({ selected: 3 });
     }
     this.loadStats();
+    this.loadProfile();
     const now = new Date();
     this._curY = now.getFullYear();
     this._curM = now.getMonth() + 1;
@@ -47,6 +51,57 @@ Page(withTheme({
     } catch (err) {
       api.handleErr(err);
       this.setData({ loading: false });
+    }
+  },
+
+  // ==================== 用户头像 ====================
+
+  /** 读取云端用户资料（按 openid 持久化）。失败静默用默认头像，不打扰用户 */
+  async loadProfile() {
+    try {
+      const p = await api.getProfile();
+      const fileID = (p && p.avatarFileID) || '';
+      this._avatarFileID = fileID;   // 缓存当前云端头像，换头像时据此删旧图
+      this.setData({ avatarUrl: fileID });
+    } catch (err) {
+      // 首次进入或集合未建：保持默认头像
+      console.warn('[profile] 读取失败，使用默认头像', err);
+    }
+  },
+
+  /** button open-type="chooseAvatar" 回调：用户主动选择头像
+   *  流程：拿到本地临时路径 → 上传云存储 avatars/<openid 由云函数关联> → saveProfile 存 fileID
+   *  → 删旧头像文件 → 本地即时回显临时路径（零等待） */
+  async onChooseAvatar(e) {
+    const tempPath = e.detail && e.detail.avatarUrl;
+    if (!tempPath) return;
+    if (this.data.avatarLoading) return;
+
+    const oldFileID = this._avatarFileID || '';
+    // 先用临时路径即时回显，避免等待上传的空白
+    this.setData({ avatarUrl: tempPath, avatarLoading: true });
+    wx.showLoading({ title: '保存中', mask: true });
+    try {
+      const ext = (tempPath.match(/\.(\w+)$/) || [, 'png'])[1];
+      const cloudPath = `avatars/${Date.now()}-${Math.floor(Math.random() * 10000)}.${ext}`;
+      const up = await wx.cloud.uploadFile({ cloudPath, filePath: tempPath });
+      const fileID = up.fileID;
+      await api.saveProfile({ avatarFileID: fileID });
+      this._avatarFileID = fileID;
+      // 持久化成功后用云端 fileID 覆盖临时路径（重进小程序也能显示）
+      this.setData({ avatarUrl: fileID, avatarLoading: false });
+      wx.hideLoading();
+      wx.showToast({ title: '头像已更新', icon: 'success' });
+      // 清理上一张头像（延迟删，确保新图已渲染；失败忽略）
+      if (oldFileID && oldFileID !== fileID) {
+        wx.cloud.deleteFile({ fileList: [oldFileID] }).catch(() => {});
+      }
+    } catch (err) {
+      wx.hideLoading();
+      this.setData({ avatarLoading: false });
+      // 回滚到已保存的云端头像（若有）
+      this.setData({ avatarUrl: oldFileID || '' });
+      api.handleErr(err, '头像保存失败');
     }
   },
 

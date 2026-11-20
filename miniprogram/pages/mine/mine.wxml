@@ -1,9 +1,27 @@
 <page-meta page-style="{{themeVars}}" root-background-color="{{themeWindowBg}}" background-color="{{themeWindowBg}}" background-text-style="{{themeJs.mode === 'dark' ? 'light' : 'dark'}}" />
 <immersive-nav />
 <view class="page" style="padding-top: {{navHeight}}px">
-  <!-- 统计卡 -->
+  <!-- 个人信息卡：头像 + 名称 + 三项统计 -->
   <view class="card stats-card">
-    <view class="stats-title">我的小厨房 </view>
+    <view class="profile-row">
+      <!-- 官方 chooseAvatar 能力：用户主动点头像选择/更换（不使用已废弃的 getUserProfile）。
+           button 原生样式会干扰内部布局，故视觉全部交给内层 view.avatar-box 承载 -->
+      <button class="avatar-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar" hover-class="none">
+        <view class="avatar-box">
+          <image wx:if="{{avatarUrl}}" class="avatar-img" src="{{avatarUrl}}" mode="aspectFill" />
+          <!-- 未设置：CSS 人形剪影（颜色走 Token，三主题自适应；不依赖字体子集） -->
+          <view wx:else class="avatar-default">
+            <view class="avatar-ph-head"></view>
+            <view class="avatar-ph-body"></view>
+          </view>
+          <view wx:if="{{avatarLoading}}" class="avatar-mask"></view>
+        </view>
+      </button>
+      <view class="profile-info">
+        <view class="profile-name">我的小厨房</view>
+        <view class="profile-hint">{{avatarUrl ? '点击更换头像' : '点击设置头像'}}</view>
+      </view>
+    </view>
     <view class="stats-row">
       <view class="stat-cell">
         <view class="stat-num">{{stats.dishCount}}</view>
