@@ -528,7 +528,10 @@ const CLOUD_ASSETS = {
   kitty: 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/kitty-deco.webp',
   header: 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/header-kitchen.jpg',
   // 蜂蜜小熊主题：导航 banner + 7 层角色部件（nav-bears 组件按需加载，非该主题不下载）
+  // v2：重绘干净版（原素材自带贯穿黑线，2160x600 白→浅奶油黄渐变+5颗黄星）；
+  //     换 key 使端侧旧本地缓存自然失效（LOCAL_PATH 按 key 分文件），无需清理代码
   'header-honey': 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/header-honey.jpg',
+  'header-honey-v2': 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/header-honey-v2.jpg',
   'bears/brown_01_body': 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/bears/brown_01_body.png',
   'bears/brown_02_head_hat': 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/bears/brown_02_head_hat.png',
   'bears/brown_03_arm_panhandle': 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/bears/brown_03_arm_panhandle.png',

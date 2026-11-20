@@ -42,8 +42,9 @@ module.exports = {
     tabbar: { iconMode: 'font', dir: '/custom-tab-bar/icons-gh-dark', icons: TAB_ICONS_GITHUB }
   },
   honey: {
-    // 蜂蜜小熊：独立 banner（cloudKey 接线后生效）+ 导航角色装饰层
-    nav: { mode: 'illustrated', extraHeight: 24, contentTopOffset: 0, cloudKey: 'header-honey' },
+    // 蜂蜜小熊：banner v2（重绘无黑线版，云存储 assets/header-honey-v2.jpg；
+    // cloudKey 变更使端侧旧黑线图缓存自然失效）+ 导航角色装饰层
+    nav: { mode: 'illustrated', extraHeight: 24, contentTopOffset: 0, cloudKey: 'header-honey-v2' },
     decoration: { kitty: { show: false, cloudKey: '' }, bears: { show: true } },
     tabbar: { iconMode: 'font', dir: '/custom-tab-bar/icons-gh-light', icons: TAB_ICONS_GITHUB }
   }
