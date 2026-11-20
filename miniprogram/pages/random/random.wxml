@@ -1,6 +1,6 @@
 <page-meta page-style="{{themeVars}}" root-background-color="{{themeWindowBg}}" background-color="{{themeWindowBg}}" background-text-style="{{themeJs.mode === 'dark' ? 'light' : 'dark'}}" />
 <immersive-nav />
-<view class="page" style="padding-top: {{navHeight}}px">
+<view class="page" style="padding-top: {{navHeight + contentTopOffset}}px">
   <!-- 背景内容（弹层打开时整体暗化模糊；filter 只作用于此层，不含弹层） -->
   <view class="page-body {{ovShow ? 'dimmed' : ''}} {{settingsOpen ? 'settings-open' : ''}}">
     <!-- ① 抽取设置：可折叠卡片，默认收起展示当前设置摘要 -->

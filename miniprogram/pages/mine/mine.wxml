@@ -1,6 +1,6 @@
 <page-meta page-style="{{themeVars}}" root-background-color="{{themeWindowBg}}" background-color="{{themeWindowBg}}" background-text-style="{{themeJs.mode === 'dark' ? 'light' : 'dark'}}" />
 <immersive-nav />
-<view class="page" style="padding-top: {{navHeight}}px">
+<view class="page" style="padding-top: {{navHeight + contentTopOffset}}px">
   <!-- 个人信息卡：头像 + 名称 + 三项统计 -->
   <view class="card stats-card">
     <view class="profile-row">
