@@ -12,6 +12,7 @@
 //                        计算，此字段只负责主题级额外间距，禁止在此写死设备高度。
 //   nav.cloudKey         getBgUrl 云资源 key（'' 表示不加载云端图）
 //   decoration.kitty     首页 Hello Kitty 装饰（show=false 时组件不渲染、不加载、不占布局）
+//   decoration.bears     首页导航角色装饰（nav-bears 组件，7 层纸片人动画；仅蜂蜜主题开启）
 //   tabbar.iconMode      'image'（PNG 图标，樱花主题沿用现有资源）| 'font'（bi 字体图标，颜色随 CSS 变量）
 //   tabbar.icons         iconMode='font' 时四个 tab 的码位（首页/菜单/抽一抽/我的）
 
@@ -26,18 +27,24 @@ module.exports = {
   sakura: {
     // 插画带 24px 兼作 hero 卡与导航的天然间距，contentTopOffset 保持 0（视觉与改造前一致）
     nav: { mode: 'illustrated', extraHeight: 24, contentTopOffset: 0, cloudKey: 'header' },
-    decoration: { kitty: { show: true, cloudKey: 'kitty' } },
+    decoration: { kitty: { show: true, cloudKey: 'kitty' }, bears: { show: false } },
     tabbar: { iconMode: 'image', dir: '/custom-tab-bar/icons', icons: TAB_ICONS_GITHUB }
   },
   'github-light': {
     // minimal 无插画带（extraHeight 0），用 contentTopOffset 补齐 16px 顶部留白
     nav: { mode: 'minimal', extraHeight: 0, contentTopOffset: 16, cloudKey: '' },
-    decoration: { kitty: { show: false, cloudKey: '' } },
+    decoration: { kitty: { show: false, cloudKey: '' }, bears: { show: false } },
     tabbar: { iconMode: 'font', dir: '/custom-tab-bar/icons-gh-light', icons: TAB_ICONS_GITHUB }
   },
   'github-dark': {
     nav: { mode: 'minimal', extraHeight: 0, contentTopOffset: 16, cloudKey: '' },
-    decoration: { kitty: { show: false, cloudKey: '' } },
+    decoration: { kitty: { show: false, cloudKey: '' }, bears: { show: false } },
     tabbar: { iconMode: 'font', dir: '/custom-tab-bar/icons-gh-dark', icons: TAB_ICONS_GITHUB }
+  },
+  honey: {
+    // 蜂蜜小熊：独立 banner（cloudKey 接线后生效）+ 导航角色装饰层
+    nav: { mode: 'illustrated', extraHeight: 24, contentTopOffset: 0, cloudKey: 'header-honey' },
+    decoration: { kitty: { show: false, cloudKey: '' }, bears: { show: true } },
+    tabbar: { iconMode: 'font', dir: '/custom-tab-bar/icons-gh-light', icons: TAB_ICONS_GITHUB }
   }
 };

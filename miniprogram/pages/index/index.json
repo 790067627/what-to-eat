@@ -1,7 +1,8 @@
 {
   "usingComponents": {
     "sakura-bg": "/components/sakura-bg/index",
-    "immersive-nav": "/components/immersive-nav/index"
+    "immersive-nav": "/components/immersive-nav/index",
+    "nav-bears": "/components/nav-bears/index"
   },
   "navigationBarTitleText": "Yuki小厨房",
   "navigationStyle": "custom"

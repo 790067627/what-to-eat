@@ -1,0 +1,24 @@
+<!-- 蜂蜜主题导航角色装饰：7 层部件叠放纸片人动画
+     独立 fixed 层（同 sakura-bg 架构）：不受导航 overflow 裁切，角色可压住导航下缘；
+     enabled=false 时整层不渲染（非蜂蜜主题零开销）；paused 时冻结全部动画 -->
+<view wx:if="{{enabled && urls.b1}}" class="bears-layer {{paused ? 'paused' : ''}}" style="height: {{navH}}px; {{themeVars}}">
+  <!-- 棕熊：body → head(点头) → rig-arm(手臂+锅同组颠勺) -->
+  <view class="bear brown">
+    <image class="ly" src="{{urls.b1}}" mode="aspectFit" />
+    <image class="ly head" src="{{urls.b2}}" mode="aspectFit" />
+    <view class="rig-arm">
+      <image class="ly" src="{{urls.b3}}" mode="aspectFit" />
+      <image class="ly" src="{{urls.b4}}" mode="aspectFit" />
+    </view>
+    <view class="shadow"></view>
+  </view>
+  <!-- 白熊：body → head(歪头) → rig-arm(挥勺) -->
+  <view class="bear white">
+    <image class="ly" src="{{urls.w1}}" mode="aspectFit" />
+    <image class="ly head" src="{{urls.w2}}" mode="aspectFit" />
+    <view class="rig-arm">
+      <image class="ly" src="{{urls.w3}}" mode="aspectFit" />
+    </view>
+    <view class="shadow"></view>
+  </view>
+</view>

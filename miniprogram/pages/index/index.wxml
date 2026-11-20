@@ -5,6 +5,9 @@
 
 <immersive-nav />
 
+<!-- 蜂蜜主题导航角色装饰（非蜂蜜主题组件内部不渲染不加载） -->
+<nav-bears />
+
 <view class="page" style="padding-top: {{navHeight + contentTopOffset}}px" bindtap="onPageTap">
   <!-- 骨架屏 -->
   <block wx:if="{{loading}}">

@@ -526,7 +526,16 @@ async function initDemo({ openid }) {
  *  （免费环境不可设公开读；临时链接有有效期会过期，base64 + 端侧本地缓存可彻底避免过期问题） */
 const CLOUD_ASSETS = {
   kitty: 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/kitty-deco.webp',
-  header: 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/header-kitchen.jpg'
+  header: 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/header-kitchen.jpg',
+  // 蜂蜜小熊主题：导航 banner + 7 层角色部件（nav-bears 组件按需加载，非该主题不下载）
+  'header-honey': 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/header-honey.jpg',
+  'bears/brown_01_body': 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/bears/brown_01_body.png',
+  'bears/brown_02_head_hat': 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/bears/brown_02_head_hat.png',
+  'bears/brown_03_arm_panhandle': 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/bears/brown_03_arm_panhandle.png',
+  'bears/brown_04_pan_splash': 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/bears/brown_04_pan_splash.png',
+  'bears/white_01_body': 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/bears/white_01_body.png',
+  'bears/white_02_head': 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/bears/white_02_head.png',
+  'bears/white_03_spoon_arm': 'cloud://cloud1-d2g70c8532117f303.636c-cloud1-d2g70c8532117f303-1534361802/assets/bears/white_03_spoon_arm.png'
 };
 async function getBgUrl(ctx) {
   const key = (ctx && ctx.event && ctx.event.key) || 'kitty';

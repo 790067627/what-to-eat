@@ -1,0 +1,57 @@
+/* 蜂蜜主题导航角色装饰层：fixed 常驻顶部，z-index 压过导航条(900)，角色可探出导航下缘
+   动画全部 transform/opacity（GPU 合成层）；.paused 冻结（页面隐藏时） */
+.bears-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 901;
+  pointer-events: none;
+}
+
+.bear { position: absolute; width: 192rpx; height: 240rpx; }
+.bear .ly { position: absolute; inset: 0; width: 100%; height: 100%; }
+.bear.brown { left: 52rpx; top: 68rpx; animation: nb-float 2.6s ease-in-out infinite; }
+.bear.white { right: 60rpx; top: 60rpx; animation: nb-hop 1.7s ease-in-out infinite; }
+
+/* 关节 rig：手臂(+锅)同组绕肩旋转；头独立点头/歪头 */
+.rig-arm { position: absolute; inset: 0; }
+.brown .rig-arm { transform-origin: 34% 62%; animation: nb-stir 1.15s ease-in-out infinite alternate; }
+.brown .head { transform-origin: 50% 88%; animation: nb-nod 2.3s ease-in-out infinite; }
+.white .rig-arm { transform-origin: 32% 58%; animation: nb-wave 0.95s ease-in-out infinite alternate; }
+.white .head { transform-origin: 50% 90%; animation: nb-tilt 3.1s ease-in-out infinite; }
+
+/* 地面投影：随浮动呼吸；颜色走 Token（遮罩色降透明） */
+.shadow {
+  position: absolute;
+  bottom: -12rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 128rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  background: var(--mask-light, rgba(69, 58, 36, 0.45));
+  opacity: 0.4;
+  animation: nb-shade 2.6s ease-in-out infinite;
+}
+.white .shadow { animation-duration: 1.7s; }
+
+@keyframes nb-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10rpx); } }
+@keyframes nb-hop {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  40% { transform: translateY(-16rpx) rotate(-2deg); }
+  70% { transform: translateY(-4rpx) rotate(1.5deg); }
+}
+@keyframes nb-stir { from { transform: rotate(-7deg); } to { transform: rotate(6deg); } }
+@keyframes nb-wave { from { transform: rotate(-16deg); } to { transform: rotate(9deg); } }
+@keyframes nb-nod { 0%, 100% { transform: rotate(0deg); } 30% { transform: rotate(3.5deg); } 60% { transform: rotate(-2.5deg); } }
+@keyframes nb-tilt { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(4deg); } }
+@keyframes nb-shade {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.4; }
+  50% { transform: translateX(-50%) scale(0.82); opacity: 0.24; }
+}
+
+/* 暂停态：页面隐藏时冻结全部动画（省资源） */
+.paused .bear, .paused .rig-arm, .paused .head, .paused .shadow {
+  animation-play-state: paused;
+}

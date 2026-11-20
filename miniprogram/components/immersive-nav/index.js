@@ -8,8 +8,11 @@ const themeManager = require('../../theme/theme-manager');
 const { getNavMetrics } = require('../../utils/util');
 const fs = wx.getFileSystemManager();
 
-const LOCAL_PATH = `${wx.env.USER_DATA_PATH}/header-kitchen.jpg`;
-const FLAG_KEY = 'header_kitchen_saved';
+// 本地缓存按 cloudKey 分文件（切回旧主题零网络恢复）；'header' 沿用旧路径，老用户缓存不失效
+const OLD_LOCAL_PATH = `${wx.env.USER_DATA_PATH}/header-kitchen.jpg`;
+const OLD_FLAG_KEY = 'header_kitchen_saved';
+const LOCAL_PATH = key => key === 'header' ? OLD_LOCAL_PATH : `${wx.env.USER_DATA_PATH}/nav-${key}.jpg`;
+const FLAG_KEY = key => key === 'header' ? OLD_FLAG_KEY : `nav_${key}_saved`;
 
 const snap0 = themeManager.get();
 
@@ -37,36 +40,40 @@ Component({
      *  minimal 立即隐藏图片并收紧高度，illustrated 恢复插画 */
     _onTheme(snap) {
       const mode = snap.assets.nav.mode;
+      const key = snap.assets.nav.cloudKey || '';
       this.setData({ themeVars: snap.varsString, navMode: mode, m: getNavMetrics() });
-      if (mode === 'minimal') {
-        // 不卸载缓存文件（切回樱花主题可复用），仅不渲染
+      if (mode === 'minimal' || !key) {
+        // 不卸载缓存文件（切回插画主题可复用），仅不渲染
         if (this.data.headerUrl) this.setData({ headerUrl: '' });
         return;
       }
-      this._load();
+      this._load(key);
     },
 
-    _load() {
+    _load(key) {
+      const localPath = LOCAL_PATH(key);
+      const flagKey = FLAG_KEY(key);
       // 1) 本地缓存优先，零网络
       try {
-        if (wx.getStorageSync(FLAG_KEY)) {
-          fs.accessSync(LOCAL_PATH);
-          this.setData({ headerUrl: LOCAL_PATH });
+        if (wx.getStorageSync(flagKey)) {
+          fs.accessSync(localPath);
+          this.setData({ headerUrl: localPath });
           return;
         }
       } catch (e) { /* 无缓存或损坏，回源 */ }
 
       // 2) 回源：云函数下载 base64 → 写本地 → 展示
-      api.getBgUrl('header').then(res => {
+      api.getBgUrl(key).then(res => {
         if (!res.base64) throw new Error('empty base64');
         fs.writeFile({
-          filePath: LOCAL_PATH,
+          filePath: localPath,
           data: res.base64,
           encoding: 'base64',
           success: () => {
-            try { wx.setStorageSync(FLAG_KEY, 1); } catch (e) { /* 忽略 */ }
-            // 加载期间可能已切走主题，仅在仍是插画模式时上屏
-            if (this.data.navMode === 'illustrated') this.setData({ headerUrl: LOCAL_PATH });
+            try { wx.setStorageSync(flagKey, 1); } catch (e) { /* 忽略 */ }
+            // 加载期间可能已切走主题，仅在仍是同一插画 key 时上屏
+            const cur = themeManager.getAssets().nav;
+            if (cur.mode === 'illustrated' && cur.cloudKey === key) this.setData({ headerUrl: localPath });
           },
           fail: () => this.setData({ headerUrl: '' })
         });
@@ -75,7 +82,8 @@ Component({
 
     /** 加载失败：静默降级渐变底（Token 提供），不影响页面 */
     onError() {
-      try { wx.removeStorageSync(FLAG_KEY); } catch (e) { /* 忽略 */ }
+      const key = themeManager.getAssets().nav.cloudKey || 'header';
+      try { wx.removeStorageSync(FLAG_KEY(key)); } catch (e) { /* 忽略 */ }
       this.setData({ headerUrl: '' });
     }
   }
