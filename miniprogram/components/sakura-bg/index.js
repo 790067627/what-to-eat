@@ -3,7 +3,9 @@
 // 故由云函数（管理员身份）下载图片返回 base64，组件写入手机本地用户目录持久缓存，
 // 之后直接读本地文件，永不过期；仅在本地缺失/损坏时才回源一次。
 // 主题资源层控制：GitHub 主题 decoration.kitty.show=false，不加载、不渲染；
-// 组件为 fixed + z-index:-1 不占布局，隐藏后无需调整页面高度。
+// 组件为文档流内装饰块（挂载在 .page 内分类速览之后，随内容自然排列），
+// 关闭时 wx:if 整节点不渲染、零占位（v1.6.0 起；旧版 fixed+z-index:-1 会被
+// page-meta root-background-color 盖住）。
 // 加载失败时静默降级：不渲染装饰图，页面正常显示（主题底色兜底）。
 const api = require('../../services/db');
 const themeManager = require('../../theme/theme-manager');

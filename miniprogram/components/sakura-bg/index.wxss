@@ -1,28 +1,28 @@
-/* 首页 Hello Kitty 装饰图
-   - 可调参数集中在 .kitty-wrap 变量：宽度 / 距底 / 透明度
-   - z-index:-1 位于页面内容之下，pointer-events:none 不挡任何点击
-     （点击弹跳由页面级 tap 坐标命中检测触发，见 index.js onPageTap）
+/* 首页 Hello Kitty 装饰图（樱花主题专属，theme-assets decoration.kitty 门控）
+   - 文档流内独立装饰元素：位于分类速览模块之后，随内容自然排列，
+     分类增减/屏幕尺寸变化均自动跟随（v1.6.0 起；旧版 fixed+z-index:-1 会被
+     page-meta root-background-color 盖住，根因见规范文档 7.3）
+   - 可调参数集中在 .kitty-wrap 变量：宽度 / 透明度
+   - pointer-events:none 不挡任何点击（点击弹跳由页面级 tap 坐标命中检测触发，
+     见 index.js onPageTap → tryTapBounce）
    - 三层嵌套分离 transform：wrap 定位 / float 漂浮 / sway 摇摆 / image 弹跳 */
+:host { display: block; }
+
 .kitty-wrap {
   /* 装饰图宽度（原图 1536x1024，widthFix 自动等比，高≈宽×2/3） */
   --kitty-width: 380rpx;
-  /* 底部留白：TabBar 顶边(112rpx+安全区)再上移 25rpx，Cakebaker 字样与
-     TabBar 顶部保留舒适间隙，且不与凸起按钮(上凸35rpx)重叠 */
-  --kitty-bottom: calc(137rpx + constant(safe-area-inset-bottom));
-  --kitty-bottom: calc(137rpx + env(safe-area-inset-bottom));
   --kitty-opacity: 0.92;
 
-  position: fixed;
-  left: 50%;
-  bottom: var(--kitty-bottom);
-  transform: translateX(-50%);
-  width: var(--kitty-width);
-  z-index: -1;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  /* 与分类速览拉开呼吸间距；底部让位由 .page 的 padding-bottom 统一负责，此处不加 */
+  margin-top: 24rpx;
   pointer-events: none;
 }
 
 .kitty-deco {
-  width: 100%;
+  width: var(--kitty-width);
   display: block;
   opacity: var(--kitty-opacity);
 }

@@ -1,8 +1,6 @@
 <page-meta page-style="{{themeVars}}" root-background-color="{{themeWindowBg}}" background-color="{{themeWindowBg}}" background-text-style="{{themeJs.mode === 'dark' ? 'light' : 'dark'}}" />
 <!-- page-meta 必须是页面第一个节点：把主题 CSS 变量注入 page 根节点，全页样式即时生效 -->
 
-<sakura-bg id="kitty" />
-
 <immersive-nav />
 
 <!-- 蜂蜜主题导航角色装饰（非蜂蜜主题组件内部不渲染不加载） -->
@@ -73,6 +71,11 @@
         <view wx:if="{{!categories.length}}" class="empty-hint">还没有分类，去「我的 → 分类管理」添加</view>
       </view>
     </block>
+
+    <!-- 樱花主题 Kitty 装饰：文档流内、随内容自然排列（分类增减自动跟随）；
+         其他主题组件内部 wx:if 不渲染不占位。必须放 .page 内：
+         page-meta root-background-color 会盖住 z-index:-1 的 fixed 元素（根因见规范 7.3） -->
+    <sakura-bg id="kitty" />
 
     <view style="height: 160rpx"></view>
   </block>
