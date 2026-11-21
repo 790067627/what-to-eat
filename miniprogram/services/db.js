@@ -88,8 +88,26 @@ module.exports = {
   getProfile: () => call('getProfile'),
   saveProfile: (data) => call('saveProfile', data),
   
-  // ---- 分享菜品 ----
-  saveSharedDish: (dishId) => call('saveSharedDish', { dishId }),
+  // ---- 分享菜品（定向分享：token 凭证模式，2026-11 安全收紧） ----
+  createShareToken: (dishId) => call('createShareToken', { dishId }),
+  getSharedDish: (token) => call('getSharedDish', { token }),
+  saveSharedDish: (token) => call('saveSharedDish', { token }),
+
+  // ---- 公开发布（灵感广场） ----
+  publishDish: (dishId, options = {}) => call('publishDish', { dishId, options }),
+  withdrawPublicDish: (params) => call('withdrawPublicDish', params),
+  listMyPublications: () => call('listMyPublications'),
+  getPublicDish: (id) => call('getPublicDish', { id }),
+
+  // ---- 社区互动 ----
+  likePublicDish: (id, like) => call('likePublicDish', { id, like }),
+  savePublicDish: (id) => call('savePublicDish', { id }),
+  logBehavior: (type, refType, refId) => call('logBehavior', { type, refType, refId }),
+
+  // ---- 个性化推荐 ----
+  getFeed: (cursor = '', size = 6) => call('getFeed', { cursor, size }),
+  saveTastePrefs: (tastePrefs, avoidTags) => call('saveTastePrefs', { tastePrefs, avoidTags }),
+  getTastePrefs: () => call('getTastePrefs'),
 
   // ---- AI 识别（独立云函数 airec，长超时，与 dish CRUD 解耦）----
   recognizeDish: async (fileID) => {

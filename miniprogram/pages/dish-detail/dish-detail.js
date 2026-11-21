@@ -14,6 +14,9 @@ const STATUS_LIST = [
 Page(withTheme({
   data: {
     id: '',
+    shareToken: '',      // 定向分享凭证模式
+    publicId: '',        // 公开菜品快照模式
+    viewMode: 'own',     // own | shared | public
     loading: true,
     dish: null,
     categoryName: '',
@@ -27,7 +30,20 @@ Page(withTheme({
   },
 
   onLoad(options) {
-    this.setData({ id: options.id || '' });
+    // 三种访问模式：id=自己的菜；token=好友定向分享凭证；pid=公开菜品快照
+    if (options.token) {
+      this.setData({ shareToken: options.token, viewMode: 'shared' });
+    } else if (options.pid) {
+      this.setData({ publicId: options.pid, viewMode: 'public' });
+    } else {
+      this.setData({ id: options.id || '', viewMode: 'own' });
+      // 自己的菜：预签发定向分享 token（onShareAppMessage 同步可用）
+      if (options.id) {
+        api.createShareToken(options.id).then(res => {
+          this._shareToken = res.token;
+        }).catch(() => { /* 分享降级为小程序首页 */ });
+      }
+    }
     // 获取导航栏高度
     const systemInfo = wx.getSystemInfoSync();
     const menuButtonInfo = wx.getMenuButtonBoundingClientRect();
@@ -36,7 +52,35 @@ Page(withTheme({
   },
 
   onShow() {
-    if (this.data.id) this.loadDish();
+    if (this.data.viewMode === 'shared' && this.data.shareToken) this.loadShared();
+    else if (this.data.viewMode === 'public' && this.data.publicId) this.loadPublic();
+    else if (this.data.id) this.loadDish();
+  },
+
+  /** 定向分享快照（token 凭证） */
+  async loadShared() {
+    try {
+      const dish = await api.getSharedDish(this.data.shareToken);
+      this.setData({ loading: false, dish, isShared: true, shareMode: 'token' });
+    } catch (err) {
+      api.handleErr(err, '分享链接已过期或无效');
+      this.setData({ loading: false, shareExpired: true });
+    }
+  },
+
+  /** 公开菜品快照 */
+  async loadPublic() {
+    try {
+      const dish = await api.getPublicDish(this.data.publicId);
+      this.setData({
+        loading: false, dish, isShared: true, shareMode: 'public',
+        publicLiked: !!dish.liked, publicLikeCount: dish.likeCount || 0,
+        publicSaved: !!dish.savedDishId
+      });
+    } catch (err) {
+      api.handleErr(err, '该公开菜品不可访问');
+      this.setData({ loading: false, shareExpired: true });
+    }
   },
 
   async loadDish() {
@@ -46,11 +90,7 @@ Page(withTheme({
         api.listCategories()
       ]);
       const cat = categories.find(c => c._id === dish.categoryId);
-      
-      // 判断是否是别人分享的菜品（通过 openid 比较）
-      const userInfo = await api.getUserInfo();
-      const isShared = dish.openid !== userInfo.openid;
-      
+      // getDish 已收紧为仅 owner 可读，这里读到的必定是自己的菜
       this.setData({
         loading: false,
         dish,
@@ -58,7 +98,7 @@ Page(withTheme({
         priceYuan: fenToYuan(dish.price),
         statusText: STATUS_TEXT[dish.status] || '',
         lastEatenText: dish.lastEatenAt ? `上次吃：${timeAgo(dish.lastEatenAt)}（${formatDate(dish.lastEatenAt)}）` : '还没吃过这道菜',
-        isShared
+        isShared: false
       });
     } catch (err) {
       api.handleErr(err);
@@ -149,34 +189,47 @@ Page(withTheme({
   onShareAppMessage() {
     const dish = this.data.dish;
     if (!dish) {
+      return { title: 'Yuki小厨房', path: '/pages/index/index' };
+    }
+    // 定向分享必须携带服务端签发的 token（旧 ?id= 直读他人菜品已废除）
+    if (this.data.viewMode === 'own' && this._shareToken) {
       return {
-        title: 'Yuki小厨房',
-        path: '/pages/index/index'
+        title: `${dish.name} | Yuki小厨房`,
+        path: `/pages/dish-detail/dish-detail?token=${this._shareToken}`,
+        imageUrl: dish.coverImageUrl || dish.coverImage || ''
       };
     }
-    
-    return {
-      title: `${dish.name} | Yuki小厨房`,
-      path: `/pages/dish-detail/dish-detail?id=${dish._id}`,
-      imageUrl: dish.coverImageUrl || dish.coverImage || ''
-    };
+    return { title: 'Yuki小厨房', path: '/pages/index/index' };
   },
 
-  /** 保存别人分享的菜品到自己的菜单 */
+  /** 保存到我的菜单：公开快照走 savePublicDish，定向分享走 token 版 saveSharedDish */
   async onCopyToMyMenu() {
-    const dish = this.data.dish;
-    if (!dish) return;
-    
+    if (!this.data.dish) return;
     wx.showLoading({ title: '保存中' });
     try {
-      const res = await api.saveSharedDish(dish._id);
-      wx.hideLoading();
-      wx.showToast({ title: '已保存到我的菜单', icon: 'success' });
-      // 刷新当前页面，显示"已保存"状态
-      this.loadDish(dish._id);
+      if (this.data.shareMode === 'public') {
+        const res = await api.savePublicDish(this.data.publicId);
+        wx.hideLoading();
+        wx.showToast({ title: res.duplicated ? '已在你的菜单中' : '已加入想吃清单', icon: 'success' });
+        this.setData({ publicSaved: true });
+      } else {
+        await api.saveSharedDish(this.data.shareToken);
+        wx.hideLoading();
+        wx.showToast({ title: '已保存到我的菜单', icon: 'success' });
+      }
     } catch (err) {
       wx.hideLoading();
       api.handleErr(err, '保存失败');
     }
+  },
+
+  /** 公开菜品点赞/取消 */
+  async onToggleLike() {
+    const next = !this.data.publicLiked;
+    try {
+      const res = await api.likePublicDish(this.data.publicId, next);
+      this.setData({ publicLiked: res.liked, publicLikeCount: res.likeCount });
+      api.logBehavior(res.liked ? 'like' : 'unlike', 'public', this.data.publicId).catch(() => {});
+    } catch (err) { api.handleErr(err); }
   }
 }));

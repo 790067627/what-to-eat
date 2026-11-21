@@ -106,9 +106,18 @@
     <view class="delete-link" bindtap="onDelete">删除这道菜</view>
   </view>
 
-  <!-- 别人分享的菜：保存到我的菜单 -->
+  <!-- 分享/公开快照：保存到我的菜单；公开模式加点赞行与作者信息 -->
   <view wx:if="{{isShared}}" class="action-section">
-    <button class="btn-primary log-btn" bindtap="onCopyToMyMenu">
+    <view wx:if="{{shareMode === 'public'}}" class="public-meta">
+      <view class="public-author">{{dish.anonymous ? '匿名厨友' : dish.authorNickname}} 的公开分享</view>
+      <view class="like-row" bindtap="onToggleLike">
+        <text class="like-heart {{publicLiked ? 'on' : ''}}">{{publicLiked ? '♥' : '♡'}}</text>
+        <text class="like-count">{{publicLikeCount}}</text>
+      </view>
+    </view>
+    <view wx:if="{{shareExpired}}" class="expired-hint">链接已过期或内容已撤回</view>
+    <button wx:elif="{{shareMode === 'public' && publicSaved}}" class="btn-ghost log-btn" disabled>已加入我的菜单</button>
+    <button wx:else class="btn-primary log-btn" bindtap="onCopyToMyMenu">
       <text class="bi"></text> 保存到我的菜单
     </button>
   </view>

@@ -10,6 +10,10 @@ const MAX_LIMIT = 100; // 云函数端单次查询上限
 const ok = (data) => ({ code: 0, data });
 const fail = (msg, code = 1) => ({ code, msg });
 
+// 发现域（公开菜品/定向分享/点赞/一键加入/行为）与推荐引擎
+const discovery = require('./lib/discovery')({ cloud, db, _, ok, fail, fetchAll: null });
+const recommend = require('./lib/recommend')({ cloud, db, _, ok, fail });
+
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext();
   if (!OPENID) return fail('无法识别用户身份');
@@ -47,11 +51,30 @@ exports.main = async (event, context) => {
       case 'listEatLogsByMonth': return await listEatLogsByMonth(ctx);
       case 'importData': return await importData(ctx);
       
-      // ---- 用户信息 / 分享 ----
+      // ---- 用户信息 / 分享（saveSharedDish 已收紧为 token 凭证模式，见 lib/discovery） ----
       case 'getUserInfo': return await getUserInfo(ctx);
       case 'getProfile': return await getProfile(ctx);
       case 'saveProfile': return await saveProfile(ctx);
-      case 'saveSharedDish': return await saveSharedDish(ctx);
+      case 'saveSharedDish': return await discovery.saveSharedDish(ctx);
+      case 'createShareToken': return await discovery.createShareToken(ctx);
+      case 'getSharedDish': return await discovery.getSharedDish(ctx);
+
+      // ---- 公开发布（灵感广场） ----
+      case 'publishDish': return await discovery.publishDish(ctx);
+      case 'withdrawPublicDish': return await discovery.withdrawPublicDish(ctx);
+      case 'listMyPublications': return await discovery.listMyPublications(ctx);
+      case 'reviewPublicDish': return await discovery.reviewPublicDish(ctx);
+      case 'getPublicDish': return await discovery.getPublicDish(ctx);
+
+      // ---- 社区互动 ----
+      case 'likePublicDish': return await discovery.likePublicDish(ctx);
+      case 'savePublicDish': return await discovery.savePublicDish(ctx);
+      case 'logBehavior': return await discovery.logBehavior(ctx);
+
+      // ---- 个性化推荐 ----
+      case 'getFeed': return await recommend.getFeed(ctx);
+      case 'saveTastePrefs': return await recommend.saveTastePrefs(ctx);
+      case 'getTastePrefs': return await recommend.getTastePrefs(ctx);
 
       default: return fail(`未知操作: ${action}`);
     }
@@ -237,26 +260,23 @@ async function fetchAllWithCommand(collection, whereCommand, orderBy) {
 async function getDish({ openid, event }) {
   const { id } = event;
   if (!id) return fail('缺少菜品 ID');
-  // 去掉 openid 过滤：允许跨用户读取（分享场景）
-  const res = await db.collection('dishes').where({ _id: id, deleted: false }).get();
+  // 安全收紧（P0）：私人菜品仅 owner 可读。跨用户访问一律走公开快照（getPublicDish）
+  // 或定向分享凭证（getSharedDish），禁止按 ID 直读他人 dishes。
+  const res = await db.collection('dishes').where({ _id: id, openid, deleted: false }).get();
   if (!res.data.length) return fail('菜品不存在');
 
   const dish = res.data[0];
-  // 附带最近一次吃的时间（只有自己的菜才有记录）
-  if (dish.openid === openid) {
-    const logs = await db.collection('eat_logs')
-      .where({ openid, dishId: id })
-      .orderBy('eatenAt', 'desc').limit(1).get();
-    dish.lastEatenAt = logs.data.length ? logs.data[0].eatenAt : null;
-  } else {
-    dish.lastEatenAt = null;
-  }
-  
-  // 把图片 fileID 转为临时 URL（跨用户访问需要）
+  // 附带最近一次吃的时间
+  const logs = await db.collection('eat_logs')
+    .where({ openid, dishId: id })
+    .orderBy('eatenAt', 'desc').limit(1).get();
+  dish.lastEatenAt = logs.data.length ? logs.data[0].eatenAt : null;
+
+  // 图片 fileID 转临时 URL（自己的文件，保持前端展示兼容）
   const fileIDs = [];
   if (dish.coverImage) fileIDs.push(dish.coverImage);
   if (dish.images && dish.images.length) fileIDs.push(...dish.images);
-  
+
   if (fileIDs.length > 0) {
     try {
       const urlRes = await cloud.getTempFileURL({ fileList: fileIDs });
@@ -268,13 +288,13 @@ async function getDish({ openid, event }) {
         dish.coverImageUrl = urlMap[dish.coverImage];
       }
       if (dish.images && dish.images.length) {
-        dish.imagesUrl = dish.images.map(id => urlMap[id] || id);
+        dish.imagesUrl = dish.images.map(fid => urlMap[fid] || fid);
       }
     } catch (e) {
       console.warn('获取临时 URL 失败:', e);
     }
   }
-  
+
   return ok(dish);
 }
 
@@ -676,6 +696,11 @@ async function importData({ openid, event }) {
         status: ['want', 'often', 'never'].includes(raw.status) ? raw.status : 'want',
         deleted: false,
         _sourceId: raw._id || '',
+        // 公开来源关系（合法恢复）：仅白名单两字段；审核状态/计数等服务端字段绝不随导入伪造
+        sourcePublicDishId: typeof raw.sourcePublicDishId === 'string' ? raw.sourcePublicDishId.slice(0, 64) : '',
+        sourceAuthor: (raw.sourceAuthor && typeof raw.sourceAuthor === 'object')
+          ? { nickname: String(raw.sourceAuthor.nickname || '').slice(0, 32), avatar: '' }
+          : undefined,
         createdAt: db.serverDate(), updatedAt: db.serverDate()
       } })));
     results.forEach((r, j) => { dishIdMap[batch[j].raw._id] = r._id; });
@@ -750,46 +775,7 @@ async function saveProfile({ openid, event }) {
   await col.add({ data: { openid, avatarFileID: data.avatarFileID || '', nickname: data.nickname || '', createdAt: db.serverDate(), updatedAt: data.updatedAt } });
   return ok({ created: true });
 }
-
-/** 保存别人分享的菜品到自己的菜单 */
-async function saveSharedDish({ openid, event }) {
-  const { dishId } = event;
-  if (!dishId) return fail('缺少菜品 ID');
-  
-  // 查询原菜品（不限制 openid，允许跨用户读取）
-  const dishRes = await db.collection('dishes').doc(dishId).get();
-  const originalDish = dishRes.data;
-  if (!originalDish) return fail('菜品不存在');
-  
-  // 检查是否已经保存过（按名字+分类去重）
-  const existing = await db.collection('dishes').where({
-    openid,
-    name: originalDish.name,
-    categoryId: originalDish.categoryId || '',
-    deleted: false
-  }).count();
-  
-  if (existing.total > 0) {
-    return fail('你已经保存过这道菜了');
-  }
-  
-  // 复制一份，openid 改为当前用户
-  const newDish = {
-    openid,
-    name: originalDish.name,
-    categoryId: originalDish.categoryId || '',
-    coverImage: originalDish.coverImage || '',
-    images: originalDish.images || [],
-    description: originalDish.description || '',
-    price: originalDish.price || null,
-    tags: originalDish.tags || [],
-    rating: originalDish.rating || 0,
-    status: 'want', // 新保存的默认为"想吃"
-    deleted: false,
-    createdAt: db.serverDate(),
-    updatedAt: db.serverDate()
-  };
-  
-  const res = await db.collection('dishes').add({ data: newDish });
-  return ok({ dishId: res._id });
-}
+// 旧版 saveSharedDish（按 dishId 跨用户直读 + name/categoryId 去重）已删除：
+// 存在越权读取、复制他人 categoryId、并发重复三个问题。
+// 新版实现见 lib/discovery.js：仅接受服务端签发的定向分享 token（createShareToken 签发），
+// 幂等键 = openid + token（确定性 _id），分类按名映射，评分不继承。
