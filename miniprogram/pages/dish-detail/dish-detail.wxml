@@ -126,8 +126,6 @@
         <button class="btn-ghost share-btn" bindtap="openPublishSheet">重新发布到灵感广场</button>
       </block>
     </view>
-
-    </view>
     <view wx:else class="pub-noline">保存自他人的菜品仅可自用，不能发布到灵感广场</view>
 
     <!-- 第四行：删除 -->
