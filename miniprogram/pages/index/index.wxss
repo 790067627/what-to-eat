@@ -54,6 +54,13 @@
   position: relative;
   margin: 0 8rpx;
 }
+/* 自定义组件标签本身必须显式撑高：组件内部 height:100% 依赖标签有确定高度，
+   否则百分比对 auto 塌陷为 0，整叠卡不可见（真机空白 bug 根因） */
+.stack-zone card-stack {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 
 /* ===== 操作区 ===== */
 .insp-actions {
