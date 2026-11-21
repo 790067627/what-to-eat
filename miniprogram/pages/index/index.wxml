@@ -35,6 +35,7 @@
           <text class="insp-idx" wx:if="{{idxText}}">{{idxText}}</text>
         </view>
         <view class="insp-cold" wx:if="{{coldStart}}" bindtap="goTastePrefs">先设置口味偏好，推荐更准 ›</view>
+        <view class="insp-cold" wx:if="{{legacyCloud}}" bindtap="retryFeed">推荐服务待部署 · 当前仅展示你的菜单（点按重试）</view>
       </view>
 
       <!-- 卡栈：AI 饮食灵感主体（方案 A · Swiper Cards 交互模型原生实现） -->

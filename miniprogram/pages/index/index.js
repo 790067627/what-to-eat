@@ -2,7 +2,7 @@
 // 数据流：getFeed(cursor) → 队列缓存 → card-stack 组件消费；滑动接近队尾自动预加载下一页。
 // 行为上报：曝光/换一道/不感兴趣/点赞/想吃 全部走 logBehavior，按 openid 服务端隔离。
 const api = require('../../services/db');
-const { getNavMetrics } = require('../../utils/util');
+const { getNavMetrics, shuffle } = require('../../utils/util');
 const { withTheme } = require('../../theme/theme-page');
 
 Page(withTheme({
@@ -19,6 +19,7 @@ Page(withTheme({
     hasMore: true,
     feedLoading: false,
     coldStart: false,
+    legacyCloud: false,   // 云端 dish 函数为旧版（无 getFeed）时的降级标记
     // 抽屉
     sheetShow: false,
     sheetItem: null,
@@ -90,9 +91,52 @@ Page(withTheme({
         api.logBehavior('expose', it.type, it.id).catch(() => {});
       });
     } catch (err) {
+      // 云端 dish 函数尚未部署新版时（未知操作: getFeed），降级为本地自有菜单卡栈，首页不白屏不报错
+      if (/未知操作/.test((err && err.message) || '')) {
+        return this.loadLocalFeed();
+      }
       this.setData({ loading: false, feedLoading: false });
       api.handleErr(err, '推荐加载失败');
     }
+  },
+
+  /** 旧云降级：仅用 listDishes 自有菜组卡栈（无公开池/无 AI 理由，模板文案） */
+  async loadLocalFeed() {
+    try {
+      const dishes = await api.listDishes();
+      const pool = dishes.filter(d => d.status !== 'never');
+      const items = shuffle(pool).map(d => ({
+        type: 'own',
+        id: d._id,
+        name: d.name,
+        coverImageUrl: d.coverImageUrl || d.coverImage || '',
+        coverFileID: d.coverImage || '',
+        tags: (d.tags || []).slice(0, 3),
+        reason: d.description ? String(d.description).slice(0, 46) : `你菜单里的「${d.name}」，要不要试试`,
+        matchTag: '你的菜单',
+        author: null,
+        liked: false,
+        likeCount: 0,
+        savedDishId: d._id,
+        rating: d.rating || 0,
+        status: d.status
+      }));
+      this.setData({
+        loading: false, feedLoading: false, legacyCloud: true,
+        feedQueue: items, cursorIdx: 0, nextCursor: '', hasMore: false,
+        inited: items.length > 0
+      });
+      this.syncVisible();
+    } catch (e) {
+      this.setData({ loading: false, feedLoading: false });
+      api.handleErr(e, '加载失败');
+    }
+  },
+
+  /** 降级态点提示条：重试云端推荐（部署新版云函数后即可恢复） */
+  retryFeed() {
+    this.setData({ legacyCloud: false });
+    this.loadFeed(true);
   },
 
   /** 同步可见切片 + 操作区状态 */
