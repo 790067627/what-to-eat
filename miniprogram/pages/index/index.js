@@ -19,6 +19,7 @@ Page(withTheme({
     hasMore: true,
     feedLoading: false,
     feedEnd: false,       // 队列耗尽结束态（组件 depleted 事件驱动）
+    stackDebug: false,    // 卡栈诊断日志开关（体验版可经调试面板置 true）
     coldStart: false,
     legacyCloud: false,   // 云端 dish 函数为旧版（无 getFeed）时的降级标记
     // 抽屉

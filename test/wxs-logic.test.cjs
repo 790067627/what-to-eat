@@ -6,9 +6,17 @@ new Function('module', 'Math', src)(module_, Math);
 const g = module_.exports;
 
 function mkOwner(calls) {
+  // 模拟视图层：4 张卡带 depth class（pickCards 经 selectAll+hasClass 定位）
+  const cards = [0, 1, 2, 3].map(d => ({
+    _styles: {},
+    setStyle(st) { Object.assign(this._styles, st); },
+    hasClass(c) { return c === 'depth-' + d; }
+  }));
   return {
     callMethod: (name, arg) => calls.push([name, arg]),
-    selectComponent: () => ({ setStyle: () => {} })
+    selectComponent: () => null,          // 已不依赖 id 定位
+    selectAll: (sel) => sel === '.cs-card' ? cards : [],
+    _cards: cards
   };
 }
 const touch = (x, y, t) => ({ touches: [{ clientX: x, clientY: y }], timeStamp: t });
@@ -131,8 +139,8 @@ t('未释放时 syncRelease 才恢复；dragging 中 clearAll 不清样式（竞
   const cleared = [];
   const o = {
     callMethod: () => {},
-    selectComponent: () => ({ setStyle: () => {} }),
-    selectAll: () => [{ setStyle: st => cleared.push(st) }]
+    selectComponent: () => null,
+    selectAll: () => [{ setStyle: st => cleared.push(st), hasClass: () => false }]
   };
   g.touchStart(touch(300, 400, 0), o);
   g.touchMove(touch(250, 400, 50), o);   // 进入 dragging
@@ -141,6 +149,20 @@ t('未释放时 syncRelease 才恢复；dragging 中 clearAll 不清样式（竞
   g.touchEnd(touch(250, 400, 300), o);    // 小位移回弹
   g.clearAll(2, 1, o);                    // idle 期清理生效
   if (!cleared.length) throw new Error('idle 期 clearAll 应清样式');
+});
+
+t('pickCards 按 class 定位：跟手样式写入 depth-0/depth-1 卡（不依赖动态 id）', () => {
+  const calls = [];
+  const o = mkOwner(calls);
+  g.touchStart(touch(300, 400, 0), o);
+  g.touchMove(touch(250, 400, 50), o);
+  const c0 = o._cards[0], c1 = o._cards[1];
+  if (!c0._styles.transform || !String(c0._styles.transform).includes('translate3d(-50px'))
+    throw new Error('前卡(depth-0)未收到跟手位移: ' + c0._styles.transform);
+  if (!c1._styles.transform) throw new Error('后卡(depth-1)未收到补位移');
+  if (c0._styles.transition !== 'none') throw new Error('拖拽中前卡应关闭过渡');
+  if (o._cards[2]._styles.transform) throw new Error('depth-2 不应被操作');
+  g.touchEnd(touch(250, 400, 300), o);   // 回弹收尾
 });
 
 t('uiLocked 期间 touchStart 短路', () => {

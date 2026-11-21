@@ -14,7 +14,9 @@ Component({
     loading: { type: Boolean, value: false },
     resetToken: { type: Number, value: 0 },   // 页面重置 feed 时自增，组件回游标 0 重建
     // 交互锁：抽屉打开时页面置 true，手势全部短路（经 change: 同步到 WXS 模块态）
-    interactionLocked: { type: Boolean, value: false }
+    interactionLocked: { type: Boolean, value: false },
+    // 诊断日志开关（开发环境置 true：JS console + WXS console 全链路）
+    debug: { type: Boolean, value: false }
   },
 
   data: {
@@ -49,6 +51,8 @@ Component({
   },
 
   methods: {
+    _log(...a) { if (this.data.debug) console.log('[cardstack-js]', ...a); },
+
     _key(d) { return `${d.type || 'own'}:${d.id}`; },
     _winKeys(q, cursor) { return q.slice(cursor, cursor + 4).map(d => this._key(d)); },
 
@@ -59,6 +63,7 @@ Component({
         { locked: false, releaseToken: this.data.releaseToken + 1 },
         extra || {}
       );
+      this._log('_release → releaseToken', patch.releaseToken, 'cursor', this._cursor);
       this.setData(patch);
     },
 
@@ -106,11 +111,13 @@ Component({
     commitSwipe(e) {
       const dir = (e && e.dir) || -1;
       const q = this.data.queue || [];
+      this._log('commitSwipe dir=', dir, 'locked=', this.data.locked, 'cursor=', this._cursor, 'win=', this._win && this._win.length, 'queue=', q.length);
 
       // ---- 拒绝路径 ----
       // settling 中（locked）：绝不动 locked（首次提交的收尾 timer 负责统一释放，
       // 提前置 false 会让第三次提交穿透 → 游标双跳）；只递增双 token 释放 WXS 并弹回卡片
       if (this.data.locked) {
+        this._log('commitSwipe REJECT(locked) → release+clear token 递增');
         this.setData({
           releaseToken: this.data.releaseToken + 1,
           clearToken: this.data.clearToken + 1
@@ -121,9 +128,9 @@ Component({
         this._release({ clearToken: this.data.clearToken + 1 });
         if (reason === 'depleted') this.triggerEvent('depleted', { atEnd: true });
       };
-      if (!this._win || !this._win.length) return reject('empty');
+      if (!this._win || !this._win.length) { this._log('commitSwipe REJECT(empty)'); return reject('empty'); }
       // 队尾边界：提交后无下一张可补位 → 拒绝并上报耗尽（页面显示结束态）
-      if (this._cursor + 1 >= q.length) return reject('depleted');
+      if (this._cursor + 1 >= q.length) { this._log('commitSwipe REJECT(depleted) cursor=', this._cursor, 'queue=', q.length); return reject('depleted'); }
 
       const exiting = this._win[0];
       exiting.exiting = true;

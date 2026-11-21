@@ -16,6 +16,7 @@ var EXIT_EASE = 'cubic-bezier(.4,0,.7,.2)';
 
 var state = {
   phase: 'idle',        // idle | dragging | settling
+  debug: false,         // 诊断日志开关（change:debug 同步，开发环境打开）
   uiLocked: false,      // 抽屉等外部交互锁（change:interaction-locked）
   startX: 0,
   startY: 0,
@@ -30,11 +31,36 @@ var state = {
   behind: null
 };
 
-function frontOf(owner) { return owner.selectComponent('#cardFront'); }
-function behindOf(owner) { return owner.selectComponent('#cardBehind'); }
+// 节点定位：遍历 .cs-card 按视图层真实 class 判定前卡/后卡。
+// 不再用 selectComponent('#cardFront')——动态 id 依赖 setData patch 时序，
+// 真机上第二次 touchStart 可能查到 null/旧节点（连滑失效主嫌）。
+// class 与 patch 同帧生效，hasClass 判定永远与视觉一致。
+function pickCards(owner) {
+  var front = null, behind = null;
+  var cards = owner.selectAll('.cs-card');
+  if (cards && cards.length) {
+    for (var i = 0; i < cards.length; i++) {
+      if (!front && cards[i].hasClass('depth-0')) front = cards[i];
+      else if (!behind && cards[i].hasClass('depth-1')) behind = cards[i];
+    }
+  }
+  log('pickCards: total=' + (cards ? cards.length : 0) + ' front=' + !!front + ' behind=' + !!behind);
+  return { front: front, behind: behind };
+}
+
+// ---- 开发环境诊断日志（debug=1 时输出；生产可由页面关） ----
+function log(msg) {
+  if (state.debug) console.log('[cardstack-wxs] ' + msg);
+}
+
+/** change: 同步——诊断日志开关 */
+function syncDebug(newValue) {
+  state.debug = !!newValue;
+}
 
 /** change: 同步——外部交互锁（抽屉打开）。settling 不由此打断（动画归属 JS 生命周期） */
 function syncUiLock(newValue) {
+  log('syncUiLock=' + newValue);
   state.uiLocked = !!newValue;
   if (state.uiLocked && state.phase === 'dragging') {
     // 拖拽中被上锁（如抽屉经其他路径打开）：释放引用，phase 归 idle
@@ -46,13 +72,15 @@ function syncUiLock(newValue) {
 
 /** change: 同步——释放令牌（JS 全路径递增，值必变 → 回调必达）：
  *  settling → idle 的唯一恢复通道，兼做兜底（提交被拒/耗尽/组件重置同样走这里） */
-function syncRelease() {
+function syncRelease(newValue) {
+  log('syncRelease token=' + newValue + ' phase:' + state.phase + '->' + (state.phase === 'settling' ? 'idle' : state.phase));
   if (state.phase === 'settling') state.phase = 'idle';
 }
 
 /** change: 同步——清理卡片内联样式，class 完全接管。
  *  竞态守卫：新拖拽已开始则跳过（内联样式已归新拖拽所有，其 touchEnd 自会再调度清理） */
 function clearAll(newValue, oldValue, owner) {
+  log('clearAll token=' + newValue + ' phase=' + state.phase + (state.phase === 'dragging' ? ' SKIPPED(dragging)' : ''));
   if (state.phase === 'dragging') return;
   var cards = owner.selectAll('.cs-card');
   if (cards && cards.length) {
@@ -63,6 +91,7 @@ function clearAll(newValue, oldValue, owner) {
 }
 
 function onTouchStart(e, owner) {
+  log('touchStart phase=' + state.phase + ' uiLocked=' + state.uiLocked);
   if (state.uiLocked || state.phase !== 'idle') return;
   var t = e.touches[0];
   state.phase = 'dragging';
@@ -75,9 +104,10 @@ function onTouchStart(e, owner) {
   state.vx = 0;
   state.moved = 0;
   state.horizontal = null;
-  // 缓存引用 + 关过渡保证跟手
-  state.front = frontOf(owner);
-  state.behind = behindOf(owner);
+  // 缓存引用 + 关过渡保证跟手（按视图层 class 定位，见 pickCards 注释）
+  var picked = pickCards(owner);
+  state.front = picked.front;
+  state.behind = picked.behind;
   if (state.front) state.front.setStyle({ 'transition': 'none' });
   if (state.behind) state.behind.setStyle({ 'transition': 'none' });
 }
@@ -92,6 +122,7 @@ function onTouchMove(e, owner) {
   if (state.horizontal === null) {
     if (Math.abs(rawX) < 10 && Math.abs(rawY) < 10) return;
     state.horizontal = Math.abs(rawX) > Math.abs(rawY);
+    log('touchMove dirLock horizontal=' + state.horizontal);
     if (!state.horizontal) { state.phase = 'idle'; return; }
   }
 
@@ -128,6 +159,7 @@ function onTouchMove(e, owner) {
 
 function onTouchEnd(e, owner) {
   // touchcancel（来电/系统手势打断）与 touchend 同路径：dragging 才处理，天然幂等
+  log('touchEnd phase=' + state.phase + ' dx=' + Math.round(state.dx) + ' vx=' + (Math.round(state.vx * 100) / 100));
   if (state.phase !== 'dragging') return;
 
   var ab = state.dx > 0 ? state.dx : -state.dx;
@@ -170,6 +202,7 @@ function onTouchEnd(e, owner) {
     owner.callMethod('dragMoved', { moved: state.moved });
     // 提交协议：JS 无论接受/拒绝此次提交，都必须递增 releaseToken（→ syncRelease 恢复 idle）；
     // 拒绝时 JS 同时递增 clearToken → clearAll 清除出场内联样式，卡片经 class 过渡弹回
+    log('touchEnd -> commitSwipe dir=' + dir + ', phase=settling');
     owner.callMethod('commitSwipe', { dir: dir });
   } else {
     // ===== 未过阈值：回弹到各自 depth 槽位 =====
@@ -200,6 +233,7 @@ module.exports = {
   touchEnd: onTouchEnd,
   syncUiLock: syncUiLock,
   syncRelease: syncRelease,
+  syncDebug: syncDebug,
   clearAll: clearAll,
   // 测试探针：自动化用例断言/复位状态机用，业务代码不得依赖
   _peek: function () { return { phase: state.phase, uiLocked: state.uiLocked }; },

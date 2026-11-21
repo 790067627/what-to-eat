@@ -8,6 +8,7 @@
   interaction-locked="{{interactionLocked}}" change:interaction-locked="{{gestures.syncUiLock}}"
   release-token="{{releaseToken}}" change:release-token="{{gestures.syncRelease}}"
   clear-token="{{clearToken}}" change:clear-token="{{gestures.clearAll}}"
+  debug="{{debug}}" change:debug="{{gestures.syncDebug}}"
 ></view>
 
 <view class="stack-host">
@@ -22,8 +23,9 @@
     <!-- 节点恒定：key=type:id 不含游标；renderList 仅布局态，内容经 cardsMap[key] 引用。
          后卡弱化靠 veil/overlay 的 class 过渡（无节点增删、无图片重载） -->
     <block wx:for="{{renderList}}" wx:key="key">
+      <!-- 无动态 id：WXS 经 selectAll('.cs-card')+hasClass('depth-N') 按视图层真实
+           class 定位前卡/后卡（class 与 setData patch 同帧生效，不受 id 更新时序影响） -->
       <view
-        id="{{item.depth === 0 ? 'cardFront' : (item.depth === 1 ? 'cardBehind' : '')}}"
         class="cs-card depth-{{item.depth}} {{item.exiting ? ('exit-' + item.exitDir) : ''}}"
       >
         <block wx:if="{{cardsMap[item.key]}}">

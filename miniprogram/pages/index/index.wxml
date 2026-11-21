@@ -46,6 +46,7 @@
           reset-token="{{feedResetToken}}"
           loading="{{feedLoading && !feedQueue.length}}"
           interaction-locked="{{stackLocked}}"
+          debug="{{stackDebug}}"
           bind:advance="onAdvance"
           bind:cardtap="onCardTap"
           bind:notinterest="onNotInterest"
@@ -60,14 +61,14 @@
         </view>
       </view>
 
-      <!-- 操作区：喜欢 / 换一道 / 想吃（方案 A 视觉冻结） -->
-      <view class="insp-actions">
+      <!-- 操作区：喜欢 / 换一道 / 想吃（方案 A 视觉冻结）；结束态整区隐藏 -->
+      <view class="insp-actions" wx:if="{{!feedEnd}}">
         <view class="insp-btn round {{curLiked ? 'on' : ''}}" bindtap="onLike">{{curLiked ? '♥' : '♡'}}</view>
         <view class="insp-btn primary" bindtap="onNext">换一道</view>
         <view class="insp-btn {{curSaved ? 'added' : ''}}" bindtap="onWant">{{curSaved ? '✓ 已入清单' : '想吃'}}</view>
       </view>
 
-      <view class="insp-hint">左右滑动换菜 · 点卡片看详情 · 长按不感兴趣</view>
+      <view class="insp-hint" wx:if="{{!feedEnd}}">左右滑动换菜 · 点卡片看详情 · 长按不感兴趣</view>
     </block>
 
     <!-- 樱花主题 Kitty 装饰：文档流内、随内容自然排列；其他主题组件内部 wx:if 不渲染不占位。
