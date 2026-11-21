@@ -138,6 +138,28 @@ tcb db nosql execute --env cloud1-d2g70c8532117f303 \
 - 数据回滚：新集合（public_dishes 等）可直接整集合删除，不影响存量；dishes 新增字段为增量字段，旧版云函数不读取，无需清理；副本菜（`_id` 以 `cp_`/`cs_` 前缀）可按前缀批量软删；
 - 前端回滚：小程序代码未发版，回滚 = 不发布该分支。
 
+**已部署状态（2026-11-21 15:30）**：
+- dish 云函数已部署新版（timeout 60s；环境变量 AI_MODELS 与 airec 同源主备、ADMIN_OPENIDS、AI_REASON_ENABLED=true）
+- 6 新集合已建 + 6 组索引已建（public_dishes 唯一索引 sourceDishId+authorOpenid 等）
+- 备份：deploy-backup-20261121/（categories/dishes/profiles/eat_logs 四集合 dump）
+- 真实联调 18/18 通过（test/integration-cloud.mjs，automator 工具管理员身份）
+
+**审核机制（人工仅兜底，2026-11-21 按用户要求升级）**：
+- 文字 msgSecCheck + 图片 imgSecCheck（同步）/ mediaCheckAsync（异步票据 trace_id）
+- 全过 → approved 自动发布；risky → rejected；异常/超时/等异步回调 → pending 人工兜底
+- 异步结果经消息推送事件 wxa_media_check 回调 dish 函数落库（**控制台需配置消息推送指向 dish**，未配置时异步单永远 pending，可人工过审兜底）
+- config.json openapi 白名单已补 security.msgSecCheck/imgSecCheck/mediaCheckAsync
+
+**AI 推荐架构（理解前置，滑动零模型调用）**：
+- 模型：AI_MODELS 环境变量，与 airec 同源主备（qwen3.8-max 主 / qwen3.7-plus 备），主备顺序切换
+- 菜品理解：发布/新增时 AI 提取 5 维口味向量+口味描述 → flavor_profiles 持久化（1 模型 1 次 9s 预算）；
+  推荐排序消费持久化特征（AI 优先、标签规则回退）
+- 用户画像：显式 tastePrefs + 隐式反馈动态更新（like/save/eat 正向、not_interest 负向，×0.9 衰减防僵化）
+- 理由生成时机：getFeed 时零模型调用 = 用户模板句 + 发布期 AI 口味解读；
+  缓存 ai_reason_cache（md5 键）保留供离线补跑；regenDishAi 供手动重提取
+- 成本：每道公开菜发布 1 次模型调用；滑动/点赞/加入全链路 0 次
+- 关键坑：qwen3.x 必须 enable_thinking:false（思考链首字延迟 4s+ 致超时）
+
 **已知限制（如实说明）**：
 1. `msgSecCheck` 云调用需云函数侧开通权限且基础库/服务端版本支持（以官方文档核实）；调用失败按「转人工 pending」处理，不自动放行。
 2. 公开图片复制会占用云存储配额（封面必复制，附图限 3 张）；撤回公开暂不删图片文件（保留审计），可后续加定时清理 withdrawn>30 天的文件。
