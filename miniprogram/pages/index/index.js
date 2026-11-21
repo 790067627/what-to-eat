@@ -23,6 +23,7 @@ Page(withTheme({
     // 抽屉
     sheetShow: false,
     sheetItem: null,
+    stackLocked: false,
     // 操作区状态
     curLiked: false,
     curSaved: false,
@@ -217,6 +218,16 @@ Page(withTheme({
     const item = e.detail.item;
     if (!item) return;
     this.setData({ sheetItem: this.decorateSheet(item), sheetShow: true });
+    this.lockBackground(true);
+  },
+
+  /** 抽屉开合统一控制背景：隐藏 TabBar（含凸起骰子）+ 卡栈交互锁。
+   *  TabBar 为独立组件（z-index 999 且跨组件层叠不可靠），用其既有 hidden 机制最稳。 */
+  lockBackground(lock) {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ hidden: lock });
+    }
+    this.setData({ stackLocked: lock });
   },
 
   onNotInterest(e) {
@@ -229,6 +240,9 @@ Page(withTheme({
 
   onSheetClose() {
     this.setData({ sheetShow: false });
+    // 退出动画 320ms 后恢复背景手势，避免动画期间误触卡栈
+    if (this._unlockTimer) clearTimeout(this._unlockTimer);
+    this._unlockTimer = setTimeout(() => this.lockBackground(false), 360);
   },
 
   /** 抽屉数据装饰（互动状态映射到统一字段） */

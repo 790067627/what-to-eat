@@ -9,16 +9,21 @@
 }
 .ds-mask.on { opacity: 1; }
 
-.ds-sheet {
+/* 拖拽跟手外层：仅承载下拉位移（无 transition，纯跟手）；fixed 定位在此层 */
+.ds-drag {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 1001;
-  max-height: 78%;                            /* POC max-height:78% */
+}
+.ds-sheet {
+  position: relative;
+  max-height: 78%;                            /* POC max-height:78%（页面按 78% 可用高度传值） */
   border-radius: 48rpx 48rpx 0 0;             /* 24px */
   background: var(--bg-sheet, #161b22);
   box-shadow: 0 -24rpx 80rpx rgba(0,0,0,0.5); /* 0 -12px 40px */
   transform: translateY(102%);
   transition: transform 420ms cubic-bezier(.32,1.25,.42,1);   /* POC 原曲线 */
-  padding: 24rpx 40rpx calc(48rpx + env(safe-area-inset-bottom));  /* 12px 20px 24px+safe */
+  padding: 24rpx 40rpx 0;
   overflow: hidden;
+  display: flex; flex-direction: column;      /* 内容层 flex:1 + 操作层固定 */
 }
 .ds-sheet.on { transform: translateY(0); }
 
@@ -28,7 +33,8 @@
   background: var(--grip-color, rgba(255,255,255,0.18));
   margin: 4rpx auto 28rpx;
 }
-.ds-scroll { max-height: calc(78vh - 120rpx); }
+/* 内容层：独立滚动，flex:1 吃掉剩余高度 */
+.ds-scroll { flex: 1; min-height: 0; }
 
 /* POC img.hero：aspect 4/3 radius 16px */
 .ds-hero {
@@ -43,9 +49,24 @@
 .ds-meta { font-size: 22rpx; color: var(--text-hint, #8b949e); margin-top: 8rpx; }
 .ds-desc { font-size: 26rpx; line-height: 1.7; color: var(--text-secondary, #c9d5e3); margin-top: 20rpx; }
 
-/* POC .row：gap 10px mt16；.act flex:1（48px 高胶囊，同主页操作钮） */
-.ds-row { display: flex; gap: 20rpx; margin-top: 32rpx; }
+/* 标签行 */
+.ds-tags { display: flex; gap: 12rpx; flex-wrap: wrap; margin-top: 14rpx; }
+.ds-chip {
+  padding: 6rpx 18rpx; border-radius: 14rpx;
+  background: var(--bg-sunken, #21262d);
+  border: 1rpx solid var(--border-soft, rgba(255,255,255,0.1));
+  font-size: 22rpx; color: var(--text-secondary, #c9d5e3); font-weight: 600;
+}
+
+/* 底部操作层：固定不滚，安全区让位（POC .row + safe-area） */
+.ds-actions {
+  flex: none;
+  display: flex; gap: 20rpx;
+  padding: 24rpx 0 calc(24rpx + env(safe-area-inset-bottom));
+  background: var(--bg-sheet, #161b22);
+}
 .ds-act {
+  flex: 1;
   flex: 1;
   height: 96rpx;                               /* 48px */
   border-radius: 48rpx;                        /* 24px */

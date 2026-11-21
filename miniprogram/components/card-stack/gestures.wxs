@@ -6,6 +6,7 @@ var VELOCITY = 0.55;
 var DAMP = 260;
 
 var state = {
+  locked: false,        // 交互锁（抽屉打开时由 change:interactionLocked 同步置位）
   dragging: false,
   startX: 0,
   startY: 0,
@@ -20,7 +21,14 @@ var state = {
 function frontOf(owner) { return owner.selectComponent('#cardFront'); }
 function behindOf(owner) { return owner.selectComponent('#cardBehind'); }
 
+/** 属性变化同步：interactionLocked → WXS 模块态（官方 change: 机制） */
+function syncLock(newValue, oldValue, ownerInstance) {
+  state.locked = !!newValue;
+  if (state.locked) state.dragging = false;   // 上锁瞬间终止进行中的拖拽
+}
+
 function onTouchStart(e, owner) {
+  if (state.locked) return;
   var t = e.touches[0];
   state.dragging = true;
   state.startX = t.clientX;
@@ -37,7 +45,7 @@ function onTouchStart(e, owner) {
 }
 
 function onTouchMove(e, owner) {
-  if (!state.dragging) return;
+  if (state.locked || !state.dragging) return;
   var t = e.touches[0];
   var rawX = t.clientX - state.startX;
   var rawY = t.clientY - state.startY;
@@ -83,7 +91,7 @@ function onTouchMove(e, owner) {
 }
 
 function onTouchEnd(e, owner) {
-  if (!state.dragging) return;
+  if (state.locked || !state.dragging) return;
   state.dragging = false;
 
   var ab = state.dx > 0 ? state.dx : -state.dx;
@@ -124,5 +132,6 @@ function onTouchEnd(e, owner) {
 module.exports = {
   touchStart: onTouchStart,
   touchMove: onTouchMove,
-  touchEnd: onTouchEnd
+  touchEnd: onTouchEnd,
+  syncLock: syncLock
 };

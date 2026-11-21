@@ -1,6 +1,9 @@
 <!-- components/card-stack/index.wxml — 方案 A 卡栈视觉（主卡唯一清晰，后卡弱化） -->
 <wxs src="./gestures.wxs" module="gestures" />
 
+<!-- 交互锁同步节点：interactionLocked 变化经 change: 机制写入 WXS 模块态 -->
+<view class="lock-sync" interaction-locked="{{interactionLocked}}" change:interaction-locked="{{gestures.syncLock}}"></view>
+
 <view class="stack-host">
   <view
     class="stack"

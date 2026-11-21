@@ -8,7 +8,9 @@ Component({
   properties: {
     items: { type: Array, value: [] },        // 卡片数据（从 activeIndex 起的可见队列，页面切片传入）
     activeIndex: { type: Number, value: 0 },  // 仅用于 key 稳定性
-    loading: { type: Boolean, value: false }
+    loading: { type: Boolean, value: false },
+    // 交互锁：抽屉打开时页面置 true，WXS 手势与原生手势全部短路（经 change: 同步到 WXS 模块态）
+    interactionLocked: { type: Boolean, value: false }
   },
 
   data: {
@@ -65,14 +67,16 @@ Component({
     /** 卡片点按：由 WXS touchend 判定后 callMethod 触发（catchtouchend 会吞框架 tap 合成，
      *  故不依赖 bindtap）。拖拽 >10px 或出场动画中抑制。 */
     onCardTap() {
+      if (this.data.interactionLocked) return;
       if (this._moved > 10) { this._moved = 0; return; }
       if (this.data.locked) return;
       const front = this.data.renderList[0];
       if (front) this.triggerEvent('cardtap', { item: front.data });
     },
 
-    /** 长按 = 不感兴趣（负反馈 + 换下一张） */
+    /** 长按 = 不感兴趣（负反馈 + 换下一张）；交互锁期间忽略 */
     onCardLongPress() {
+      if (this.data.interactionLocked) return;
       const front = this.data.renderList[0];
       if (front) this.triggerEvent('notinterest', { item: front.data });
     },

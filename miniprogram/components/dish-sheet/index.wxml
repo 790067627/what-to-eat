@@ -1,9 +1,41 @@
-<!-- dish-sheet — 方案 A POC 详情抽屉逐值移植（结构 = POC openSheet 生成序）：
-     grip → hero(4:3) → h2 菜名 → meta 来源行 → desc 理由 → row 双按钮 -->
-<view wx:if="{{visible}}" class="ds-mask {{entered ? 'on' : ''}}" bindtap="close" catchtouchmove="noop"></view>
-<view wx:if="{{visible}}" class="ds-sheet {{entered ? 'on' : ''}}" catchtap="noop">
-  <view class="ds-grip" bindtap="close"></view>
-  <scroll-view class="ds-scroll" scroll-y>
+<!-- dish-sheet — 三层结构：遮罩(拦截一切) / 内容层(独立 scroll-view) / 底部操作层(固定不滚)
+     关闭通道：遮罩点击 + 顶部拖拽条下拉（内容区下拉只滚内容，不关闭） -->
+<view
+  wx:if="{{visible}}"
+  class="ds-mask {{entered ? 'on' : ''}}"
+  catchtap="close"
+  catchtouchmove="noop"
+  catchtouchstart="noop"
+  catchtouchend="noop"
+></view>
+
+<view
+  wx:if="{{visible}}"
+  class="ds-drag"
+  style="transform: translateY({{dragDy}}px)"
+  catchtouchmove="noop"
+>
+<view
+  class="ds-sheet {{entered ? 'on' : ''}}"
+  style="max-height: {{sheetMaxH}}px"
+  catchtap="noop"
+>
+  <!-- 拖拽条：下拉关闭（手势归属在 touchstart 即判定，只驱动抽屉） -->
+  <view
+    class="ds-grip"
+    catchtouchstart="onGripStart"
+    catchtouchmove="onGripMove"
+    catchtouchend="onGripEnd"
+    catchtouchcancel="onGripEnd"
+  ></view>
+
+  <!-- 内容层：独立滚动，只滚图片/信息/理由 -->
+  <scroll-view
+    class="ds-scroll"
+    scroll-y
+    scroll-top="{{scrollTop}}"
+    bindscroll="onScroll"
+  >
     <block wx:if="{{item}}">
       <image
         wx:if="{{item.coverImageUrl || item.coverFileID}}"
@@ -15,13 +47,17 @@
       <view wx:else class="ds-hero ds-hero-ph"></view>
 
       <view class="ds-name">{{item.name}}</view>
-      <view class="ds-meta">{{item.type === 'public' ? '社区公开分享 · ' + (item.anonymous ? '匿名厨友' : item.author.nickname) + ' · ' + (item.likeCount || 0) + ' 赞' : '我的菜品库 · 站内 ' + (item.ratingText || item.rating || 0) + ' 分'}}</view>
-      <view class="ds-desc">{{item.reason}}</view>
-
-      <view class="ds-row">
-        <view class="ds-act {{item.liked ? 'on' : ''}}" bindtap="onLike">{{item.liked ? '♥ 已喜欢' : '♡ 喜欢'}}</view>
-        <view class="ds-act primary {{item.saved ? 'added' : ''}}" bindtap="onWant">{{item.saved ? '✓ 已入想吃清单' : '＋ 想吃'}}</view>
+      <view class="ds-meta">{{item.type === 'public' ? '社区公开分享 · ' + (item.anonymous ? '匿名厨友' : item.author.nickname) + ' · ' + (item.likeCount || 0) + ' 赞' : '我的菜品库 · 我的评分 ' + (item.ratingText || item.rating || 0)}}</view>
+      <view class="ds-tags" wx:if="{{item.tags.length}}">
+        <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" class="ds-chip">{{tag}}</text>
       </view>
+      <view class="ds-desc">{{item.reason}}</view>
     </block>
   </scroll-view>
-</view>
+
+  <!-- 底部操作层：固定，不参与滚动，安全区让位 -->
+  <view class="ds-actions">
+    <view class="ds-act {{item.liked ? 'on' : ''}}" bindtap="onLike">{{item.liked ? '♥ 已喜欢' : '♡ 喜欢'}}</view>
+    <view class="ds-act primary {{item.saved ? 'added' : ''}}" bindtap="onWant">{{item.saved ? '✓ 已入想吃清单' : '＋ 想吃'}}</view>
+  </view>
+</view></view>

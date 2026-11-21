@@ -45,6 +45,7 @@
           items="{{visibleItems}}"
           active-index="{{cursorIdx}}"
           loading="{{feedLoading && !feedQueue.length}}"
+          interaction-locked="{{stackLocked}}"
           bind:advance="onAdvance"
           bind:cardtap="onCardTap"
           bind:notinterest="onNotInterest"

@@ -455,13 +455,8 @@ module.exports = function createRecommend({ cloud, db, _, ok, fail }) {
     else if (t.carb > 0.6 && fv.carb > 0.4) parts.push('你是面食胃，这道碳水满足感刚好');
     else if (t.sweet > 0.5 && fv.sweet > 0.4) parts.push('记得你爱甜，这道甜得清爽');
     else parts.push('和你最近的口味记录对得上');
-    if (c.type === 'public') {
-      parts.push(`来自${d.authorNickname || '匿名厨友'}的公开分享`);
-      if ((d.likeCount || 0) >= 50) parts.push('社区反响不错');
-    } else {
-      parts.push('你自己的菜单');
-    }
-    return parts.slice(0, 2).join('；') + '。';
+    // 展示精简：来源由徽章/副行独立展示、特征由标签展示，理由只解释「为什么适合你」
+    return parts[0] + '。';
   }
 
   /** AI 理由缓存：public_ai_reasons 集合，键 = hash(菜名+标签+画像摘要)。

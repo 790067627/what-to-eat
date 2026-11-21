@@ -102,3 +102,6 @@
 
 .cs-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
 .cs-loading-text { font-size: 26rpx; color: var(--text-hint, #8b949e); }
+
+/* 交互锁同步节点：零尺寸，仅承载 change: 事件 */
+.lock-sync { position: absolute; width: 0; height: 0; }
