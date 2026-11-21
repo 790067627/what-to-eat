@@ -60,7 +60,10 @@ Component({
       }, 420);
     },
 
-    /** 卡片点按（误触判定：拖拽超过 10px 不触发） */
+    /** 卡片点按（双通道：卡片 bindtap + WXS touchEnd callMethod，幂等）：
+     *  非主卡点击忽略；拖拽 >10px 抑制；出场动画中忽略 */
+    /** 卡片点按：由 WXS touchend 判定后 callMethod 触发（catchtouchend 会吞框架 tap 合成，
+     *  故不依赖 bindtap）。拖拽 >10px 或出场动画中抑制。 */
     onCardTap() {
       if (this._moved > 10) { this._moved = 0; return; }
       if (this.data.locked) return;

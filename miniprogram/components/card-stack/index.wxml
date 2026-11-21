@@ -8,7 +8,6 @@
     catchtouchmove="{{gestures.touchMove}}"
     catchtouchend="{{gestures.touchEnd}}"
     catchtouchcancel="{{gestures.touchEnd}}"
-    bindtap="onCardTap"
     bindlongpress="onCardLongPress"
   >
     <!-- 渲染顺序：深层先画（zIndex 由 class 控制），前卡最后画在最上 -->
@@ -17,7 +16,7 @@
         id="{{index === 0 ? 'cardFront' : (index === 1 ? 'cardBehind' : '')}}"
         class="cs-card depth-{{item.depth}} {{item.exiting ? ('exit-' + item.exitDir) : ''}}"
       >
-        <!-- 照片层：占主卡 ~82% 高度，菜名压在照片底部（POC card-title-overlay） -->
+        <!-- 照片层：flex:1（POC .card-photo），菜名压在照片底部 -->
         <view class="cs-photo">
           <image
             wx:if="{{item.data.coverImageUrl || item.data.coverFileID}}"
@@ -27,19 +26,19 @@
             lazy-load="{{item.depth > 0}}"
           />
           <view wx:else class="cs-img cs-img-ph"></view>
-          <!-- 后卡弱化遮罩（POC：后卡照片模糊压暗，只留轮廓色感；不做大面积模糊阴影） -->
+          <!-- 后卡弱化遮罩（POC：后卡照片压暗，只留轮廓色感） -->
           <view wx:if="{{item.depth > 0}}" class="cs-veil"></view>
-          <!-- 主卡底部渐变压暗 -->
+          <!-- 主卡底部渐变压暗（POC .card-photo::after） -->
           <view wx:if="{{item.depth === 0}}" class="cs-photo-shade"></view>
 
           <block wx:if="{{item.depth === 0}}">
-            <!-- 顶部双徽章（POC photo-badges：左评分/赞+私有社区，右来源） -->
+            <!-- 顶部双徽章（POC photo-badges） -->
             <view class="cs-badges">
               <view class="cs-badge" wx:if="{{item.data.type === 'public'}}">♥ {{item.data.likeCount}} 赞 · 社区</view>
               <view class="cs-badge" wx:else>★ 我的评分 {{item.data.ratingText}} · 私有</view>
               <view class="cs-badge">{{item.data.type === 'public' ? '来自 ' + item.data.author.nickname : '我的菜品库'}}</view>
             </view>
-            <!-- 菜名 + 副行：压照片底部 -->
+            <!-- 菜名 + 副行：压照片底部（POC card-title-overlay） -->
             <view class="cs-title-wrap">
               <view class="cs-title">{{item.data.name}}</view>
               <view class="cs-subtitle">{{item.data.type === 'public' ? item.data.author.nickname + ' 的公开分享' : '你的菜品库 · 点击看详情'}}</view>
@@ -47,7 +46,7 @@
           </block>
         </view>
 
-        <!-- 信息条：AI 理由单行块（POC card-info，无多余嵌套） -->
+        <!-- 信息条：AI 理由单块（POC card-info） -->
         <view wx:if="{{item.depth === 0}}" class="cs-info">
           <view class="cs-reason">
             <text class="cs-ai-mark">AI</text>

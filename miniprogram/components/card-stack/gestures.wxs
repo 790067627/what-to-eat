@@ -31,6 +31,7 @@ function onTouchStart(e, owner) {
   state.vx = 0;
   state.moved = 0;
   state.horizontal = null;
+  state.startT = e.timeStamp;
   var front = frontOf(owner);
   if (front) front.setStyle({ 'transition': 'none' });
 }
@@ -90,10 +91,23 @@ function onTouchEnd(e, owner) {
   var commit = ab > THRESH || v > VELOCITY;
   var dir = state.dx < 0 ? -1 : 1;
 
+  // tap 判定：位移 ≤10px 且按住 <350ms（长按走 bindlongpress 通道，不在此处）
+  // 注意：catchtouchend 会阻止小程序合成 tap 事件，必须在这里手动 callMethod
+  var dur = e.timeStamp - state.startT;
+
   var front = frontOf(owner);
   var behind = behindOf(owner);
+  // 恢复过渡（touchstart 时设为 none 保证跟手）——tap 分支也要恢复，否则下次滑动无动画
   if (front) front.setStyle({ 'transition': 'transform 560ms cubic-bezier(.22,1.28,.36,1), opacity 420ms' });
   if (behind) behind.setStyle({ 'transition': 'transform 560ms cubic-bezier(.22,1.28,.36,1), opacity 420ms' });
+
+  if (!commit && ab <= 10 && dur < 400 && state.horizontal !== false) {
+    // tap：catchtouchend 会吞掉框架的 tap 合成，必须在此主动 callMethod（真机 touchend 必触发）
+    owner.callMethod('dragMoved', { moved: 0 });
+    owner.callMethod('onCardTap');
+    state.moved = 0;
+    return;
+  }
 
   if (commit) {
     owner.callMethod('dragMoved', { moved: state.moved });
