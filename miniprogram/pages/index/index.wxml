@@ -49,7 +49,15 @@
           bind:advance="onAdvance"
           bind:cardtap="onCardTap"
           bind:notinterest="onNotInterest"
+          bind:depleted="onDepleted"
         />
+        <!-- 队列耗尽结束态：覆盖在卡栈上（组件此时只剩最后一张静止卡） -->
+        <view wx:if="{{feedEnd}}" class="feed-end">
+          <view class="feed-end-emoji">🍽</view>
+          <view class="feed-end-title">这一轮推荐看完了</view>
+          <view class="feed-end-sub">共 {{feedQueue.length}} 道 · 按你的口味与行为排序</view>
+          <view class="feed-end-btn" bindtap="onReshuffle">重新推荐</view>
+        </view>
       </view>
 
       <!-- 操作区：喜欢 / 换一道 / 想吃（方案 A 视觉冻结） -->

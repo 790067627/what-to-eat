@@ -18,6 +18,7 @@ Page(withTheme({
     nextCursor: '',
     hasMore: true,
     feedLoading: false,
+    feedEnd: false,       // 队列耗尽结束态（组件 depleted 事件驱动）
     coldStart: false,
     legacyCloud: false,   // 云端 dish 函数为旧版（无 getFeed）时的降级标记
     // 抽屉
@@ -94,6 +95,7 @@ Page(withTheme({
         feedLoading: false,
         feedQueue: merged,
         feedResetToken: reset ? this.data.feedResetToken + 1 : this.data.feedResetToken,
+        feedEnd: false,   // 新数据到达（重置或追加）即退出结束态
         nextCursor: res.nextCursor || '',
         hasMore: !!res.hasMore,
         coldStart: !!(res.profile && res.profile.coldStart)
@@ -189,12 +191,27 @@ Page(withTheme({
     if (prev) api.logBehavior('next', prev.type, prev.id).catch(() => {});
     this.setData({ cursorIdx: cursor });
     this.syncVisible();
-    // 接近队尾预加载下一批（组件窗口 4 张，剩 2 张时拉）
-    if (cursor + 2 >= this.data.feedQueue.length && this.data.hasMore && this.data.nextCursor) {
+    // 接近队尾预加载下一批（窗口 4 张，剩 3 张即拉，网络往返期间用户还有缓冲卡可滑）
+    if (cursor + 3 >= this.data.feedQueue.length && this.data.hasMore && this.data.nextCursor) {
       this.loadFeed(false);
     }
     const nxt = this.data.feedQueue[cursor];
     if (nxt) api.logBehavior('expose', nxt.type, nxt.id).catch(() => {});
+  },
+
+  /** 组件队尾拒绝提交（滑最后一张还想滑）：有下一页→静默拉取；没有→结束态 */
+  onDepleted() {
+    if (this.data.hasMore && this.data.nextCursor) {
+      this.loadFeed(false);
+      return;
+    }
+    this.setData({ feedEnd: true });
+  },
+
+  /** 结束态「重新推荐」：整链重置（游标/窗口/手势锁/动画状态，经 resetToken 传导） */
+  onReshuffle() {
+    this.setData({ feedEnd: false });
+    this.loadFeed(true);
   },
 
   onCardTap(e) {
@@ -290,11 +307,14 @@ Page(withTheme({
         const patch = {};
         patch[`feedQueue[${this.data.cursorIdx}].savedDishId`] = res.dishId;
         this.setData(patch);
-        // 保存即消费完成：立即从当前队列移除，不再刷到（服务端 getFeed 同步硬过滤）
+        // 保存即消费完成：从队列移除该卡（统一机制：组件 observer 检测窗口变化
+        // 自动 _rebuild——清定时器/解锁/清内联，页面与组件游标天然一致）
         const q = this.data.feedQueue.slice();
         q.splice(this.data.cursorIdx, 1);
-        this.setData({ feedQueue: q });
-        if (this.data.cursorIdx >= q.length) this.setData({ cursorIdx: Math.max(0, q.length - 1) });
+        const patch2 = { feedQueue: q };
+        if (this.data.cursorIdx >= q.length) patch2.cursorIdx = Math.max(0, q.length - 1);
+        if (this.data.feedEnd && q.length) patch2.feedEnd = false;   // 队列变化后退出结束态
+        this.setData(patch2);
         this.syncVisible();
         if (this.data.sheetItem && this.data.sheetItem.id === cur.id) {
           this.setData({ 'sheetItem.saved': true, 'sheetItem.savedDishId': res.dishId, sheetShow: false });

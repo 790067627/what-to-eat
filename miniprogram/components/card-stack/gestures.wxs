@@ -1,8 +1,11 @@
 // components/card-stack/gestures.wxs — 手势层（视图线程执行，零 setData 跟手）
 // 状态机：idle → dragging → settling → idle
 //  - dragging：WXS 内联 setStyle 直接驱动前卡/后卡位移（不经过逻辑层）
-//  - settling：松手同帧由 WXS 启动出场+补位终值动画（不等 JS），JS 仅对齐 class 与窗口数据
-//  - 内联样式清理：settling 结束后 JS 递增 clearToken，经 change: 触发 clearAll，class 完全接管
+//  - settling：松手同帧由 WXS 启动出场+补位终值动画，随后 callMethod('commitSwipe')
+//  - 恢复协议（不依赖单一布尔回调）：JS 在提交成功/被拒/耗尽/重置的全部路径上
+//    递增 releaseToken —— 单调递增保证 change: 必触发 → syncRelease 恢复 idle。
+//    （旧方案的 locked 布尔镜像在「值不变」时 change: 不回调，会造成 settling 永久死锁）
+//  - clearAll 竞态守卫：新一轮拖拽已开始（dragging）时跳过清理，内联样式归新拖拽所有
 // 参数与方案 A POC 对齐：阈值 96px / 速度 0.55px/ms / 阻尼 260px / speed 420ms
 var THRESH = 96;
 var VELOCITY = 0.55;
@@ -14,7 +17,6 @@ var EXIT_EASE = 'cubic-bezier(.4,0,.7,.2)';
 var state = {
   phase: 'idle',        // idle | dragging | settling
   uiLocked: false,      // 抽屉等外部交互锁（change:interaction-locked）
-  animLocked: false,    // settling 锁（change:anim-locked，JS data.locked 镜像）
   startX: 0,
   startY: 0,
   dx: 0,
@@ -31,20 +33,27 @@ var state = {
 function frontOf(owner) { return owner.selectComponent('#cardFront'); }
 function behindOf(owner) { return owner.selectComponent('#cardBehind'); }
 
-/** change: 同步——外部交互锁（抽屉打开） */
+/** change: 同步——外部交互锁（抽屉打开）。settling 不由此打断（动画归属 JS 生命周期） */
 function syncUiLock(newValue) {
   state.uiLocked = !!newValue;
-  if (state.uiLocked && state.phase === 'dragging') state.phase = 'idle';
+  if (state.uiLocked && state.phase === 'dragging') {
+    // 拖拽中被上锁（如抽屉经其他路径打开）：释放引用，phase 归 idle
+    state.front = null;
+    state.behind = null;
+    state.phase = 'idle';
+  }
 }
 
-/** change: 同步——settling 锁（JS data.locked 镜像）：动画期禁止重新拖拽 */
-function syncAnimLock(newValue) {
-  state.animLocked = !!newValue;
-  if (!state.animLocked && state.phase === 'settling') state.phase = 'idle';
+/** change: 同步——释放令牌（JS 全路径递增，值必变 → 回调必达）：
+ *  settling → idle 的唯一恢复通道，兼做兜底（提交被拒/耗尽/组件重置同样走这里） */
+function syncRelease() {
+  if (state.phase === 'settling') state.phase = 'idle';
 }
 
-/** change: 同步——settling 收尾：清空全部卡片内联样式，class 完全接管（根治内联残留） */
+/** change: 同步——清理卡片内联样式，class 完全接管。
+ *  竞态守卫：新拖拽已开始则跳过（内联样式已归新拖拽所有，其 touchEnd 自会再调度清理） */
 function clearAll(newValue, oldValue, owner) {
+  if (state.phase === 'dragging') return;
   var cards = owner.selectAll('.cs-card');
   if (cards && cards.length) {
     for (var i = 0; i < cards.length; i++) {
@@ -54,7 +63,7 @@ function clearAll(newValue, oldValue, owner) {
 }
 
 function onTouchStart(e, owner) {
-  if (state.uiLocked || state.animLocked || state.phase === 'settling') return;
+  if (state.uiLocked || state.phase !== 'idle') return;
   var t = e.touches[0];
   state.phase = 'dragging';
   state.startX = t.clientX;
@@ -118,6 +127,7 @@ function onTouchMove(e, owner) {
 }
 
 function onTouchEnd(e, owner) {
+  // touchcancel（来电/系统手势打断）与 touchend 同路径：dragging 才处理，天然幂等
   if (state.phase !== 'dragging') return;
 
   var ab = state.dx > 0 ? state.dx : -state.dx;
@@ -129,7 +139,6 @@ function onTouchEnd(e, owner) {
   // tap 判定：位移 ≤10px 且 <400ms（catchtouchend 吞掉框架 tap 合成，需主动 callMethod）
   if (!commit && ab <= 10 && dur < 400 && state.horizontal !== false) {
     state.phase = 'idle';
-    // tap 不留位移：直接复位（无动画必要，位移≤10px 视觉不可察）
     if (state.front) state.front.setStyle({ 'transform': '', 'transition': '' });
     if (state.behind) state.behind.setStyle({ 'transform': '', 'transition': '' });
     state.front = null; state.behind = null;
@@ -140,7 +149,7 @@ function onTouchEnd(e, owner) {
   }
 
   if (commit) {
-    // ===== settling：松手同帧在视图层启动终值动画，不等 JS 往返（根治松手停顿） =====
+    // ===== settling：松手同帧在视图层启动终值动画，不等 JS 往返 =====
     state.phase = 'settling';
     var exitX = dir < 0 ? '-120%' : '120%';
     var exitRot = dir < 0 ? '-13deg' : '13deg';
@@ -159,10 +168,11 @@ function onTouchEnd(e, owner) {
     }
     state.front = null; state.behind = null;
     owner.callMethod('dragMoved', { moved: state.moved });
-    // JS 侧：对齐 class/窗口数据（与内联终值一致，零跳变）+ 450ms 后清理 + clearToken
+    // 提交协议：JS 无论接受/拒绝此次提交，都必须递增 releaseToken（→ syncRelease 恢复 idle）；
+    // 拒绝时 JS 同时递增 clearToken → clearAll 清除出场内联样式，卡片经 class 过渡弹回
     owner.callMethod('commitSwipe', { dir: dir });
   } else {
-    // ===== 未过阈值：回弹到各自 depth 槽位（恢复过渡后 setStyle 终值触发补间） =====
+    // ===== 未过阈值：回弹到各自 depth 槽位 =====
     state.phase = 'idle';
     if (state.front) {
       state.front.setStyle({
@@ -176,9 +186,8 @@ function onTouchEnd(e, owner) {
         'transform': 'translate3d(14px,0,0) scale(0.92) rotate(-2.5deg)'
       });
     }
-    // 回弹完成后延迟清内联，让 class 接管（值一致，视觉无感）
-    var f = state.front, b = state.behind;
     state.front = null; state.behind = null;
+    // 回弹完成后延迟清内联，让 class 接管（值一致，视觉无感；dragging 守卫防竞态）
     owner.callMethod('scheduleClear');
     owner.callMethod('dragMoved', { moved: 0 });
   }
@@ -190,6 +199,13 @@ module.exports = {
   touchMove: onTouchMove,
   touchEnd: onTouchEnd,
   syncUiLock: syncUiLock,
-  syncAnimLock: syncAnimLock,
-  clearAll: clearAll
+  syncRelease: syncRelease,
+  clearAll: clearAll,
+  // 测试探针：自动化用例断言/复位状态机用，业务代码不得依赖
+  _peek: function () { return { phase: state.phase, uiLocked: state.uiLocked }; },
+  _reset: function () {
+    state.phase = 'idle'; state.uiLocked = false; state.dragging = false;
+    state.dx = 0; state.vx = 0; state.moved = 0; state.horizontal = null;
+    state.front = null; state.behind = null;
+  }
 };

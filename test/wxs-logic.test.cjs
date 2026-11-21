@@ -14,7 +14,7 @@ function mkOwner(calls) {
 const touch = (x, y, t) => ({ touches: [{ clientX: x, clientY: y }], timeStamp: t });
 
 let pass = 0, fail = 0;
-const t = (name, fn) => { try { fn(); pass++; console.log('  ✓', name); } catch (e) { fail++; console.log('  ✗', name, e.message); } };
+const t = (name, fn) => { g._reset(); try { fn(); pass++; console.log('  ✓', name); } catch (e) { fail++; console.log('  ✗', name, e.message); } };
 
 t('轻点(位移0, 120ms) → callMethod onCardTap', () => {
   const calls = [];
@@ -82,6 +82,76 @@ t('长按(500ms 位移0) → 不触发 tap（longpress 通道）', () => {
   g.touchStart(touch(200, 400, 0), o);
   g.touchEnd(touch(200, 400, 500), o);
   if (calls.some(c => c[0] === 'onCardTap')) throw new Error('500ms 不应算 tap');
+});
+
+/* ===== 提交协议状态机 ===== */
+
+const swipe = (o, x0, t0) => {
+  g.touchStart(touch(x0, 400, t0), o);
+  for (let i = 1; i <= 6; i++) g.touchMove(touch(x0 - i * 25, 400, t0 + i * 30), o);
+  g.touchEnd(touch(x0 - 150, 400, t0 + 200), o);
+};
+
+t('commit 后未释放：第二次 touchStart 不进入 dragging（settling 锁）', () => {
+  const calls = [];
+  const o = mkOwner(calls);
+  swipe(o, 300, 0);
+  if (!calls.some(c => c[0] === 'commitSwipe')) throw new Error('首次应提交');
+  calls.length = 0;
+  swipe(o, 300, 1000);           // settling 期再次滑动
+  if (calls.some(c => c[0] === 'commitSwipe')) throw new Error('settling 期不应再提交');
+  const peek = g._peek();
+  if (peek.phase !== 'settling') throw new Error('phase 应保持 settling，实际 ' + peek.phase);
+});
+
+t('releaseToken 释放后：第二次 touchStart 正常提交（连续滑动核心用例）', () => {
+  const calls = [];
+  const o = mkOwner(calls);
+  swipe(o, 300, 0);
+  g.syncRelease(1, 0, o);          // JS _release() → releaseToken 递增回调
+  if (g._peek().phase !== 'idle') throw new Error('释放后应回 idle');
+  calls.length = 0;
+  swipe(o, 300, 1000);
+  if (!calls.some(c => c[0] === 'commitSwipe')) throw new Error('第二次滑动应提交');
+});
+
+t('连续 3 次滑动（每次间隔释放）全部提交成功', () => {
+  const calls = [];
+  const o = mkOwner(calls);
+  let n = 0;
+  for (let i = 0; i < 3; i++) {
+    swipe(o, 300, i * 1000);
+    g.syncRelease(++n, n - 1, o);
+  }
+  const commits = calls.filter(c => c[0] === 'commitSwipe').length;
+  if (commits !== 3) throw new Error('应提交 3 次，实际 ' + commits);
+});
+
+t('未释放时 syncRelease 才恢复；dragging 中 clearAll 不清样式（竞态守卫）', () => {
+  const cleared = [];
+  const o = {
+    callMethod: () => {},
+    selectComponent: () => ({ setStyle: () => {} }),
+    selectAll: () => [{ setStyle: st => cleared.push(st) }]
+  };
+  g.touchStart(touch(300, 400, 0), o);
+  g.touchMove(touch(250, 400, 50), o);   // 进入 dragging
+  g.clearAll(1, 0, o);                    // 拖拽中收到 clearToken
+  if (cleared.length) throw new Error('dragging 期 clearAll 不得清样式');
+  g.touchEnd(touch(250, 400, 300), o);    // 小位移回弹
+  g.clearAll(2, 1, o);                    // idle 期清理生效
+  if (!cleared.length) throw new Error('idle 期 clearAll 应清样式');
+});
+
+t('uiLocked 期间 touchStart 短路', () => {
+  const calls = [];
+  const o = mkOwner(calls);
+  g.syncUiLock(true);
+  swipe(o, 300, 0);
+  if (calls.length) throw new Error('锁定期不应有任何 callMethod');
+  g.syncUiLock(false);
+  swipe(o, 300, 1000);
+  if (!calls.some(c => c[0] === 'commitSwipe')) throw new Error('解锁后应恢复');
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

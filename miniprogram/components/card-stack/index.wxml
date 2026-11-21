@@ -2,10 +2,11 @@
 <wxs src="./gestures.wxs" module="gestures" />
 
 <!-- WXS 状态同步节点（change: 官方机制）：
-     uiLocked=抽屉交互锁 / animLocked=settling 动画锁 / clearToken=内联样式清理 -->
+     uiLocked=抽屉交互锁 / releaseToken=settling 释放令牌（递增必触发，杜绝死锁）
+     / clearToken=内联样式清理（WXS 内有 dragging 竞态守卫） -->
 <view class="lock-sync"
   interaction-locked="{{interactionLocked}}" change:interaction-locked="{{gestures.syncUiLock}}"
-  anim-locked="{{locked}}" change:anim-locked="{{gestures.syncAnimLock}}"
+  release-token="{{releaseToken}}" change:release-token="{{gestures.syncRelease}}"
   clear-token="{{clearToken}}" change:clear-token="{{gestures.clearAll}}"
 ></view>
 
