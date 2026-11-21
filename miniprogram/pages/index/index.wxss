@@ -49,8 +49,9 @@
 
 /* ===== 卡栈区 ===== */
 .stack-zone {
-  flex: 1;
-  min-height: 760rpx;
+  /* 高度由 wxml 内联 stackHeightPx 给定（确定值）：
+     真机 WKWebView 中 flex 子项 auto 高度内的 height:100% 会解析为 0，导致卡片不可见 */
+  flex: none;
   position: relative;
   margin: 0 8rpx;
 }

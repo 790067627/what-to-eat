@@ -39,7 +39,7 @@
       </view>
 
       <!-- 卡栈：AI 饮食灵感主体（方案 A · Swiper Cards 交互模型原生实现） -->
-      <view class="stack-zone">
+      <view class="stack-zone" style="height: {{stackHeightPx}}px">
         <card-stack
           id="cardStack"
           items="{{visibleItems}}"

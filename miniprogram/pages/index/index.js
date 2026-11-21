@@ -26,11 +26,20 @@ Page(withTheme({
     // 操作区状态
     curLiked: false,
     curSaved: false,
-    idxText: ''
+    idxText: '',
+    stackHeightPx: 480   // 卡栈区确定高度（px），真机 WKWebView 对 auto 高度内的百分比解析为 0
   },
 
   onLoad() {
-    this.setData({ navHeight: getNavMetrics().headerHeight, greeting: this.buildGreeting() });
+    const sys = wx.getSystemInfoSync();
+    const nav = getNavMetrics().headerHeight;
+    // 视口 - 导航 - 问候区(~150) - 操作区+提示(~200) - TabBar(56+安全区) - 边距(48)
+    const h = Math.max(380, sys.windowHeight - nav - 150 - 200 - 56 - (sys.safeArea ? sys.screenHeight - sys.safeArea.bottom : 0) - 48);
+    this.setData({
+      navHeight: nav,
+      greeting: this.buildGreeting(),
+      stackHeightPx: Math.round(h)
+    });
   },
 
   onShow() {
