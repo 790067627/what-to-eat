@@ -87,15 +87,27 @@ Component({
       this._closing = false;        // 拖动开始解除关闭锁（拖动中允许后续关闭）
     },
 
+    /** WXS 松手判定关闭后的状态收尾：视觉补间已在 WXS 同帧启动，这里只管状态与卸载。
+     *  _closing 先置位，阻断 show=false 触发的 _animateClose 重复动画。 */
+    onDragClose() {
+      if (this._closing) return;
+      this._closing = true;
+      this.triggerEvent('close');   // 页面置 sheetShow=false（observer 的 _animateClose 被守卫跳过）
+      this._timer = setTimeout(() => {
+        this.setData({ visible: false, dragStyle: '', maskStyle: '' });
+        this._closing = false;
+        this.triggerEvent('closed');
+      }, 320);
+    },
+
+    /** 保留：JS 侧松手决策兜底（WXS 不可用环境） */
     onGripRelease(e) {
       const { dy = 0, vy = 0 } = e || {};
-      // 关闭条件：位移超阈值(70px) 或 快速下甩(vy>0.5px/ms 且已拖出 20px)
       const shouldClose = dy > 70 || (vy > 0.5 && dy > 20);
       if (shouldClose) {
-        this._animateClose(dy);     // 从当前位移衔接滑出
+        this._animateClose(dy);
         this.triggerEvent('close');
       } else {
-        // 不足：柔和弹簧回弹到完全展开；遮罩透明度同步回满
         this.setData({
           dragStyle: `transform: translateY(0); transition: transform 350ms ${SPRING_CURVE}`,
           maskStyle: 'opacity: 1; transition: opacity 250ms linear'

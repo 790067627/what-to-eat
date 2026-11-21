@@ -21,6 +21,7 @@
   class="ds-sheet"
   style="max-height: {{sheetMaxH}}px"
   catchtap="noop"
+  catchtouchmove="noop"
 >
   <!-- 顶部拖拽热区：宽 100% 高 56px 透明区，WXS 手势捕获（不要求精准按住横线）；
        灰色横线视觉保持原样（长度/粗细/颜色/位置不变） -->

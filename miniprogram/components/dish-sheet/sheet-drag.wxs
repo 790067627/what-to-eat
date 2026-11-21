@@ -47,8 +47,25 @@ function onTouchEnd(e, owner) {
     owner.callMethod('onMaskTap');
     return;
   }
-  // 松手决策交给 JS：拖动实时位移 → 补间动画的衔接由 JS setData 完成（值连续无跳变）
-  owner.callMethod('onGripRelease', { dy: state.dy, vy: state.vy });
+  // 松手补间必须在 WXS 同帧启动：若交给 JS setData，真机往返延迟会造成
+  // 「松手后停顿零点几秒才动」的卡顿感。起点 = 当前实时位移，衔接连续。
+  var shouldClose = state.dy > 70 || (state.vy > 0.5 && state.dy > 20);
+  var wrap = wrapperOf(owner);
+  var mask = maskOf(owner);
+  if (shouldClose) {
+    if (wrap) wrap.setStyle({
+      'transform': 'translateY(calc(102% + ' + state.dy + 'px))',
+      'transition': 'transform 300ms cubic-bezier(.4,0,1,1)'
+    });
+    if (mask) mask.setStyle({ 'opacity': '0', 'transition': 'opacity 300ms linear' });
+    owner.callMethod('onDragClose', { dy: state.dy });
+  } else {
+    if (wrap) wrap.setStyle({
+      'transform': 'translateY(0)',
+      'transition': 'transform 350ms cubic-bezier(.22,1.28,.36,1)'
+    });
+    if (mask) mask.setStyle({ 'opacity': '1', 'transition': 'opacity 250ms linear' });
+  }
 }
 
 module.exports = {
