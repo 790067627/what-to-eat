@@ -3,13 +3,13 @@
      手势隔离：页面侧 interactionLocked 锁卡栈；本组件所有触摸节点 catch 防穿透 -->
 <wxs src="./sheet-drag.wxs" module="drag" />
 
+<!-- 遮罩：点击关闭。不可 catchtouchstart/touchend——catchtouchend 会吞掉框架
+     tap 合成（与 card-stack 旧 bug 同根因）；catchtouchmove 已足够防滚动穿透 -->
 <view
   wx:if="{{visible}}"
   class="ds-mask" style="{{maskStyle}}"
   catchtap="onMaskTap"
   catchtouchmove="noop"
-  catchtouchstart="noop"
-  catchtouchend="noop"
 ></view>
 
 <view
