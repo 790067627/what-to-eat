@@ -16,7 +16,16 @@ module.exports = function createRecommend({ cloud, db, _, ok, fail }) {
     rich: ['浓郁', '下饭', '红烧', '炖', '油焖', '家常']
   };
 
-  function flavorVectorOfDish(dish) {
+  /** 菜品口味向量：AI 提取的持久化特征（flavorProfiles 集合）优先，标签关键词规则回退。
+   *  调用方应传入预取的 aiMap（getFeed 内批量取），避免逐卡查库。 */
+  function flavorVectorOfDish(dish, aiMap) {
+    const key = `${dish.type || 'own'}:${dish.id || dish._id}`;
+    const ai = aiMap && aiMap[key];
+    if (ai && ai.flavors) {
+      const v = {};
+      for (const k of Object.keys(FLAVOR_TAGS)) v[k] = clamp01(Number(ai.flavors[k]));
+      return v;
+    }
     const v = { spicy: 0, light: 0, carb: 0, sweet: 0, rich: 0 };
     const text = `${(dish.tags || []).join('')} ${dish.name} ${dish.categoryName || ''}`;
     for (const [dim, kws] of Object.entries(FLAVOR_TAGS)) {
@@ -24,6 +33,137 @@ module.exports = function createRecommend({ cloud, db, _, ok, fail }) {
     }
     for (const k in v) v[k] = Math.min(1, v[k]);
     return v;
+  }
+  const clamp01 = v => (isFinite(v) ? Math.max(0, Math.min(1, v)) : 0);
+
+  /** 批量预取 AI 口味特征（一次 where in，命中缓存集合 flavor_profiles） */
+  async function fetchAiFlavors(keys) {
+    const map = {};
+    if (!keys.length) return map;
+    try {
+      const res = await db.collection('flavor_profiles')
+        .where({ key: _.in(keys.slice(0, 50)) }).limit(50).get();
+      (res.data || []).forEach(r => { map[r.key] = r; });
+    } catch (e) { /* 集合未建 = 全回退规则 */ }
+    return map;
+  }
+
+  const envStr = k => String(process.env[k] || '').replace(/^"|"$/g, '').trim();
+  const hashKey = k => require('crypto').createHash('md5').update(k).digest('hex');
+
+  /** 模型配置：与 airec 同源（控制台环境变量 AI_MODELS，JSON 数组 [{url,apiKey,name}]），主备顺序即切换顺序 */
+  function getModels() {
+    const raw = String(process.env.AI_MODELS || '');
+    if (!raw) return [];
+    // 工具链可能把值存成 JSON 字符串字面量（外层引号+内层转义引号），逐层 parse 直到数组
+    let cur = raw;
+    for (let i = 0; i < 3; i++) {
+      try { cur = JSON.parse(cur); } catch (e) { break; }
+      if (Array.isArray(cur)) break;
+      if (typeof cur !== 'string') break;
+    }
+    return Array.isArray(cur) ? cur.filter(m => m && m.url && m.apiKey && m.name) : [];
+  }
+
+  /** 主备切换调用：逐模型尝试，解析 JSON，全失败返回 null。
+   *  budget: { models, attempts } 控制成本——发布期提取用紧预算(1模型1次)，理由生成用宽预算 */
+  async function callModelJson(models, prompt, timeoutMs, budget) {
+    const b = budget || {};
+    const mList = models.slice(0, b.models || models.length);
+    const tries = b.attempts || 2;
+    for (const m of mList) {
+      for (let attempt = 0; attempt < tries; attempt++) {
+        try {
+          const resp = await httpsPostJson(m.url, {
+            model: m.name, temperature: 0.3,
+            enable_thinking: false,   // 复用 airec 经验：qwen3.x 默认开思考链，首字延迟极高，结构化任务必须关
+            messages: [{ role: 'user', content: prompt + (attempt ? '\n只输出 JSON 对象本身。' : '') }]
+          }, { Authorization: `Bearer ${m.apiKey}` }, timeoutMs);
+          if (resp.status !== 200) { console.log('[ai] model=%s status=%s', m.name, resp.status); continue; }
+          const text = String((((resp.body || {}).choices || [{}])[0].message || {}).content || '');
+          const t = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+          const a = t.indexOf('{'), b = t.lastIndexOf('}');
+          if (a < 0 || b <= a) continue;
+          return JSON.parse(t.slice(a, b + 1));
+        } catch (e) { console.log('[ai] model=%s 异常=%s', m.name, e.message || e); }
+      }
+    }
+    return null;
+  }
+
+  /** AI 菜品口味特征提取（发布/入库时调用，或定时补齐）：
+   *  输入菜名+标签+简介，输出 5 维口味向量 + 一句话口味描述；失败返回 null（保留规则值）。
+   *  复用 airec 的 AI_MODELS 供应商配置与主备切换经验（httpsPostJson + 逐模型重试）。 */
+  async function extractFlavors(dishKey, dish) {
+    const models = getModels();
+    console.log('[ai-extract] key=%s models=%d', dishKey, models.length);
+    if (!models.length) return null;
+    const prompt = [
+      '你是菜品口味分析器。给定菜品信息，输出其口味特征向量（JSON，0~1 浮点）：',
+      '{ "spicy": 辣度, "light": 清淡度, "carb": 主食碳水感, "sweet": 甜度, "rich": 浓郁下饭度, "note": "12字内口味描述" }',
+      `菜品：${dish.name}；标签：${(dish.tags || []).join('、') || '无'}；简介：${(dish.description || '').slice(0, 60) || '无'}`,
+      '只输出 JSON。'
+    ].join('\n');
+    const parsed = await callModelJson(models, prompt, 9000, { models: 1, attempts: 1 });
+    console.log('[ai-extract] parsed=%s', parsed ? 'ok' : 'null');
+    if (!parsed) return null;
+    const flavors = {};
+    for (const k of Object.keys(FLAVOR_TAGS)) flavors[k] = clamp01(Number(parsed[k]));
+    const note = String(parsed.note || '').slice(0, 24);
+    try {
+      await db.collection('flavor_profiles').add({
+        data: { _id: hashKey(dishKey), key: dishKey, flavors, note, src: 'ai', model: models[0].name, updatedAt: db.serverDate() }
+      });
+    } catch (e) {
+      console.log('[ai-extract] add 冲突，走更新:', e.message || e);
+      try {
+        await db.collection('flavor_profiles').doc(hashKey(dishKey))
+          .update({ data: { flavors, note, updatedAt: db.serverDate() } });
+      } catch (e2) { /* 忽略 */ }
+    }
+    return { flavors, note };
+  }
+
+  /** 用户画像动态更新：把互动行为折算为口味增量写回 profiles.tastePrefs（隐式反馈）。
+   *  规则：like/save/eat = 该菜口味向量 ×w 正向累加；not_interest = 负向；
+   *  与显式设置合并（显式优先维度取 max 权重），衰减旧值（×0.9）防止画像僵化。
+   *  触发时机：logBehavior 的 like/save/not_interest/eat（由 index.js 调用）。 */
+  async function updateProfileFromBehavior(openid, type, refType, refId) {
+    const W = { like: 0.15, save: 0.2, eat: 0.25, not_interest: -0.2, rate: 0.1 };
+    const w = W[type];
+    if (!w) return;
+    const key = `${refType}:${refId}`;
+    const aiMap = await fetchAiFlavors([key]);
+    let fv = aiMap[key] && aiMap[key].flavors;
+    if (!fv) {
+      // 无 AI 特征时按菜名/标签规则向量（公开菜查 public_dishes，私有查 dishes）
+      let dish = null;
+      try {
+        const col = refType === 'public' ? 'public_dishes' : 'dishes';
+        const r = await db.collection(col).where(refType === 'public' ? { _id: refId } : { _id: refId, openid }).limit(1).get();
+        dish = r.data && r.data[0];
+      } catch (e) { /* ignore */ }
+      if (!dish) return;
+      fv = flavorVectorOfDish(Object.assign({ type: refType, id: refId }, dish), null);
+    }
+    let p = null;
+    try {
+      const r = await db.collection('profiles').where({ openid }).limit(1).get();
+      p = r.data && r.data[0];
+    } catch (e) { /* ignore */ }
+    const cur = (p && p.tastePrefs) || { spicy: 0.5, light: 0.5, carb: 0.5, sweet: 0.5, rich: 0.5 };
+    const next = {};
+    for (const k of Object.keys(FLAVOR_TAGS)) {
+      const decayed = (cur[k] == null ? 0.5 : cur[k]) * 0.9 + 0.05;   // 向中位衰减
+      next[k] = clamp01(decayed + (fv[k] - 0.5) * w);
+    }
+    const col = db.collection('profiles');
+    try { await db.createCollection('profiles'); } catch (e) { /* 已存在 */ }
+    if (p) {
+      await col.where({ openid }).update({ data: { tastePrefs: next, tasteUpdatedAt: db.serverDate() } });
+    } else {
+      await col.add({ data: { openid, tastePrefs: next, tasteUpdatedAt: db.serverDate(), createdAt: db.serverDate() } });
+    }
   }
 
   /** 从现有数据归纳口味画像：正反馈(often/高评分/吃过) vs 负反馈(never/跳过)，忌口来自 profiles */
@@ -118,6 +258,7 @@ module.exports = function createRecommend({ cloud, db, _, ok, fail }) {
     const seenSet = new Set(seenIds.slice(-100)); // 只保留最近 100 个曝光去重
 
     const profile = await buildProfile(openid);
+    // 预取 AI 口味特征（一次批量查询，滑动链路零额外 DB 往返/零模型调用）
 
     // ---- 候选召回 ----
     // 1) 自己的菜（非 never、非近期吃过——降权而非剔除）
@@ -143,10 +284,13 @@ module.exports = function createRecommend({ cloud, db, _, ok, fail }) {
 
     // ---- 硬过滤：忌口 + 曝光去重 ----
     const candidates = [];
+    const aiMap = await fetchAiFlavors(
+      ownDishes.map(d => 'own:' + d._id).concat(publicPool.map(p => 'public:' + p._id))
+    );
     ownDishes.forEach(d => {
       if (seenSet.has('own:' + d._id)) return;
       if (violatesAvoid(d, profile.avoid)) return;
-      const fv = flavorVectorOfDish(d);
+      const fv = flavorVectorOfDish(d, aiMap);
       const taste = tasteScore(profile.taste, fv);
       const rep = recentCount[d._id] || 0;
       const recencyPenalty = rep >= 2 ? -0.25 : rep === 1 ? -0.1 : 0;
@@ -159,7 +303,7 @@ module.exports = function createRecommend({ cloud, db, _, ok, fail }) {
     publicPool.forEach(p => {
       if (seenSet.has('public:' + p._id)) return;
       if (violatesAvoid(p, profile.avoid)) return;
-      const fv = flavorVectorOfDish(p);
+      const fv = flavorVectorOfDish(p, aiMap);
       const taste = tasteScore(profile.taste, fv);
       const heat = Math.min(1, (p.likeCount || 0) / 200);
       candidates.push({
@@ -188,8 +332,8 @@ module.exports = function createRecommend({ cloud, db, _, ok, fail }) {
         const last3 = picked.slice(-2);
         const sameType = last3.filter(x => x.type === c.type).length;
         if (sameType >= 2) return false;
-        const dom = dominant(flavorVectorOfDish(c.dish));
-        const sameDom = last3.filter(x => dominant(flavorVectorOfDish(x.dish)) === dom).length;
+        const dom = dominant(flavorVectorOfDish(c.dish, aiMap));
+        const sameDom = last3.filter(x => dominant(flavorVectorOfDish(x.dish, aiMap)) === dom).length;
         return sameDom < 2;
       });
       if (idx < 0) idx = 0; // 全被多样性约束挡住时按分取
@@ -201,7 +345,7 @@ module.exports = function createRecommend({ cloud, db, _, ok, fail }) {
     const [likeMap, savedMap, reasons] = await Promise.all([
       batchLiked(openid, publicIds),
       batchSaved(openid, publicIds),
-      buildReasons(openid, picked, profile)
+      buildReasons(openid, picked, profile, aiMap)
     ]);
 
     // 封面临时 URL
@@ -323,38 +467,20 @@ module.exports = function createRecommend({ cloud, db, _, ok, fail }) {
   /** AI 理由缓存：public_ai_reasons 集合，键 = hash(菜名+标签+画像摘要)。
    *  getFeed 默认只读缓存；生成由 batchReasons 触发（每页最多 3 次调用，串行，失败回退模板）。
    *  大模型不进实时链路：缓存未命中先返回模板理由，后台异步补。 */
-  async function buildReasons(openid, picked, profile) {
-    const out = picked.map(c => templateReason(c, profile));
-    // 异步补 AI 缓存（不阻塞响应）：仅公开菜、每次最多 3 条
-    const targets = picked
-      .map((c, i) => ({ c, i }))
-      .filter(x => x.c.type === 'public')
-      .slice(0, 3);
-    if (!targets.length || process.env.AI_REASON_ENABLED !== 'true') return out;
-
-    const tasteKey = Object.keys(profile.taste).map(k => `${k}:${profile.taste[k].toFixed(1)}`).join(',');
-    for (const { c, i } of targets) {
-      const key = crypto.createHash('md5').update(`${c.dish.name}|${(c.dish.tags || []).join(',')}|${tasteKey}`).digest('hex');
-      try {
-        const cached = await db.collection('ai_reason_cache').doc(key).get();
-        if (cached.data && cached.data.text) { out[i] = cached.data.text; continue; }
-      } catch (e) { /* 未命中 */ }
-      const text = await genAiReason(c.dish, profile);
-      if (text) {
-        out[i] = text;
-        try {
-          await db.collection('ai_reason_cache').add({ data: { _id: key, text, createdAt: db.serverDate() } });
-        } catch (e) { /* 并发重复忽略 */ }
-      }
-    }
-    return out;
+  async function buildReasons(openid, picked, profile, aiMap) {
+    // 解释层零模型调用（任务书：大模型不参与每次滑动实时请求）：
+    // 用户侧句子来自模板（真实画像信号），菜品侧理解来自发布期 AI 提取的 note（flavor_profiles 缓存）。
+    return picked.map(c => {
+      const base = templateReason(c, profile);
+      const key = `${c.type}:${c.id}`;
+      const note = aiMap && aiMap[key] && aiMap[key].note;
+      return note ? `${base}AI 口味解读：${note}` : base;
+    });
   }
 
-  /** 复用 airec 的模型配置经验（AI_MODELS 环境变量），纯文本小请求，5s 超时，失败返回 null */
+  /** AI 推荐理由：复用 AI_MODELS 配置，6s 超时，失败返回 null（调用方回退模板） */
   async function genAiReason(dish, profile) {
-    if (!process.env.AI_MODELS) return null;
-    let models = [];
-    try { models = JSON.parse(process.env.AI_MODELS).filter(m => m && m.url && m.apiKey); } catch (e) { return null; }
+    const models = getModels();
     if (!models.length) return null;
     const top = Object.entries(profile.taste).sort((a, b) => b[1] - a[1]).slice(0, 2).map(x => x[0]).join('/');
     const prompt = [
@@ -363,16 +489,9 @@ module.exports = function createRecommend({ cloud, db, _, ok, fail }) {
       `用户口味画像（0~1）：${JSON.stringify(profile.taste)}，主导维度：${top}。`,
       `只输出推荐语本身。`
     ].join('\n');
-    const m = models[0];
-    try {
-      const resp = await httpsPostJson(m.url, {
-        model: m.name, temperature: 0.7,
-        messages: [{ role: 'user', content: prompt }]
-      }, { Authorization: `Bearer ${m.apiKey}` }, 5000);
-      if (resp.status !== 200) return null;
-      const text = String(((resp.body || '').choices || [{}])[0].message?.content || '').trim().slice(0, 60);
-      return text || null;
-    } catch (e) { return null; }
+    const parsed = await callModelJson(models, prompt + '\n以 JSON 输出：{"reason": "..."}', 3000, { attempts: 1 });
+    if (parsed && parsed.reason) return String(parsed.reason).slice(0, 60);
+    return null;
   }
 
   function httpsPostJson(url, bodyObj, headers, timeoutMs) {
@@ -431,5 +550,20 @@ module.exports = function createRecommend({ cloud, db, _, ok, fail }) {
     } catch (e) { return ok({ tastePrefs: null, avoidTags: [] }); }
   }
 
-  return { getFeed, buildProfile, saveTastePrefs, getTastePrefs, templateReason, tasteScore, bandOf };
+  /** 离线补跑：对指定公开菜重新提取 AI 口味特征（控制台/脚本调用，不在实时链路） */
+  async function regenDishAi({ event }) {
+    const { publicDishId } = event;
+    if (!publicDishId) return fail('缺少公开菜品 ID');
+    const res = await db.collection('public_dishes').where({ _id: publicDishId }).limit(1).get();
+    if (!res.data.length) return fail('记录不存在');
+    const d = res.data[0];
+    const out = await extractFlavors('public:' + d._id, d);
+    return ok({ extracted: !!out, flavors: out && out.flavors, note: out && out.note });
+  }
+
+  return {
+    getFeed, buildProfile, saveTastePrefs, getTastePrefs, templateReason, tasteScore, bandOf,
+    extractFlavors, updateProfileFromBehavior, fetchAiFlavors, flavorVectorOfDish,
+    regenDishAi, genAiReason
+  };
 };

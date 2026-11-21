@@ -11,7 +11,19 @@ const SHARE_TOKEN_TTL_MS = 7 * 24 * 3600 * 1000; // 定向分享凭证 7 天有�
 // 定向分享允许携带的字段白名单（不含 openid / 价格 / 私人状态）
 const SHARE_FIELDS = ['name', 'coverImage', 'images', 'description', 'tags', 'categoryName'];
 
-module.exports = function createDiscovery({ cloud, db, _, ok, fail, fetchAll }) {
+module.exports = function createDiscovery({ cloud, db, _, ok, fail, fetchAll, ai }) {
+
+  /** AI 口味特征提取：必须 await——云函数 main 返回后运行时即冻结进程，
+   *  fire-and-forget 的后台 Promise 会被杀（flavor_profiles 写不进的根因）。
+   *  失败静默回退规则向量，不阻塞发布结果。 */
+  async function fireExtract(key, dish) {
+    if (!ai || !ai.extractFlavors) return;
+    try {
+      await ai.extractFlavors(key, dish);
+    } catch (e) {
+      console.warn('[discovery] AI 口味提取失败（回退规则）:', e.message || e);
+    }
+  }
 
   async function ensureDiscoveryCollections() {
     for (const name of ['public_dishes', 'dish_shares', 'public_dish_likes', 'user_behaviors']) {
@@ -19,8 +31,11 @@ module.exports = function createDiscovery({ cloud, db, _, ok, fail, fetchAll }) 
     }
   }
 
+  /** 环境变量值归一：部分工具链会把值带字面引号存入（"xxx"），统一剥离首尾引号 */
+  const envStr = k => String(process.env[k] || '').replace(/^"|"$/g, '').trim();
+
   function adminOpenids() {
-    return String(process.env.ADMIN_OPENIDS || '').split(',').map(s => s.trim()).filter(Boolean);
+    return envStr('ADMIN_OPENIDS').split(',').map(s => s.trim().replace(/^"|"$/g, '')).filter(Boolean);
   }
 
   /** 用户公开身份：匿名 / 昵称（profiles.publicMode）。返回快照用 {nickname, avatarFileID} */
@@ -55,6 +70,70 @@ module.exports = function createDiscovery({ cloud, db, _, ok, fail, fetchAll }) 
       console.warn('[discovery] msgSecCheck 调用失败，转人工审核:', e.message || e);
       return { pass: false, review: true, unavailable: true };
     }
+  }
+
+  /** 图片安全检测：
+   *  - 同步通道 imgSecCheck（单图 ≤1MB，立即出结论）
+   *  - 超限/同步不可用 → 异步通道 mediaCheckAsync（返回 trace_id，结果经消息推送回调 wxa_media_check）
+   *  返回 { verdict: 'pass'|'risky'|'unknown', traceId } ；unknown = 检测异常/超时/等待异步回调 */
+  async function checkImages(openid, fileIDs) {
+    if (!fileIDs.length) return { verdict: 'pass', traceId: '' };
+    let allPass = true;
+    let traceId = '';
+    for (const fid of fileIDs.slice(0, 4)) {
+      let buf = null;
+      try {
+        const dl = await cloud.downloadFile({ fileID: fid });
+        buf = dl.fileContent;
+      } catch (e) { return { verdict: 'unknown', traceId: '' }; }   // 取不到图 = 无法确定
+      if (!buf || !buf.length) return { verdict: 'unknown', traceId: '' };
+      if (buf.length <= 1024 * 1024) {
+        try {
+          const r = await cloud.openapi.security.imgSecCheck({ media: { contentType: 'image/png', value: buf } });
+          // 旧版返回 errCode 0 = 通过；抛错/非 0 = 不通过或异常
+          if (r && r.errCode !== 0) return { verdict: 'risky', traceId: '' };
+          continue;
+        } catch (e) {
+          const code = e && e.errCode;
+          if (code === 87014) return { verdict: 'risky', traceId: '' };   // 内容违规
+          // 其他异常（接口不可用/超时）→ 落异步通道
+        }
+      }
+      // 异步通道：mediaCheckAsync v2（需可公网访问的 media_url；云存储临时链接可用）
+      try {
+        const urlRes = await cloud.getTempFileURL({ fileList: [fid] });
+        const mediaUrl = urlRes.fileList[0] && urlRes.fileList[0].tempFileURL;
+        if (!mediaUrl) { allPass = false; continue; }
+        const r2 = await cloud.openapi.security.mediaCheckAsync({
+          version: 2, openid, scene: 2, media_type: 2, media_url: mediaUrl
+        });
+        if (r2 && r2.trace_id) { traceId = r2.trace_id; allPass = false; }  // 等回调，先 unknown
+        else allPass = false;
+      } catch (e) {
+        console.warn('[discovery] mediaCheckAsync 失败，转人工:', e.message || e);
+        allPass = false;
+      }
+    }
+    return { verdict: allPass ? 'pass' : 'unknown', traceId };
+  }
+
+  /** 消息推送回调：wxa_media_check 异步审核结果落库（控制台需配置消息推送至本云函数）
+   *  event 形如 { ToUserName, FromUserName, msg_type:'event', event:'wxa_media_check', appid, trace_id, detail:[{strategy, errcode, suggest, label}], result:{suggest,label} } */
+  async function handleMediaCheckCallback(event) {
+    const traceId = event.trace_id;
+    const suggest = event.result && event.result.suggest;   // pass | review | risky
+    if (!traceId || !suggest) return fail('回调参数不完整');
+    const res = await db.collection('public_dishes').where({ secTraceId: traceId }).limit(1).get();
+    if (!res.data.length) return ok({ handled: false });
+    const doc = res.data[0];
+    if (doc.reviewStatus !== 'pending') return ok({ handled: false, reviewStatus: doc.reviewStatus });
+    let reviewStatus = 'pending';
+    if (suggest === 'pass') reviewStatus = 'approved';
+    else if (suggest === 'risky') reviewStatus = 'rejected';
+    const data = { reviewStatus, secCallbackAt: db.serverDate(), updatedAt: db.serverDate() };
+    if (reviewStatus === 'approved' && !doc.publishedAt) data.publishedAt = db.serverDate();
+    await db.collection('public_dishes').doc(doc._id).update({ data });
+    return ok({ handled: true, reviewStatus });
   }
 
   /** 复制私人云存储图片到公共目录（发布快照的图片生命周期与原件解耦） */
@@ -129,27 +208,44 @@ module.exports = function createDiscovery({ cloud, db, _, ok, fail, fetchAll }) 
       updatedAt: db.serverDate()
     };
 
-    // 审核状态：文本安检 review/不可用 → pending 人工；明确 pass → 仍进 pending（首发不自动过审，
-    // 配置 AUTO_APPROVE=pass_security 且安检明确通过时直接 approved，便于联调，生产默认不开）
-    let reviewStatus = 'pending';
-    if (chk.pass && process.env.AUTO_APPROVE === 'pass_security') reviewStatus = 'approved';
+    // 图片安全检测（同步 imgSecCheck / 异步 mediaCheckAsync 票据）
+    const imgFiles = [snapshot.coverImage, ...snapshot.images].filter(f => String(f).indexOf('cloud://') === 0);
+    const imgChk = await checkImages(openid, imgFiles);
+
+    // 审核三态（人工仅兜底）：
+    //  文字 pass + 图片 pass            → approved（自动发布）
+    //  文字 risky 或 图片 risky         → rejected（拒绝发布）
+    //  文字 review / 检测异常 / 等异步回调 → pending（人工兜底）
+    let reviewStatus;
+    if (!chk.pass && !chk.review) reviewStatus = 'rejected';
+    else if (imgChk.verdict === 'risky') reviewStatus = 'rejected';
+    else if (chk.pass && imgChk.verdict === 'pass') reviewStatus = 'approved';
+    else reviewStatus = 'pending';
     snapshot.reviewStatus = reviewStatus;
-    snapshot.secCheck = chk.unavailable ? 'unavailable' : (chk.review ? 'review' : 'pass');
+    snapshot.secCheck = {
+      text: chk.unavailable ? 'unavailable' : (chk.review ? 'review' : 'pass'),
+      image: imgChk.verdict,
+      traceId: imgChk.traceId || ''
+    };
+    snapshot.secTraceId = imgChk.traceId || '';
 
     // 同一私人菜只保留一条公开记录（重复发布 = 更新并重新送审）
     const exist = await db.collection('public_dishes').where({ sourceDishId: dishId, authorOpenid: openid }).limit(1).get();
+    if (reviewStatus === 'approved' && !snapshot.publishedAt) snapshot.publishedAt = db.serverDate();
     if (exist.data.length) {
       const old = exist.data[0];
       snapshot.likeCount = old.likeCount || 0;   // 互动数据保留
       snapshot.saveCount = old.saveCount || 0;
-      snapshot.publishedAt = old.publishedAt || null;
+      if (!snapshot.publishedAt) snapshot.publishedAt = old.publishedAt || null;
       await db.collection('public_dishes').doc(old._id).update({ data: snapshot });
+      await fireExtract('public:' + old._id, snapshot);
       return ok({ publicDishId: old._id, reviewStatus });
     }
-    snapshot.publishedAt = null;
+    if (!snapshot.publishedAt) snapshot.publishedAt = null;
     snapshot.withdrawnAt = null;
     snapshot.createdAt = db.serverDate();
     const add = await db.collection('public_dishes').add({ data: snapshot });
+    await fireExtract('public:' + add._id, snapshot);
     return ok({ publicDishId: add._id, reviewStatus });
   }
 
@@ -336,6 +432,7 @@ module.exports = function createDiscovery({ cloud, db, _, ok, fail, fetchAll }) 
     const pub = await db.collection('public_dishes').where({ _id: id, reviewStatus: 'approved' }).get();
     if (!pub.data.length) return fail('该公开菜品已下架或不可保存');
     const p = pub.data[0];
+    if (p.authorOpenid === openid) return fail('不能加入自己发布的公开菜品');   // 防自刷 saveCount
 
     const docId = copyDocId(openid, id);
     const col = db.collection('dishes');
@@ -521,7 +618,7 @@ module.exports = function createDiscovery({ cloud, db, _, ok, fail, fetchAll }) 
   }
 
   return {
-    ensureDiscoveryCollections,
+    ensureDiscoveryCollections, handleMediaCheckCallback,
     publishDish, withdrawPublicDish, listMyPublications, reviewPublicDish, getPublicDish,
     likePublicDish, savePublicDish,
     createShareToken, getSharedDish, saveSharedDish,

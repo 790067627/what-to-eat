@@ -10,11 +10,18 @@ const MAX_LIMIT = 100; // 云函数端单次查询上限
 const ok = (data) => ({ code: 0, data });
 const fail = (msg, code = 1) => ({ code, msg });
 
-// 发现域（公开菜品/定向分享/点赞/一键加入/行为）与推荐引擎
-const discovery = require('./lib/discovery')({ cloud, db, _, ok, fail, fetchAll: null });
+// 推荐引擎先建（提供 AI 能力），发现域注入 ai 钩子（发布时异步提取口味特征）
 const recommend = require('./lib/recommend')({ cloud, db, _, ok, fail });
+const discovery = require('./lib/discovery')({
+  cloud, db, _, ok, fail, fetchAll: null,
+  ai: { extractFlavors: recommend.extractFlavors }
+});
 
 exports.main = async (event, context) => {
+  // 微信消息推送回调（异步内容审核结果）：无 OPENID，按 event 形态分流
+  if (event && event.event === 'wxa_media_check') {
+    return await discovery.handleMediaCheckCallback(event);
+  }
   const { OPENID } = cloud.getWXContext();
   if (!OPENID) return fail('无法识别用户身份');
 
@@ -32,7 +39,15 @@ exports.main = async (event, context) => {
       // ---- 菜品 ----
       case 'listDishes': return await listDishes(ctx);
       case 'getDish': return await getDish(ctx);
-      case 'addDish': return await addDish(ctx);
+      case 'addDish': {
+        const r = await addDish(ctx);
+        // 新私有菜异步提取 AI 口味特征（失败静默，推荐回退标签规则）
+        if (r.code === 0 && r.data && r.data._id) {
+          // await：云函数返回后后台 Promise 会被冻结（见 discovery.fireExtract 注释）
+          await recommend.extractFlavors('own:' + r.data._id, event.data || {}).catch(() => {});
+        }
+        return r;
+      }
       case 'updateDish': return await updateDish(ctx);
       case 'deleteDish': return await deleteDish(ctx);
 
@@ -69,12 +84,20 @@ exports.main = async (event, context) => {
       // ---- 社区互动 ----
       case 'likePublicDish': return await discovery.likePublicDish(ctx);
       case 'savePublicDish': return await discovery.savePublicDish(ctx);
-      case 'logBehavior': return await discovery.logBehavior(ctx);
+      case 'logBehavior': {
+        const r = await discovery.logBehavior(ctx);
+        // 隐式反馈动态更新口味画像（like/save/eat 正向、not_interest 负向），异步不阻塞
+        if (r.code === 0 && ['like', 'save', 'eat', 'not_interest'].includes(event.type)) {
+          recommend.updateProfileFromBehavior(ctx.openid, event.type, event.refType, event.refId).catch(() => {});
+        }
+        return r;
+      }
 
       // ---- 个性化推荐 ----
       case 'getFeed': return await recommend.getFeed(ctx);
       case 'saveTastePrefs': return await recommend.saveTastePrefs(ctx);
       case 'getTastePrefs': return await recommend.getTastePrefs(ctx);
+      case 'regenDishAi': return await recommend.regenDishAi(ctx);
 
       default: return fail(`未知操作: ${action}`);
     }

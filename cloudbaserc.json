@@ -1,0 +1,20 @@
+{
+  "envId": "cloud1-d2g70c8532117f303",
+  "region": "ap-shanghai",
+  "functionRoot": "./cloudfunctions",
+  "functions": [
+    {
+      "name": "dish",
+      "timeout": 60,
+      "memorySize": 256,
+      "runtime": "Nodejs16.13",
+      "handler": "index.main",
+      "installDependency": true,
+      "envVariables": {
+        "AI_MODELS": "\"[{\\\"name\\\":\\\"qwen3.8-max\\\",\\\"url\\\":\\\"https://model.cherygpt.com/ada/v1/chat/completions\\\",\\\"apiKey\\\":\\\"gqmjtJ3rMNnaEbCW\\\"},{\\\"name\\\":\\\"qwen3.7-plus\\\",\\\"url\\\":\\\"https://model.cherygpt.com/ada/v1/chat/completions\\\",\\\"apiKey\\\":\\\"8xGi4ql5GiJ5xFhY\\\"}]\"",
+        "ADMIN_OPENIDS": "\"os777xfKJ0Kktd07lcVkvmkTOfec\"",
+        "AI_REASON_ENABLED": "\"true\""
+      }
+    }
+  ]
+}

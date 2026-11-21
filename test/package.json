@@ -1,0 +1,1 @@
+{ "name": "discovery-it", "private": true, "type": "module", "dependencies": { "miniprogram-automator": "^0.12.1" } }
