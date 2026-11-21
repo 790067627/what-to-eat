@@ -34,13 +34,10 @@ Page(withTheme({
     const sys = wx.getSystemInfoSync();
     const nav = getNavMetrics().headerHeight;
     const safeBottom = sys.safeArea ? sys.screenHeight - sys.safeArea.bottom : 0;
-    // POC 卡片宽高比 ≈ 1:1.9（390 视口下卡宽 ~285 高 ~540）；
-    // 可用高度 = 视口 - 导航 - 紧凑问候(64) - 操作区(64) - 提示(24) - TabBar(56+安全区) - 间距(40)
-    const cardW = sys.windowWidth * 0.92 * 0.8;
-    const idealH = cardW * 1.9;
-    const availH = sys.windowHeight - nav - 64 - 64 - 24 - 56 - safeBottom - 40;
-    // 优先 POC 比例；空间不足时压到可用高度（小屏压缩次要信息，保大图）
-    const h = Math.max(320, Math.min(idealH, availH));
+    // POC 布局：swiper flex:1 吃掉导航与操作区之间的全部中段（卡片自然修长）。
+    // 可用高度 = 视口 - 导航 - 头部(56) - 操作区(62) - 提示(20) - TabBar(56+安全区) - gap(28)
+    const availH = sys.windowHeight - nav - 56 - 62 - 20 - 56 - safeBottom - 28;
+    const h = Math.max(320, availH);
     this.setData({
       navHeight: nav,
       greeting: this.buildGreeting(),

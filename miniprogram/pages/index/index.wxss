@@ -16,11 +16,11 @@
 /* ===== 问候行（编辑感排版） ===== */
 .insp-head { flex: none; padding: 4rpx 8rpx 12rpx; }
 .insp-greeting {
-  font-size: 36rpx;
+  font-size: 30rpx;                 /* POC hud-title 15px */
   font-weight: 800;
   letter-spacing: 1rpx;
   color: var(--text-primary, #4A2C3A);
-  white-space: nowrap;              /* 简化后的问候单行，不异常换行 */
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -62,47 +62,38 @@
   height: 100%;
 }
 
-/* ===== 操作区 ===== */
+/* ===== 操作区（POC .actions/.act 逐值：48px 高 / gap 14px / 14px 字 / radius 24px） ===== */
 .insp-actions {
   flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 28rpx;
-  padding: 16rpx 0 4rpx;   /* 紧随卡片（POC actions 紧贴卡栈） */
+  gap: 28rpx;                    /* 14px */
+  padding: 28rpx 0 0;            /* POC .phone gap:14px */
 }
 .insp-btn {
-  height: 92rpx;
-  min-width: 92rpx;
-  padding: 0 36rpx;
-  border-radius: 46rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 27rpx;
-  font-weight: 800;
-  letter-spacing: 1rpx;
-  color: var(--text-primary, #4A2C3A);
-  background: var(--bg-card-solid, #FFFFFF);
-  border: 2rpx solid var(--border-default, #F8E3EC);
-  box-shadow: var(--shadow-card, 0 6rpx 24rpx rgba(217,108,153,0.08));
+  height: 96rpx;                 /* 48px */
+  min-width: 96rpx;
+  padding: 0 36rpx;              /* 18px */
+  border-radius: 48rpx;          /* 24px */
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28rpx;              /* 14px */
+  font-weight: 700;
+  color: var(--text-primary, #e6edf3);
+  background: var(--bg-hover, rgba(255,255,255,0.06));
+  border: 2rpx solid var(--border-default, rgba(255,255,255,0.14));
   transition: transform 150ms, color 200ms, border-color 200ms, background 200ms;
 }
 .insp-btn:active { transform: scale(0.94); }
-.insp-btn.round { padding: 0; width: 92rpx; font-size: 40rpx; color: var(--text-secondary, #9C7B8C); }
-.insp-btn.round.on { color: #FF5A79; border-color: #FF5A79; background: rgba(255, 90, 121, 0.1); }
+.insp-btn.round { padding: 0; width: 96rpx; font-size: 40rpx; }   /* 心形钮 20px 图标 */
+.insp-btn.round.on { color: #ff5a79; border-color: #ff5a79; background: rgba(255,90,121,0.12); }
 .insp-btn.primary {
-  color: var(--text-on-accent, #FFFFFF);
-  background: var(--gradient-primary, linear-gradient(135deg, #FFB3D1, #FF8FB8));
+  color: var(--text-on-accent, #fff);
+  background: var(--gradient-primary, linear-gradient(135deg,#238636,#2ea043));
   border-color: transparent;
-  padding: 0 52rpx;
-  box-shadow: var(--shadow-accent, 0 16rpx 48rpx rgba(240,99,156,0.5));
+  padding: 0 52rpx;              /* 26px */
 }
-.insp-btn.added {
-  color: var(--color-success, #639922);
-  border-color: var(--color-success, #639922);
-  background: var(--color-success-bg, #EAF3DE);
-}
+.insp-btn.added { color: #3fb950; border-color: #3fb950; background: rgba(63,185,80,0.12); }
 
 .insp-hint {
   flex: none;

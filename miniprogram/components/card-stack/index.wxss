@@ -1,72 +1,54 @@
-/* components/card-stack/index.wxss — 方案 A 卡栈视觉
- * 几何与 POC 对齐：4 层卡栈、后卡 (15,13)/(−17,25)/(19,36) 错位、主卡唯一清晰。
- * 颜色全部语义 Token（规范 4.0），回退值为樱花粉基线。
- * 组件在页面内（page-meta 变量穿透继承），策略 A 纯继承，不自带订阅。 */
+/* card-stack — 方案 A POC app.css 逐值移植（390 视口 px × 2 = rpx）
+ * 原型即验收标准：尺寸/间距/字体/圆角/阴影全部取自 POC 实测值。
+ * 颜色语义 Token 化（主题系统规范），回退值 = POC 深色基线。 */
 
-.stack-host {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-.stack {
-  position: absolute;
-  inset: 0;
-}
+.stack-host { position: relative; width: 100%; height: 100%; }
+.stack { position: absolute; inset: 0; }
 
-/* ===== 卡片基座 ===== */
+/* POC .swiper-slide：radius 22px / border 1px / shadow 0 18px 50px */
 .cs-card {
   position: absolute;
-  left: 50%;
-  top: 0;
-  width: 80%;                    /* POC：swiper 容器 width:80% */
-  height: 100%;
+  left: 50%; top: 0;
+  width: 80%;                     /* POC .swiper width:80% */
+  height: 100%;                   /* POC swiper flex:1 撑满中段（动态可用高度） */
   margin-left: -40%;
-  border-radius: 44rpx;
-  background: var(--bg-card-solid, #FFFFFF);          /* 不透明：杜绝后方照片穿透 */
-  border: 2rpx solid var(--border-default, #F8E3EC);
-  box-shadow: 0 18rpx 50rpx rgba(0, 0, 0, 0.28);      /* POC 同级阴影，不做大面积模糊 */
+  border-radius: 44rpx;           /* 22px */
   overflow: hidden;
+  background: var(--bg-card-solid, #161b22);
+  border: 2rpx solid var(--border-default, rgba(255,255,255,0.08));
+  box-shadow: 0 36rpx 100rpx rgba(0, 0, 0, 0.5);   /* 0 18px 50px */
+  display: flex; flex-direction: column;
   will-change: transform;
   transition: transform 560ms cubic-bezier(.22,1.28,.36,1), opacity 420ms;
 }
 
-/* 层级几何 = Swiper effectCards setTranslate 公式（POC perSlideOffset:10 / perSlideRotate:2.5）：
- * x = -(10-0.75p)*p %（后卡右移露出），rotateZ = -2.5p°，z=-100p 透视缩放 ≈ .92/.85/.79。
- * 后卡向右露边+旋转，主卡居中；不是向下堆叠。 */
+/* Swiper effectCards 几何（POC perSlideOffset:10 / perSlideRotate:2.5） */
 .depth-0 { z-index: 10; transform: translate3d(0,0,0) scale(1) rotate(0deg); }
 .depth-1 { z-index: 9;  transform: translate3d(28rpx,0,0) scale(0.92) rotate(-2.5deg); }
 .depth-2 { z-index: 8;  transform: translate3d(52rpx,0,0) scale(0.85) rotate(-5deg); }
 .depth-3 { z-index: 7;  transform: translate3d(72rpx,0,0) scale(0.79) rotate(-7.5deg); }
 
-/* 出场：倾斜滑出（方案 A：400ms rotate 13°） */
 .exit-left  { transform: translate3d(-120%,30px,0) scale(0.92) rotate(-13deg) !important; opacity: 0 !important; transition: transform 400ms cubic-bezier(.4,0,.7,.2), opacity 340ms !important; }
 .exit-right { transform: translate3d(120%,30px,0) scale(0.92) rotate(13deg) !important;  opacity: 0 !important; transition: transform 400ms cubic-bezier(.4,0,.7,.2), opacity 340ms !important; }
 
-/* ===== 照片层 ===== */
-.cs-photo {
-  position: absolute;
-  left: 0; right: 0; top: 0; bottom: 18%;   /* 大图 ~82%，信息条 ~18%（POC 比例） */
-  background: var(--bg-sunken, #FDF5F9);
-}
+/* POC .card-photo：flex:1（信息条自然高度，其余全是照片 ≈82-85%） */
+.cs-photo { position: relative; flex: 1; min-height: 0; background: var(--bg-sunken, #0d1117); }
 .cs-img { width: 100%; height: 100%; display: block; }
-.cs-img-ph { background: var(--bg-placeholder, #FFEAF2); }
+.cs-img-ph { background: var(--bg-placeholder, #21262d); }
 
-/* 后卡弱化遮罩：任何时刻只有主卡照片清晰 */
-.cs-veil {
-  position: absolute; inset: 0;
-  background: var(--bg-card-solid, #FFFFFF);
-  opacity: 0.72;
-}
-.depth-2 .cs-veil { opacity: 0.82; }
-.depth-3 .cs-veil { opacity: 0.9; }
+/* POC 后卡弱化：blur(10px)+brightness(.42)+暗层。小程序 image 无 CSS filter，
+ * 用双层 veil 等效压暗（主卡唯一清晰约束保持） */
+.cs-veil { position: absolute; inset: 0; background: var(--bg-card-solid, #161b22); opacity: 0.78; }
+.depth-2 .cs-veil { opacity: 0.88; }
+.depth-3 .cs-veil { opacity: 0.94; }
 
-/* 主卡底部渐变压暗（标签/菜名可读） */
+/* POC .card-photo::after 渐变：0→46% 透明，78% .55，100% .88 */
 .cs-photo-shade {
   position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(8,10,14,0.42) 100%);
+  background: linear-gradient(180deg, rgba(0,0,0,0) 46%, rgba(8,10,14,0.55) 78%, rgba(8,10,14,0.88) 100%);
 }
 
-/* ===== 顶部双徽章（POC photo-badges） ===== */
+/* POC .photo-badges：top/left/right 12px；.badge 5px 10px / 11px 字 */
 .cs-badges {
   position: absolute;
   top: 24rpx; left: 24rpx; right: 24rpx;
@@ -74,73 +56,49 @@
   z-index: 2;
 }
 .cs-badge {
-  display: inline-flex; align-items: center;
-  padding: 10rpx 20rpx;
-  border-radius: 999rpx;
-  font-size: 22rpx; font-weight: 700;
-  color: #FFFFFF;
-  background: rgba(13, 17, 23, 0.55);
-  border: 1rpx solid rgba(255, 255, 255, 0.14);
+  display: inline-flex; align-items: center; gap: 10rpx;
+  padding: 10rpx 20rpx; border-radius: 999rpx;
+  font-size: 22rpx; font-weight: 700; color: #fff;
+  background: rgba(13,17,23,0.55);
+  border: 2rpx solid rgba(255,255,255,0.14);
   white-space: nowrap;
 }
 
-/* ===== 菜名压照片底部（POC card-title-overlay） ===== */
-.cs-title-wrap {
-  position: absolute;
-  left: 32rpx; right: 32rpx; bottom: 24rpx;
-  z-index: 2;
-}
+/* POC .card-title-overlay：left/right 16px bottom 12px；h2 26px/900/1px；author 11.5px */
+.cs-title-wrap { position: absolute; left: 32rpx; right: 32rpx; bottom: 24rpx; z-index: 2; }
 .cs-title {
-  font-size: 52rpx; font-weight: 900; letter-spacing: 2rpx;
-  color: #FFFFFF;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  font-size: 52rpx; font-weight: 900; letter-spacing: 2rpx; color: #fff;
+  text-shadow: 0 4rpx 20rpx rgba(0,0,0,0.5);
   overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
 }
-.cs-subtitle {
-  font-size: 23rpx;
-  color: rgba(255, 255, 255, 0.72);
-  margin-top: 4rpx;
-}
+.cs-subtitle { font-size: 23rpx; color: rgba(255,255,255,0.72); margin-top: 4rpx; }
 
-/* ===== 信息条：AI 理由单块（POC card-info，不嵌套） ===== */
+/* POC .card-info：padding 12px 14px 14px；.reason 9px 11px / radius 12px / 12.5px 字 lh1.6 */
 .cs-info {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: 18%;
-  padding: 0 24rpx;
-  display: flex; align-items: center;
-  background: var(--bg-card-solid, #FFFFFF);
+  flex: none;
+  padding: 24rpx 28rpx 28rpx;
+  background: var(--bg-card-solid, #161b22);
 }
 .cs-reason {
-  display: flex; gap: 14rpx; align-items: flex-start;
-  width: 100%;
-  padding: 16rpx 20rpx;
-  border-radius: 20rpx;
-  background: var(--color-accent-soft, #FFF0F6);
-  border: 1rpx solid var(--color-accent-border, #FFD6E7);
-  font-size: 24rpx; line-height: 1.55;
-  color: var(--text-secondary, #9C7B8C);
+  display: flex; gap: 16rpx; align-items: flex-start;
+  padding: 18rpx 22rpx; border-radius: 24rpx;
+  background: var(--color-accent-soft, rgba(88,166,255,0.09));
+  border: 2rpx solid var(--color-accent-border, rgba(88,166,255,0.25));
+  font-size: 25rpx; line-height: 1.6;
+  color: var(--text-secondary, #c9d5e3);
 }
 .cs-reason-txt {
   flex: 1;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
+/* POC .reason .ai：9px/800/1px，padding 3px 6px，radius 6px */
 .cs-ai-mark {
-  flex: none;
-  margin-top: 2rpx;
+  flex: none; margin-top: 2rpx;
   font-size: 18rpx; font-weight: 800; letter-spacing: 2rpx;
-  color: var(--text-on-accent, #FFFFFF);
-  background: var(--gradient-primary, linear-gradient(135deg, #FFB3D1, #FF8FB8));
-  padding: 4rpx 10rpx;
-  border-radius: 10rpx;
+  color: var(--text-on-accent, #0D1117);
+  background: var(--gradient-primary, linear-gradient(135deg,#79c0ff,#58a6ff));
+  padding: 6rpx 12rpx; border-radius: 12rpx;
 }
 
-/* ===== 加载态 ===== */
-.cs-loading {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-}
-.cs-loading-text { font-size: 26rpx; color: var(--text-hint, #C9A8B8); }
+.cs-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.cs-loading-text { font-size: 26rpx; color: var(--text-hint, #8b949e); }
