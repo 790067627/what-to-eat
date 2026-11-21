@@ -101,7 +101,12 @@ Page(withTheme({
         priceYuan: fenToYuan(dish.price),
         statusText: STATUS_TEXT[dish.status] || '',
         lastEatenText: dish.lastEatenAt ? `上次吃：${timeAgo(dish.lastEatenAt)}（${formatDate(dish.lastEatenAt)}）` : '还没吃过这道菜',
-        isShared: false
+        isShared: false,
+        // 来源记录展示：灵感广场副本带 sourcePublicDishId + sourceAuthor
+        sourceInfo: dish.sourcePublicDishId ? {
+          publicDishId: dish.sourcePublicDishId,
+          nickname: (dish.sourceAuthor && dish.sourceAuthor.nickname) || '原作者'
+        } : null
       });
       this.loadMyPublication();
     } catch (err) {
@@ -156,6 +161,13 @@ Page(withTheme({
       wx.hideLoading();
       api.handleErr(err);
     }
+  },
+
+  /** 跳转来源原公开菜（可能已撤回 → 提示不可访问） */
+  goSource() {
+    const src = this.data.sourceInfo;
+    if (!src) return;
+    wx.navigateTo({ url: `/pages/dish-detail/dish-detail?pid=${src.publicDishId}` });
   },
 
   // 编辑

@@ -25,6 +25,9 @@
       <text wx:if="{{priceYuan}}" class="chip">¥{{priceYuan}}</text>
       <text wx:if="{{lastEatenText}}" class="last-eaten">{{lastEatenText}}</text>
     </view>
+    <view wx:if="{{sourceInfo}}" class="src-line" bindtap="goSource">
+      来源：{{sourceInfo.nickname}} 的公开分享 · 点击查看原菜 ›
+    </view>
 
     <!-- 评分 -->
     <view class="rate-row">
