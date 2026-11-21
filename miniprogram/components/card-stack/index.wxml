@@ -34,7 +34,7 @@
           <!-- 主卡底部渐变压暗（POC .card-photo::after） -->
           <view wx:if="{{item.depth === 0}}" class="cs-photo-shade"></view>
 
-          <block wx:if="{{item.depth === 0}}">
+          <block wx:if="{{item.depth === 0 || item.promote}}">
             <!-- 顶部双徽章（POC photo-badges） -->
             <view class="cs-badges">
               <view class="cs-badge" wx:if="{{item.data.type === 'public'}}">♥ {{item.data.likeCount}} 赞 · 社区</view>
@@ -50,7 +50,7 @@
         </view>
 
         <!-- 信息条：AI 理由单块（POC card-info） -->
-        <view wx:if="{{item.depth === 0}}" class="cs-info">
+        <view wx:if="{{item.depth === 0 || item.promote}}" class="cs-info">
           <view class="cs-reason">
             <text class="cs-ai-mark">AI</text>
             <text class="cs-reason-txt">{{item.data.reason}}</text>

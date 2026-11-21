@@ -53,8 +53,11 @@ Component({
       if (this.data.locked || !this.data.renderList.length) return;
       const dir = (e && e.dir) || -1;
       this.setData({ locked: true });
-      // 出场动画：class 切换触发 CSS transition（400ms，倾斜滑出）
-      this.setData({ 'renderList[0].exiting': true, 'renderList[0].exitDir': dir < 0 ? 'left' : 'right' });
+      // 出场动画：class 切换触发 CSS transition（400ms，倾斜滑出）；
+      // 补位卡同帧进入 promote 态：归位+去 veil+显示内容（对齐 Swiper commit 切换时机）
+      const patch = { 'renderList[0].exiting': true, 'renderList[0].exitDir': dir < 0 ? 'left' : 'right' };
+      if (this.data.renderList[1]) patch['renderList[1].promote'] = true;
+      this.setData(patch);
       this._exitTimer = setTimeout(() => {
         this.triggerEvent('advance', { dir });
         // 页面更新 items 后 observers 重建；此处兜底解锁

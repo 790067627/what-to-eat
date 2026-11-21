@@ -38,9 +38,19 @@
 
 /* POC 后卡弱化：blur(10px)+brightness(.42)+暗层。小程序 image 无 CSS filter，
  * 用双层 veil 等效压暗（主卡唯一清晰约束保持） */
-.cs-veil { position: absolute; inset: 0; background: var(--bg-card-solid, #161b22); opacity: 0.78; }
-.depth-2 .cs-veil { opacity: 0.88; }
-.depth-3 .cs-veil { opacity: 0.94; }
+.cs-veil {
+  position: absolute; inset: 0;
+  background: rgba(13, 17, 23, 0.55);   /* POC ::before 深色压暗（非主题白洗） */
+  opacity: 1;
+  transition: opacity 300ms;
+}
+.depth-2 .cs-veil { background: rgba(13, 17, 23, 0.72); }
+.depth-3 .cs-veil { background: rgba(13, 17, 23, 0.85); }
+
+/* 补位卡提交态：commitSwipe 瞬间归位+去 veil（Swiper active 切换时机一致），
+   消除「灰白弱化卡停留 0.4s 后突变清晰」的跳变 */
+.cs-card.promote { transform: translate3d(0,0,0) scale(1) rotate(0deg); }
+.cs-card.promote .cs-veil { opacity: 0; }
 
 /* POC .card-photo::after 渐变：0→46% 透明，78% .55，100% .88 */
 .cs-photo-shade {
