@@ -70,9 +70,11 @@
 
 <!-- 底部详情抽屉（方案 A 视觉冻结项） -->
 <dish-sheet
+  id="sheet"
   item="{{sheetItem}}"
   show="{{sheetShow}}"
   bind:close="onSheetClose"
+  bind:closed="onSheetClosed"
   bind:like="onSheetLike"
   bind:want="onSheetWant"
 />

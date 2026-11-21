@@ -238,11 +238,15 @@ Page(withTheme({
     this.onAdvance();
   },
 
+  /** 关闭触发（遮罩点击/下拉/关闭按钮）：置 show=false 驱动组件退出动画。
+   *  背景解锁延后到 closed（动画真正结束）——避免动画期间误触卡栈。 */
   onSheetClose() {
     this.setData({ sheetShow: false });
-    // 退出动画 320ms 后恢复背景手势，避免动画期间误触卡栈
-    if (this._unlockTimer) clearTimeout(this._unlockTimer);
-    this._unlockTimer = setTimeout(() => this.lockBackground(false), 360);
+  },
+
+  /** 组件退出动画结束回调：恢复 TabBar + 解除卡栈交互锁 */
+  onSheetClosed() {
+    this.lockBackground(false);
   },
 
   /** 抽屉数据装饰（互动状态映射到统一字段） */

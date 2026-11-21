@@ -1,0 +1,51 @@
+// components/dish-sheet/sheet-drag.wxs — 拖拽热区手势层（视图层直接 setStyle，跟手零延迟）
+// 只负责：拖动中的实时位移（抽屉跟手 + 遮罩渐淡）；松手决策交回 JS（复用现有动画状态机）
+var state = { active: false, y0: 0, dy: 0, lastY: 0, lastT: 0, vy: 0 };
+
+function wrapperOf(owner) { return owner.selectComponent('.ds-drag'); }
+function maskOf(owner) { return owner.selectComponent('.ds-mask'); }
+
+function onTouchStart(e, owner) {
+  var t = e.touches[0];
+  state.active = true;
+  state.y0 = t.clientY;
+  state.lastY = t.clientY;
+  state.lastT = e.timeStamp;
+  state.vy = 0;
+  owner.callMethod('onGripDragStart');   // JS 置 dragging=true：关过渡，进入实时跟手态
+}
+
+function onTouchMove(e, owner) {
+  if (!state.active) return;
+  var t = e.touches[0];
+  var raw = t.clientY - state.y0;
+  // 只允许向下拖动；向上拖动阻尼归零（不误关闭）
+  var dy = raw > 0 ? raw : 0;
+  var now = e.timeStamp;
+  var dt = now - state.lastT;
+  if (dt > 0) state.vy = (t.clientY - state.lastY) / dt;
+  state.lastY = t.clientY;
+  state.lastT = now;
+  state.dy = dy;
+
+  var wrap = wrapperOf(owner);
+  if (wrap) wrap.setStyle({ 'transform': 'translateY(' + dy + 'px)', 'transition': 'none' });
+  // 遮罩随下拉渐淡：0 → 350px 区间从 1 降到 0.25
+  var op = 1 - (dy / 350) * 0.75;
+  if (op < 0.25) op = 0.25;
+  var mask = maskOf(owner);
+  if (mask) mask.setStyle({ 'opacity': String(op), 'transition': 'none' });
+}
+
+function onTouchEnd(e, owner) {
+  if (!state.active) return;
+  state.active = false;
+  // 松手决策交给 JS：拖动实时位移 → 补间动画的衔接由 JS setData 完成（值连续无跳变）
+  owner.callMethod('onGripRelease', { dy: state.dy, vy: state.vy });
+}
+
+module.exports = {
+  touchStart: onTouchStart,
+  touchMove: onTouchMove,
+  touchEnd: onTouchEnd
+};

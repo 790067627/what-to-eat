@@ -1,9 +1,12 @@
-<!-- dish-sheet — 三层结构：遮罩(拦截一切) / 内容层(独立 scroll-view) / 底部操作层(固定不滚)
-     关闭通道：遮罩点击 + 顶部拖拽条下拉（内容区下拉只滚内容，不关闭） -->
+<!-- dish-sheet — 三层结构：遮罩 / 独立 scroll-view 内容 / 固定操作层
+     关闭通道：①遮罩点击（立即反向退出）②顶部拖拽热区下拉（WXS 跟手+JS 决策）
+     手势隔离：页面侧 interactionLocked 锁卡栈；本组件所有触摸节点 catch 防穿透 -->
+<wxs src="./sheet-drag.wxs" module="drag" />
+
 <view
   wx:if="{{visible}}"
-  class="ds-mask {{entered ? 'on' : ''}}"
-  catchtap="close"
+  class="ds-mask" style="{{maskStyle}}"
+  catchtap="onMaskTap"
   catchtouchmove="noop"
   catchtouchstart="noop"
   catchtouchend="noop"
@@ -12,22 +15,24 @@
 <view
   wx:if="{{visible}}"
   class="ds-drag"
-  style="transform: translateY({{dragDy}}px)"
-  catchtouchmove="noop"
+  style="{{dragStyle}}"
 >
 <view
-  class="ds-sheet {{entered ? 'on' : ''}}"
+  class="ds-sheet"
   style="max-height: {{sheetMaxH}}px"
   catchtap="noop"
 >
-  <!-- 拖拽条：下拉关闭（手势归属在 touchstart 即判定，只驱动抽屉） -->
+  <!-- 顶部拖拽热区：宽 100% 高 56px 透明区，WXS 手势捕获（不要求精准按住横线）；
+       灰色横线视觉保持原样（长度/粗细/颜色/位置不变） -->
   <view
-    class="ds-grip"
-    catchtouchstart="onGripStart"
-    catchtouchmove="onGripMove"
-    catchtouchend="onGripEnd"
-    catchtouchcancel="onGripEnd"
-  ></view>
+    class="ds-grip-zone"
+    catchtouchstart="{{drag.touchStart}}"
+    catchtouchmove="{{drag.touchMove}}"
+    catchtouchend="{{drag.touchEnd}}"
+    catchtouchcancel="{{drag.touchEnd}}"
+  >
+    <view class="ds-grip"></view>
+  </view>
 
   <!-- 内容层：独立滚动，只滚图片/信息/理由 -->
   <scroll-view
@@ -60,4 +65,5 @@
     <view class="ds-act {{item.liked ? 'on' : ''}}" bindtap="onLike">{{item.liked ? '♥ 已喜欢' : '♡ 喜欢'}}</view>
     <view class="ds-act primary {{item.saved ? 'added' : ''}}" bindtap="onWant">{{item.saved ? '✓ 已入想吃清单' : '＋ 想吃'}}</view>
   </view>
-</view></view>
+</view>
+</view>
