@@ -60,23 +60,23 @@ function onTouchMove(e, owner) {
   var ab = state.dx > 0 ? state.dx : -state.dx;
   state.moved = ab;
 
-  // 前卡跟手：位移 + 阻尼缩放 + 旋转（与方案 A dragTransform 一致）
+  // 前卡跟手：Swiper cards 拖拽公式简化——translateX 全跟手 + rotateZ(-25°*p*t 峰值) + scale(-0.5*t)
+  var prog0 = ab / THRESH;
+  if (prog0 > 1) prog0 = 1;
+  var tBell = Math.sqrt(1 - Math.abs((prog0 - 0.5) / 0.5) * Math.abs((prog0 - 0.5) / 0.5));
   var front = frontOf(owner);
   if (front) {
-    var sink = ab * 0.06 > 14 ? 14 : ab * 0.06;
-    var shrink = ab * 0.0001 > 0.04 ? 0.04 : ab * 0.0001;
+    var rot = state.dx < 0 ? (-14 * tBell) : (14 * tBell);
     front.setStyle({
-      'transform': 'translate3d(' + (state.dx * 0.92) + 'px,' + sink + 'px,0) rotate(' + (state.dx * 0.045) + 'deg) scale(' + (1 - shrink) + ')'
+      'transform': 'translate3d(' + state.dx + 'px,0,0) rotate(' + rot + 'deg) scale(' + (1 - 0.06 * tBell) + ')'
     });
   }
-  // 后卡按进度前移一档（55%），制造补位感
-  var prog = ab / THRESH;
-  if (prog > 1) prog = 1;
+  // 后卡补位：从 depth-1 槽位(28rpx≈14px, scale.92, rot-2.5°)向 depth-0 过渡（Swiper w+=96t 前移感）
   var behind = behindOf(owner);
   if (behind) {
     behind.setStyle({
-      'transform': 'translate3d(' + (15 - 15 * prog * 0.55) + 'px,' + (13 - 13 * prog * 0.55) + 'px,0) scale(' + (0.965 + 0.035 * prog * 0.55) + ') rotate(' + (1.4 - 1.4 * prog * 0.55) + 'deg)',
-      'opacity': String(0.85 + 0.15 * prog)
+      'transform': 'translate3d(' + (14 * (1 - prog0)) + 'px,0,0) scale(' + (0.92 + 0.08 * prog0) + ') rotate(' + (-2.5 * (1 - prog0)) + 'deg)',
+      'opacity': '1'
     });
   }
 }
@@ -101,7 +101,7 @@ function onTouchEnd(e, owner) {
   } else {
     // 未过阈值：回弹复位
     if (front) front.setStyle({ 'transform': 'translate3d(0,0,0) rotate(0deg) scale(1)' });
-    if (behind) behind.setStyle({ 'transform': 'translate3d(15px,13px,0) scale(0.965) rotate(1.4deg)', 'opacity': '0.85' });
+    if (behind) behind.setStyle({ 'transform': 'translate3d(14px,0,0) scale(0.92) rotate(-2.5deg)', 'opacity': '1' });
     owner.callMethod('dragMoved', { moved: 0 });
   }
   state.moved = 0;

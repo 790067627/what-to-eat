@@ -29,7 +29,7 @@
     <block wx:else>
       <!-- 问候行（编辑感排版，方案 A 视觉冻结） -->
       <view class="insp-head">
-        <view class="insp-greeting">{{greeting}}，<text class="insp-em">吃什么</text>？</view>
+        <view class="insp-greeting">{{greeting}}</view>
         <view class="insp-sub">
           <text>AI 饮食灵感</text>
           <text class="insp-idx" wx:if="{{idxText}}">{{idxText}}</text>

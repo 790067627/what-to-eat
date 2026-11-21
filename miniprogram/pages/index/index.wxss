@@ -14,24 +14,23 @@
 .init-desc { font-size: 24rpx; color: var(--text-secondary, #9C7B8C); margin-bottom: 24rpx; }
 
 /* ===== 问候行（编辑感排版） ===== */
-.insp-head { flex: none; padding: 8rpx 8rpx 20rpx; }
+.insp-head { flex: none; padding: 4rpx 8rpx 12rpx; }
 .insp-greeting {
-  font-size: 44rpx;
-  font-weight: 900;
-  letter-spacing: 2rpx;
+  font-size: 36rpx;
+  font-weight: 800;
+  letter-spacing: 1rpx;
   color: var(--text-primary, #4A2C3A);
-}
-.insp-em {
-  font-style: italic;
-  color: var(--color-accent-strong, #E85D91);
+  white-space: nowrap;              /* 简化后的问候单行，不异常换行 */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .insp-sub {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 8rpx;
-  font-size: 21rpx;
-  letter-spacing: 4rpx;
+  margin-top: 4rpx;
+  font-size: 20rpx;
+  letter-spacing: 3rpx;
   color: var(--text-hint, #C9A8B8);
 }
 .insp-idx { font-weight: 700; color: var(--color-accent-strong, #E85D91); letter-spacing: 2rpx; }
@@ -49,11 +48,11 @@
 
 /* ===== 卡栈区 ===== */
 .stack-zone {
-  /* 高度由 wxml 内联 stackHeightPx 给定（确定值）：
-     真机 WKWebView 中 flex 子项 auto 高度内的 height:100% 会解析为 0，导致卡片不可见 */
+  /* 高度由 wxml 内联 stackHeightPx 给定（确定值，按设备动态计算）：
+     真机 WKWebView 中 flex 子项 auto 高度内的 height:100% 会解析为 0 */
   flex: none;
   position: relative;
-  margin: 0 8rpx;
+  margin: 8rpx 8rpx 0;   /* 紧贴问候行下方（POC），操作区紧随卡片 */
 }
 /* 自定义组件标签本身必须显式撑高：组件内部 height:100% 依赖标签有确定高度，
    否则百分比对 auto 塌陷为 0，整叠卡不可见（真机空白 bug 根因） */
@@ -70,7 +69,7 @@
   align-items: center;
   justify-content: center;
   gap: 28rpx;
-  padding: 28rpx 0 8rpx;
+  padding: 16rpx 0 4rpx;   /* 紧随卡片（POC actions 紧贴卡栈） */
 }
 .insp-btn {
   height: 92rpx;
@@ -108,8 +107,9 @@
 .insp-hint {
   flex: none;
   text-align: center;
-  font-size: 20rpx;
-  letter-spacing: 2rpx;
-  color: var(--text-hint, #C9A8B8);
-  padding: 10rpx 0 4rpx;
+  font-size: 18rpx;
+  letter-spacing: 1rpx;
+  color: var(--text-faint, #D8BAC9);   /* 弱化，不抢视觉焦点 */
+  padding: 6rpx 0 0;
+  opacity: 0.7;
 }

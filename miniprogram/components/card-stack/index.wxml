@@ -17,7 +17,7 @@
         id="{{index === 0 ? 'cardFront' : (index === 1 ? 'cardBehind' : '')}}"
         class="cs-card depth-{{item.depth}} {{item.exiting ? ('exit-' + item.exitDir) : ''}}"
       >
-        <!-- 照片层：全幅，主视觉 -->
+        <!-- 照片层：占主卡 ~82% 高度，菜名压在照片底部（POC card-title-overlay） -->
         <view class="cs-photo">
           <image
             wx:if="{{item.data.coverImageUrl || item.data.coverFileID}}"
@@ -27,35 +27,31 @@
             lazy-load="{{item.depth > 0}}"
           />
           <view wx:else class="cs-img cs-img-ph"></view>
-          <!-- 后卡弱化遮罩（depth>0）：模糊感压暗，保证只有主卡清晰 -->
+          <!-- 后卡弱化遮罩（POC：后卡照片模糊压暗，只留轮廓色感；不做大面积模糊阴影） -->
           <view wx:if="{{item.depth > 0}}" class="cs-veil"></view>
-          <!-- 主卡渐变压暗（保标签/菜名可读） -->
+          <!-- 主卡底部渐变压暗 -->
           <view wx:if="{{item.depth === 0}}" class="cs-photo-shade"></view>
 
-          <!-- 悬浮标签：仅主卡显示 -->
           <block wx:if="{{item.depth === 0}}">
-            <view class="cs-tag cs-tag-match"><view class="cs-pip"></view>{{item.data.matchTag}}</view>
-            <view class="cs-tag cs-tag-likes" wx:if="{{item.data.type === 'public'}}">♥ {{item.data.likeCount}}</view>
-            <view class="cs-tag cs-tag-likes" wx:elif="{{item.data.rating}}">★ 站内 {{item.data.rating}} 分</view>
-            <view class="cs-tag cs-tag-src">
-              <image wx:if="{{item.data.author.avatarUrl}}" class="cs-src-avatar" src="{{item.data.author.avatarUrl}}" mode="aspectFill" />
-              <text>{{item.data.type === 'public' ? item.data.author.nickname + ' 分享' : '我的菜品库'}}</text>
+            <!-- 顶部双徽章（POC photo-badges：左评分/赞+私有社区，右来源） -->
+            <view class="cs-badges">
+              <view class="cs-badge" wx:if="{{item.data.type === 'public'}}">♥ {{item.data.likeCount}} 赞 · 社区</view>
+              <view class="cs-badge" wx:else>★ 我的评分 {{item.data.ratingText}} · 私有</view>
+              <view class="cs-badge">{{item.data.type === 'public' ? '来自 ' + item.data.author.nickname : '我的菜品库'}}</view>
             </view>
-            <view class="cs-title">{{item.data.name}}</view>
+            <!-- 菜名 + 副行：压照片底部 -->
+            <view class="cs-title-wrap">
+              <view class="cs-title">{{item.data.name}}</view>
+              <view class="cs-subtitle">{{item.data.type === 'public' ? item.data.author.nickname + ' 的公开分享' : '你的菜品库 · 点击看详情'}}</view>
+            </view>
           </block>
         </view>
 
-        <!-- 信息层：AI 理由 + 标签行（仅主卡） -->
+        <!-- 信息条：AI 理由单行块（POC card-info，无多余嵌套） -->
         <view wx:if="{{item.depth === 0}}" class="cs-info">
           <view class="cs-reason">
             <text class="cs-ai-mark">AI</text>
             <text class="cs-reason-txt">{{item.data.reason}}</text>
-          </view>
-          <view class="cs-meta">
-            <view class="cs-meta-tags">
-              <text wx:for="{{item.data.tags}}" wx:for-item="tag" wx:key="*this" class="cs-chip">{{tag}}</text>
-            </view>
-            <view class="cs-detail-hint">详情 ›</view>
           </view>
         </view>
       </view>

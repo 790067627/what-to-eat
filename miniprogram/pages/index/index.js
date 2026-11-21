@@ -33,8 +33,14 @@ Page(withTheme({
   onLoad() {
     const sys = wx.getSystemInfoSync();
     const nav = getNavMetrics().headerHeight;
-    // 视口 - 导航 - 问候区(~150) - 操作区+提示(~200) - TabBar(56+安全区) - 边距(48)
-    const h = Math.max(380, sys.windowHeight - nav - 150 - 200 - 56 - (sys.safeArea ? sys.screenHeight - sys.safeArea.bottom : 0) - 48);
+    const safeBottom = sys.safeArea ? sys.screenHeight - sys.safeArea.bottom : 0;
+    // POC 卡片宽高比 ≈ 1:1.9（390 视口下卡宽 ~285 高 ~540）；
+    // 可用高度 = 视口 - 导航 - 紧凑问候(64) - 操作区(64) - 提示(24) - TabBar(56+安全区) - 间距(40)
+    const cardW = sys.windowWidth * 0.92 * 0.8;
+    const idealH = cardW * 1.9;
+    const availH = sys.windowHeight - nav - 64 - 64 - 24 - 56 - safeBottom - 40;
+    // 优先 POC 比例；空间不足时压到可用高度（小屏压缩次要信息，保大图）
+    const h = Math.max(320, Math.min(idealH, availH));
     this.setData({
       navHeight: nav,
       greeting: this.buildGreeting(),
@@ -69,11 +75,11 @@ Page(withTheme({
 
   buildGreeting() {
     const h = new Date().getHours();
-    if (h < 6) return '夜深了，来点宵夜灵感';
-    if (h < 11) return '早上好，今天想吃点啥';
-    if (h < 14) return '中午好，午饭有着落了吗';
-    if (h < 18) return '下午好，先想想晚饭吃啥';
-    return '晚上好，今天吃点好的';
+    if (h < 6) return '夜深了，今天吃什么？';
+    if (h < 11) return '早上好，今天吃什么？';
+    if (h < 14) return '中午好，今天吃什么？';
+    if (h < 18) return '下午好，今天吃什么？';
+    return '晚上好，今天吃什么？';
   },
 
   /* ==================== feed 加载 ==================== */
@@ -151,7 +157,8 @@ Page(withTheme({
   /** 同步可见切片 + 操作区状态 */
   syncVisible() {
     const { feedQueue, cursorIdx } = this.data;
-    const visibleItems = feedQueue.slice(cursorIdx, cursorIdx + 4);
+    const visibleItems = feedQueue.slice(cursorIdx, cursorIdx + 4).map(it =>
+      Object.assign({}, it, { ratingText: (Number(it.rating) || 0).toFixed(1) }));
     const cur = feedQueue[cursorIdx];
     this.setData({
       visibleItems,
