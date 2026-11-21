@@ -12,6 +12,10 @@ Page(withTheme({
     // 用户资料
     avatarUrl: '',        // 头像展示地址（云存储 fileID，image 组件可直接渲染临时/云路径）
     avatarLoading: false, // 头像上传中标记（防重复点击）
+    displayName: '我的小厨房',   // 展示名：公开昵称 > 默认
+    publicMode: 'nickname',      // nickname | anonymous
+    showPublicSheet: false,
+    publicNicknameInput: '',
     // 吃历
     weekNames: ['日', '一', '二', '三', '四', '五', '六'],
     calTitle: '',
@@ -62,7 +66,13 @@ Page(withTheme({
       const p = await api.getProfile();
       const fileID = (p && p.avatarFileID) || '';
       this._avatarFileID = fileID;   // 缓存当前云端头像，换头像时据此删旧图
-      this.setData({ avatarUrl: fileID });
+      const publicMode = (p && p.publicMode) || 'nickname';
+      this.setData({
+        avatarUrl: fileID,
+        publicMode,
+        displayName: publicMode === 'anonymous' ? '匿名厨友' : ((p && p.publicNickname) || '我的小厨房'),
+        publicNicknameInput: (p && p.publicNickname) || ''
+      });
     } catch (err) {
       // 首次进入或集合未建：保持默认头像
       console.warn('[profile] 读取失败，使用默认头像', err);
@@ -103,6 +113,42 @@ Page(withTheme({
       this.setData({ avatarUrl: oldFileID || '' });
       api.handleErr(err, '头像保存失败');
     }
+  },
+
+  // ==================== 公开身份设置（灵感广场展示） ====================
+
+  openPublicSheet() {
+    this.setData({ showPublicSheet: true });
+  },
+  closePublicSheet() {
+    this.setData({ showPublicSheet: false });
+  },
+  onPublicNicknameInput(e) {
+    this.setData({ publicNicknameInput: e.detail.value });
+  },
+  async onPublicModeChange(e) {
+    const mode = e.currentTarget.dataset.mode;
+    if (mode === this.data.publicMode) return;
+    try {
+      await api.saveProfile({ publicMode: mode });
+      this.setData({
+        publicMode: mode,
+        displayName: mode === 'anonymous' ? '匿名厨友' : (this.data.publicNicknameInput || '我的小厨房')
+      });
+      wx.showToast({ title: '已更新', icon: 'success' });
+    } catch (err) { api.handleErr(err); }
+  },
+  async savePublicNickname() {
+    const name = (this.data.publicNicknameInput || '').trim();
+    if (name.length > 32) return api.handleErr(new Error('昵称最长 32 字'));
+    try {
+      await api.saveProfile({ publicNickname: name });
+      this.setData({
+        showPublicSheet: false,
+        displayName: this.data.publicMode === 'anonymous' ? '匿名厨友' : (name || '我的小厨房')
+      });
+      wx.showToast({ title: '公开昵称已保存', icon: 'success' });
+    } catch (err) { api.handleErr(err); }
   },
 
   goCategoryManage() {

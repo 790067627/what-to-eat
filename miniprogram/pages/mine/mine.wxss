@@ -303,3 +303,21 @@
 .day-info { display: flex; flex-direction: column; gap: 4rpx; }
 .day-name { font-size: 26rpx; color: var(--text-primary, #4A2C3A); font-weight: 600; }
 .day-note { font-size: 22rpx; color: var(--text-secondary, #9C7B8C); }
+
+/* ===== 公开身份设置（P1） ===== */
+.pub-mask { position: fixed; inset: 0; z-index: 900; background: var(--mask-heavy, rgba(20,6,16,0.55)); }
+.pub-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 901;
+  background: var(--bg-sheet, #FFFFFF); border-radius: 32rpx 32rpx 0 0;
+  padding: 32rpx 32rpx calc(32rpx + env(safe-area-inset-bottom)); }
+.pub-sheet-title { font-size: 32rpx; font-weight: 800; color: var(--text-primary, #4A2C3A); }
+.pub-sheet-desc { font-size: 24rpx; color: var(--text-secondary, #9C7B8C); margin: 8rpx 0 20rpx; line-height: 1.6; }
+.pub-opt { display: flex; align-items: center; gap: 16rpx; padding: 18rpx 0;
+  font-size: 27rpx; color: var(--text-primary, #4A2C3A); }
+.pub-check { width: 40rpx; height: 40rpx; border-radius: 10rpx; flex: none;
+  border: 2rpx solid var(--border-strong, #F0C0D4); text-align: center; line-height: 40rpx;
+  font-size: 24rpx; color: var(--text-on-accent, #FFFFFF); }
+.pub-check.on { background: var(--color-accent, #FF8FB8); border-color: var(--color-accent, #FF8FB8); }
+.pub-input { margin: 8rpx 0 8rpx 56rpx; padding: 14rpx 20rpx; border-radius: 12rpx;
+  background: var(--bg-sunken, #FDF5F9); border: 1rpx solid var(--border-soft, #FCEFF5);
+  font-size: 26rpx; color: var(--text-primary, #4A2C3A); }
+.pub-submit { margin-top: 24rpx; }

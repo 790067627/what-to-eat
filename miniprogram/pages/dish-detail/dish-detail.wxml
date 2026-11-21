@@ -102,8 +102,55 @@
       </button>
     </view>
     
-    <!-- 第三行：删除 -->
+    <!-- 第三行：公开发布（灵感广场）状态与入口 -->
+    <view class="pub-row">
+      <block wx:if="{{!myPub}}">
+        <button class="btn-ghost share-btn" bindtap="openPublishSheet">发布到灵感广场</button>
+      </block>
+      <block wx:elif="{{myPub.reviewStatus === 'pending'}}">
+        <view class="pub-status pending">审核中</view>
+        <view class="pub-withdraw" bindtap="withdrawPub">撤回</view>
+      </block>
+      <block wx:elif="{{myPub.reviewStatus === 'approved'}}">
+        <view class="pub-status approved">已公开 · {{myPub.likeCount || 0}} 赞</view>
+        <view class="pub-withdraw" bindtap="withdrawPub">撤回公开</view>
+      </block>
+      <block wx:elif="{{myPub.reviewStatus === 'rejected'}}">
+        <view class="pub-status rejected">审核未通过</view>
+        <view class="pub-withdraw" bindtap="republish">修改后重新提交</view>
+      </block>
+      <block wx:elif="{{myPub.reviewStatus === 'withdrawn'}}">
+        <button class="btn-ghost share-btn" bindtap="openPublishSheet">重新发布到灵感广场</button>
+      </block>
+    </view>
+
+    <!-- 第四行：删除 -->
     <view class="delete-link" bindtap="onDelete">删除这道菜</view>
+  </view>
+
+  <!-- 发布确认弹层：预览公开范围，用户主动确认 -->
+  <view wx:if="{{showPublishSheet}}" class="pub-mask" bindtap="closePublishSheet"></view>
+  <view wx:if="{{showPublishSheet}}" class="pub-sheet">
+    <view class="pub-sheet-title">发布到灵感广场</view>
+    <view class="pub-sheet-desc">公开后将进入推荐池，经内容审核后对其他用户可见。请确认公开范围：</view>
+    <view class="pub-preview">
+      <image wx:if="{{dish.coverImageUrl || dish.coverImage}}" class="pub-preview-img" src="{{dish.coverImageUrl || dish.coverImage}}" mode="aspectFill" />
+      <view class="pub-preview-name">{{dish.name}}</view>
+      <view class="pub-preview-tags">{{dish.tags}}</view>
+    </view>
+    <view class="pub-opt" bindtap="togglePubOpt" data-key="includeDescription">
+      <text class="pub-check {{pubOpts.includeDescription ? 'on' : ''}}">{{pubOpts.includeDescription ? '✓' : ''}}</text>
+      <text>公开介绍 / 做法笔记</text>
+    </view>
+    <view class="pub-opt" bindtap="togglePubOpt" data-key="includePrice">
+      <text class="pub-check {{pubOpts.includePrice ? 'on' : ''}}">{{pubOpts.includePrice ? '✓' : ''}}</text>
+      <text>公开价格（默认不公开）</text>
+    </view>
+    <view class="pub-opt" bindtap="togglePubOpt" data-key="anonymous">
+      <text class="pub-check {{pubOpts.anonymous ? 'on' : ''}}">{{pubOpts.anonymous ? '✓' : ''}}</text>
+      <text>匿名分享（不显示我的昵称头像）</text>
+    </view>
+    <button class="btn-primary pub-submit" bindtap="submitPublish">确认发布并送审</button>
   </view>
 
   <!-- 分享/公开快照：保存到我的菜单；公开模式加点赞行与作者信息 -->

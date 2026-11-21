@@ -143,3 +143,29 @@
 .like-heart.on { color: #FF5A79; }
 .like-count { font-size: 24rpx; color: var(--text-secondary, #9C7B8C); font-weight: 600; }
 .expired-hint { text-align: center; font-size: 26rpx; color: var(--text-hint, #C9A8B8); padding: 20rpx 0; }
+
+/* ===== 公开发布入口（P1） ===== */
+.pub-row { display: flex; align-items: center; justify-content: space-between; margin-top: 16rpx; }
+.pub-status { font-size: 24rpx; font-weight: 600; padding: 8rpx 20rpx; border-radius: 999rpx; }
+.pub-status.pending { color: var(--color-star, #FF9500); background: var(--bg-sunken, #FDF5F9); }
+.pub-status.approved { color: var(--color-success, #639922); background: var(--color-success-bg, #EAF3DE); }
+.pub-status.rejected { color: #D1242F; background: var(--bg-sunken, #FDF5F9); }
+.pub-withdraw { font-size: 24rpx; color: var(--text-secondary, #9C7B8C); text-decoration: underline; }
+.pub-mask { position: fixed; inset: 0; z-index: 900; background: var(--mask-heavy, rgba(20,6,16,0.55)); }
+.pub-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 901;
+  background: var(--bg-sheet, #FFFFFF); border-radius: 32rpx 32rpx 0 0;
+  padding: 32rpx 32rpx calc(32rpx + env(safe-area-inset-bottom)); max-height: 82vh; overflow-y: auto; }
+.pub-sheet-title { font-size: 32rpx; font-weight: 800; color: var(--text-primary, #4A2C3A); }
+.pub-sheet-desc { font-size: 24rpx; color: var(--text-secondary, #9C7B8C); margin-top: 8rpx; line-height: 1.6; }
+.pub-preview { display: flex; align-items: center; gap: 16rpx; margin: 24rpx 0;
+  padding: 16rpx; border-radius: 16rpx; background: var(--bg-sunken, #FDF5F9); }
+.pub-preview-img { width: 96rpx; height: 96rpx; border-radius: 12rpx; flex: none; }
+.pub-preview-name { font-size: 28rpx; font-weight: 700; color: var(--text-primary, #4A2C3A); }
+.pub-preview-tags { font-size: 22rpx; color: var(--text-hint, #C9A8B8); margin-top: 4rpx; }
+.pub-opt { display: flex; align-items: center; gap: 16rpx; padding: 18rpx 0;
+  font-size: 27rpx; color: var(--text-primary, #4A2C3A); }
+.pub-check { width: 40rpx; height: 40rpx; border-radius: 10rpx; flex: none;
+  border: 2rpx solid var(--border-strong, #F0C0D4); text-align: center; line-height: 40rpx;
+  font-size: 24rpx; color: var(--text-on-accent, #FFFFFF); }
+.pub-check.on { background: var(--color-accent, #FF8FB8); border-color: var(--color-accent, #FF8FB8); }
+.pub-submit { margin-top: 24rpx; }

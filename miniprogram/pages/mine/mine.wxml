@@ -18,8 +18,9 @@
         </view>
       </button>
       <view class="profile-info">
-        <view class="profile-name">我的小厨房</view>
-        <view class="profile-hint">{{avatarUrl ? '点击更换头像' : '点击设置头像'}}</view>
+        <view class="profile-name">{{displayName}}</view>
+        <view class="profile-hint" bindtap="openPublicSheet">公开身份：{{publicMode === 'anonymous' ? '匿名分享' : (publicNicknameInput ? '自定义昵称' : '默认')}} ›</view>
+        <view class="profile-hint">{{avatarUrl ? '点头像更换' : '点头像设置'}}</view>
       </view>
     </view>
     <view class="stats-row">
@@ -144,4 +145,21 @@
       <view class="import-actions"><view class="import-btn-primary" bindtap="closeDayDetail">关闭</view></view>
     </view>
   </view>
+</view>
+
+<!-- 公开身份设置弹层（灵感广场展示名） -->
+<view wx:if="{{showPublicSheet}}" class="pub-mask" bindtap="closePublicSheet"></view>
+<view wx:if="{{showPublicSheet}}" class="pub-sheet">
+  <view class="pub-sheet-title">公开身份设置</view>
+  <view class="pub-sheet-desc">发布到灵感广场时对外展示的身份，不影响私人数据。</view>
+  <view class="pub-opt {{publicMode === 'nickname' ? 'sel' : ''}}" bindtap="onPublicModeChange" data-mode="nickname">
+    <text class="pub-check {{publicMode === 'nickname' ? 'on' : ''}}">{{publicMode === 'nickname' ? '✓' : ''}}</text>
+    <text>显示公开昵称</text>
+  </view>
+  <input class="pub-input" placeholder="输入公开昵称（最长 32 字）" value="{{publicNicknameInput}}" bindinput="onPublicNicknameInput" />
+  <view class="pub-opt {{publicMode === 'anonymous' ? 'sel' : ''}}" bindtap="onPublicModeChange" data-mode="anonymous">
+    <text class="pub-check {{publicMode === 'anonymous' ? 'on' : ''}}">{{publicMode === 'anonymous' ? '✓' : ''}}</text>
+    <text>匿名分享（展示为「匿名厨友」）</text>
+  </view>
+  <button class="btn-primary pub-submit" bindtap="savePublicNickname">保存</button>
 </view>

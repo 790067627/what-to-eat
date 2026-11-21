@@ -746,11 +746,13 @@ async function getProfile({ openid }) {
     const p = res.data && res.data[0];
     return ok({
       avatarFileID: (p && p.avatarFileID) || '',
-      nickname: (p && p.nickname) || ''
+      nickname: (p && p.nickname) || '',
+      publicNickname: (p && p.publicNickname) || '',
+      publicMode: (p && p.publicMode) || 'nickname'   // nickname | anonymous
     });
   } catch (e) {
     // profiles 集合尚未创建：视为无资料
-    return ok({ avatarFileID: '', nickname: '' });
+    return ok({ avatarFileID: '', nickname: '', publicNickname: '', publicMode: 'nickname' });
   }
 }
 
@@ -760,9 +762,13 @@ async function saveProfile({ openid, event }) {
   const col = db.collection('profiles');
   const { avatarFileID, nickname } = event;
 
+  const { publicNickname, publicMode } = event;
   const data = { updatedAt: db.serverDate() };
   if (typeof avatarFileID === 'string' && avatarFileID) data.avatarFileID = avatarFileID;
   if (typeof nickname === 'string') data.nickname = nickname.slice(0, 32);
+  // 公开身份：对外展示昵称（可与私人昵称不同）与匿名开关
+  if (typeof publicNickname === 'string') data.publicNickname = publicNickname.slice(0, 32);
+  if (publicMode === 'nickname' || publicMode === 'anonymous') data.publicMode = publicMode;
 
   // 首次写入确保集合存在
   try { await db.createCollection('profiles'); } catch (e) { /* 已存在，忽略 */ }
@@ -772,7 +778,7 @@ async function saveProfile({ openid, event }) {
     await col.where({ openid }).update({ data });
     return ok({ updated: true });
   }
-  await col.add({ data: { openid, avatarFileID: data.avatarFileID || '', nickname: data.nickname || '', createdAt: db.serverDate(), updatedAt: data.updatedAt } });
+  await col.add({ data: { openid, avatarFileID: data.avatarFileID || '', nickname: data.nickname || '', publicNickname: data.publicNickname || '', publicMode: data.publicMode || 'nickname', createdAt: db.serverDate(), updatedAt: data.updatedAt } });
   return ok({ created: true });
 }
 // 旧版 saveSharedDish（按 dishId 跨用户直读 + name/categoryId 去重）已删除：

@@ -31,10 +31,8 @@ module.exports = function createDiscovery({ cloud, db, _, ok, fail, fetchAll }) 
       p = res.data && res.data[0];
     } catch (e) { /* 集合未建 */ }
     const anonymous = forceAnonymous || !p || p.publicMode === 'anonymous';
-    return {
-      nickname: anonymous ? '匿名厨友' : (p.publicNickname || p.nickname || '匿名厨友'),
-      avatarFileID: anonymous ? '' : (p.avatarFileID || '')
-    };
+    const nickname = anonymous ? '匿名厨友' : (p.publicNickname || p.nickname || '匿名厨友');
+    return { nickname, avatarFileID: anonymous ? '' : (p.avatarFileID || ''), anonymous };
   }
 
   /** 文本内容安全检查。openapi 行为以官方文档为准；失败时返回 unavailable（走人工审核兜底，不放行） */
@@ -117,7 +115,7 @@ module.exports = function createDiscovery({ cloud, db, _, ok, fail, fetchAll }) 
       authorOpenid: openid,                 // 仅服务端使用，接口响应剔除
       authorNickname: identity.nickname,
       authorAvatar: identity.avatarFileID,
-      anonymous: !!options.anonymous || identity.nickname === '匿名厨友',
+      anonymous: !!identity.anonymous || !!options.anonymous,
       name: dish.name,
       coverImage: coverPublic || dish.coverImage || '',
       images: imagesPublic,

@@ -17,6 +17,9 @@ Page(withTheme({
     shareToken: '',      // 定向分享凭证模式
     publicId: '',        // 公开菜品快照模式
     viewMode: 'own',     // own | shared | public
+    myPub: null,         // 本菜的公开发布记录（null=未发布）
+    showPublishSheet: false,
+    pubOpts: { includePrice: false, includeDescription: true, anonymous: false },
     loading: true,
     dish: null,
     categoryName: '',
@@ -100,6 +103,7 @@ Page(withTheme({
         lastEatenText: dish.lastEatenAt ? `上次吃：${timeAgo(dish.lastEatenAt)}（${formatDate(dish.lastEatenAt)}）` : '还没吃过这道菜',
         isShared: false
       });
+      this.loadMyPublication();
     } catch (err) {
       api.handleErr(err);
       this.setData({ loading: false });
@@ -230,6 +234,62 @@ Page(withTheme({
       const res = await api.likePublicDish(this.data.publicId, next);
       this.setData({ publicLiked: res.liked, publicLikeCount: res.likeCount });
       api.logBehavior(res.liked ? 'like' : 'unlike', 'public', this.data.publicId).catch(() => {});
+    } catch (err) { api.handleErr(err); }
+  },
+
+  /* ==================== 公开发布（灵感广场） ==================== */
+
+  async loadMyPublication() {
+    try {
+      const list = await api.listMyPublications();
+      const mine = (list || []).find(p => p.sourceDishId === this.data.id) || null;
+      this.setData({ myPub: mine });
+    } catch (e) { /* 静默 */ }
+  },
+
+  openPublishSheet() {
+    this.setData({ showPublishSheet: true });
+  },
+  closePublishSheet() {
+    this.setData({ showPublishSheet: false });
+  },
+  togglePubOpt(e) {
+    const key = e.currentTarget.dataset.key;
+    this.setData({ [`pubOpts.${key}`]: !this.data.pubOpts[key] });
+  },
+
+  /** 提交发布：用户已在弹窗确认公开范围（价格默认不公开、可选匿名） */
+  async submitPublish() {
+    wx.showLoading({ title: '提交中' });
+    try {
+      const res = await api.publishDish(this.data.id, this.data.pubOpts);
+      wx.hideLoading();
+      this.setData({ showPublishSheet: false });
+      const msg = res.reviewStatus === 'approved' ? '已发布' : '已提交审核';
+      wx.showToast({ title: msg, icon: 'success' });
+      this.loadMyPublication();
+    } catch (err) {
+      wx.hideLoading();
+      api.handleErr(err, '发布失败');
+    }
+  },
+
+  /** 重新送审（rejected 后编辑内容再发布） */
+  async republish() {
+    this.openPublishSheet();
+  },
+
+  async withdrawPub() {
+    const res = await wx.showModal({
+      title: '撤回公开',
+      content: '撤回后该菜立即退出灵感广场，已保存到你菜单的他人副本不受影响。确定撤回？',
+      confirmColor: themeManager.getJs().confirmColor
+    });
+    if (!res.confirm) return;
+    try {
+      await api.withdrawPublicDish({ publicDishId: this.data.myPub._id });
+      wx.showToast({ title: '已撤回', icon: 'success' });
+      this.loadMyPublication();
     } catch (err) { api.handleErr(err); }
   }
 }));
