@@ -1,60 +1,89 @@
-// components/card-stack/gestures.wxs — 手势响应层（视图层执行，零 setData）
-// WXS 响应事件：通过 ownerInstance.selectComponent 直接改样式，逻辑层零开销。
-// 参数与方案 A POC 对齐：阈值 96px、速度 0.55px/ms、阻尼上限 260px、旋转 0.045°/px
+// components/card-stack/gestures.wxs — 手势层（视图线程执行，零 setData 跟手）
+// 状态机：idle → dragging → settling → idle
+//  - dragging：WXS 内联 setStyle 直接驱动前卡/后卡位移（不经过逻辑层）
+//  - settling：松手同帧由 WXS 启动出场+补位终值动画（不等 JS），JS 仅对齐 class 与窗口数据
+//  - 内联样式清理：settling 结束后 JS 递增 clearToken，经 change: 触发 clearAll，class 完全接管
+// 参数与方案 A POC 对齐：阈值 96px / 速度 0.55px/ms / 阻尼 260px / speed 420ms
 var THRESH = 96;
 var VELOCITY = 0.55;
 var DAMP = 260;
+var SETTLE_MS = '420ms';
+var SPRING = 'cubic-bezier(.22,1.28,.36,1)';
+var EXIT_EASE = 'cubic-bezier(.4,0,.7,.2)';
 
 var state = {
-  locked: false,        // 交互锁（抽屉打开时由 change:interactionLocked 同步置位）
-  dragging: false,
+  phase: 'idle',        // idle | dragging | settling
+  uiLocked: false,      // 抽屉等外部交互锁（change:interaction-locked）
+  animLocked: false,    // settling 锁（change:anim-locked，JS data.locked 镜像）
   startX: 0,
   startY: 0,
   dx: 0,
   lastX: 0,
   lastT: 0,
+  startT: 0,
   vx: 0,
   moved: 0,
-  horizontal: null   // 首段位移方向锁定：true=横滑接管，false=纵滑放行
+  horizontal: null,
+  front: null,          // touchstart 缓存元素引用（每帧 selectComponent 是纯开销）
+  behind: null
 };
 
 function frontOf(owner) { return owner.selectComponent('#cardFront'); }
 function behindOf(owner) { return owner.selectComponent('#cardBehind'); }
 
-/** 属性变化同步：interactionLocked → WXS 模块态（官方 change: 机制） */
-function syncLock(newValue, oldValue, ownerInstance) {
-  state.locked = !!newValue;
-  if (state.locked) state.dragging = false;   // 上锁瞬间终止进行中的拖拽
+/** change: 同步——外部交互锁（抽屉打开） */
+function syncUiLock(newValue) {
+  state.uiLocked = !!newValue;
+  if (state.uiLocked && state.phase === 'dragging') state.phase = 'idle';
+}
+
+/** change: 同步——settling 锁（JS data.locked 镜像）：动画期禁止重新拖拽 */
+function syncAnimLock(newValue) {
+  state.animLocked = !!newValue;
+  if (!state.animLocked && state.phase === 'settling') state.phase = 'idle';
+}
+
+/** change: 同步——settling 收尾：清空全部卡片内联样式，class 完全接管（根治内联残留） */
+function clearAll(newValue, oldValue, owner) {
+  var cards = owner.selectAll('.cs-card');
+  if (cards && cards.length) {
+    for (var i = 0; i < cards.length; i++) {
+      cards[i].setStyle({ 'transform': '', 'transition': '', 'opacity': '' });
+    }
+  }
 }
 
 function onTouchStart(e, owner) {
-  if (state.locked) return;
+  if (state.uiLocked || state.animLocked || state.phase === 'settling') return;
   var t = e.touches[0];
-  state.dragging = true;
+  state.phase = 'dragging';
   state.startX = t.clientX;
   state.startY = t.clientY;
   state.lastX = t.clientX;
   state.lastT = e.timeStamp;
+  state.startT = e.timeStamp;
   state.dx = 0;
   state.vx = 0;
   state.moved = 0;
   state.horizontal = null;
-  state.startT = e.timeStamp;
-  var front = frontOf(owner);
-  if (front) front.setStyle({ 'transition': 'none' });
+  // 缓存引用 + 关过渡保证跟手
+  state.front = frontOf(owner);
+  state.behind = behindOf(owner);
+  if (state.front) state.front.setStyle({ 'transition': 'none' });
+  if (state.behind) state.behind.setStyle({ 'transition': 'none' });
 }
 
 function onTouchMove(e, owner) {
-  if (state.locked || !state.dragging) return;
+  if (state.phase !== 'dragging') return;
   var t = e.touches[0];
   var rawX = t.clientX - state.startX;
   var rawY = t.clientY - state.startY;
 
-  // 方向锁定：首段 10px 内判定横/纵，纵向放行（页面滚动不受影响）
+  // 方向锁定：首段 10px 判定横/纵，纵向放行（页面滚动不受影响）
   if (state.horizontal === null) {
     if (Math.abs(rawX) < 10 && Math.abs(rawY) < 10) return;
     state.horizontal = Math.abs(rawX) > Math.abs(rawY);
-    if (!state.horizontal) { state.dragging = false; return; }
+    if (!state.horizontal) { state.phase = 'idle'; return; }
   }
 
   var now = e.timeStamp;
@@ -69,48 +98,41 @@ function onTouchMove(e, owner) {
   var ab = state.dx > 0 ? state.dx : -state.dx;
   state.moved = ab;
 
-  // 前卡跟手：Swiper cards 拖拽公式简化——translateX 全跟手 + rotateZ(-25°*p*t 峰值) + scale(-0.5*t)
+  // 前卡跟手（Swiper cards 拖拽公式简化）：translateX 全跟手 + 钟形旋转/缩放
   var prog0 = ab / THRESH;
   if (prog0 > 1) prog0 = 1;
-  var tBell = Math.sqrt(1 - Math.abs((prog0 - 0.5) / 0.5) * Math.abs((prog0 - 0.5) / 0.5));
-  var front = frontOf(owner);
-  if (front) {
+  var dev = (prog0 - 0.5) / 0.5;
+  var tBell = Math.sqrt(1 - dev * dev);
+  if (state.front) {
     var rot = state.dx < 0 ? (-14 * tBell) : (14 * tBell);
-    front.setStyle({
+    state.front.setStyle({
       'transform': 'translate3d(' + state.dx + 'px,0,0) rotate(' + rot + 'deg) scale(' + (1 - 0.06 * tBell) + ')'
     });
   }
-  // 后卡补位：从 depth-1 槽位(28rpx≈14px, scale.92, rot-2.5°)向 depth-0 过渡（Swiper w+=96t 前移感）
-  var behind = behindOf(owner);
-  if (behind) {
-    behind.setStyle({
-      'transform': 'translate3d(' + (14 * (1 - prog0)) + 'px,0,0) scale(' + (0.92 + 0.08 * prog0) + ') rotate(' + (-2.5 * (1 - prog0)) + 'deg)',
-      'opacity': '1'
+  // 后卡补位预览：从 depth-1 槽位(14px/.92/-2.5°)随进度趋近 depth-0
+  if (state.behind) {
+    state.behind.setStyle({
+      'transform': 'translate3d(' + (14 * (1 - prog0)) + 'px,0,0) scale(' + (0.92 + 0.08 * prog0) + ') rotate(' + (-2.5 * (1 - prog0)) + 'deg)'
     });
   }
 }
 
 function onTouchEnd(e, owner) {
-  if (state.locked || !state.dragging) return;
-  state.dragging = false;
+  if (state.phase !== 'dragging') return;
 
   var ab = state.dx > 0 ? state.dx : -state.dx;
   var v = state.vx > 0 ? state.vx : -state.vx;
   var commit = ab > THRESH || v > VELOCITY;
   var dir = state.dx < 0 ? -1 : 1;
-
-  // tap 判定：位移 ≤10px 且按住 <350ms（长按走 bindlongpress 通道，不在此处）
-  // 注意：catchtouchend 会阻止小程序合成 tap 事件，必须在这里手动 callMethod
   var dur = e.timeStamp - state.startT;
 
-  var front = frontOf(owner);
-  var behind = behindOf(owner);
-  // 恢复过渡（touchstart 时设为 none 保证跟手）——tap 分支也要恢复，否则下次滑动无动画
-  if (front) front.setStyle({ 'transition': 'transform 560ms cubic-bezier(.22,1.28,.36,1), opacity 420ms' });
-  if (behind) behind.setStyle({ 'transition': 'transform 560ms cubic-bezier(.22,1.28,.36,1), opacity 420ms' });
-
+  // tap 判定：位移 ≤10px 且 <400ms（catchtouchend 吞掉框架 tap 合成，需主动 callMethod）
   if (!commit && ab <= 10 && dur < 400 && state.horizontal !== false) {
-    // tap：catchtouchend 会吞掉框架的 tap 合成，必须在此主动 callMethod（真机 touchend 必触发）
+    state.phase = 'idle';
+    // tap 不留位移：直接复位（无动画必要，位移≤10px 视觉不可察）
+    if (state.front) state.front.setStyle({ 'transform': '', 'transition': '' });
+    if (state.behind) state.behind.setStyle({ 'transform': '', 'transition': '' });
+    state.front = null; state.behind = null;
     owner.callMethod('dragMoved', { moved: 0 });
     owner.callMethod('onCardTap');
     state.moved = 0;
@@ -118,12 +140,46 @@ function onTouchEnd(e, owner) {
   }
 
   if (commit) {
+    // ===== settling：松手同帧在视图层启动终值动画，不等 JS 往返（根治松手停顿） =====
+    state.phase = 'settling';
+    var exitX = dir < 0 ? '-120%' : '120%';
+    var exitRot = dir < 0 ? '-13deg' : '13deg';
+    if (state.front) {
+      state.front.setStyle({
+        'transform': 'translate3d(' + exitX + ',30px,0) scale(0.92) rotate(' + exitRot + ')',
+        'opacity': '0',
+        'transition': 'transform ' + SETTLE_MS + ' ' + EXIT_EASE + ', opacity 340ms linear'
+      });
+    }
+    if (state.behind) {
+      state.behind.setStyle({
+        'transform': 'translate3d(0,0,0) scale(1) rotate(0deg)',
+        'transition': 'transform ' + SETTLE_MS + ' ' + SPRING
+      });
+    }
+    state.front = null; state.behind = null;
     owner.callMethod('dragMoved', { moved: state.moved });
+    // JS 侧：对齐 class/窗口数据（与内联终值一致，零跳变）+ 450ms 后清理 + clearToken
     owner.callMethod('commitSwipe', { dir: dir });
   } else {
-    // 未过阈值：回弹复位
-    if (front) front.setStyle({ 'transform': 'translate3d(0,0,0) rotate(0deg) scale(1)' });
-    if (behind) behind.setStyle({ 'transform': 'translate3d(14px,0,0) scale(0.92) rotate(-2.5deg)', 'opacity': '1' });
+    // ===== 未过阈值：回弹到各自 depth 槽位（恢复过渡后 setStyle 终值触发补间） =====
+    state.phase = 'idle';
+    if (state.front) {
+      state.front.setStyle({
+        'transition': 'transform ' + SETTLE_MS + ' ' + SPRING,
+        'transform': 'translate3d(0,0,0) rotate(0deg) scale(1)'
+      });
+    }
+    if (state.behind) {
+      state.behind.setStyle({
+        'transition': 'transform ' + SETTLE_MS + ' ' + SPRING,
+        'transform': 'translate3d(14px,0,0) scale(0.92) rotate(-2.5deg)'
+      });
+    }
+    // 回弹完成后延迟清内联，让 class 接管（值一致，视觉无感）
+    var f = state.front, b = state.behind;
+    state.front = null; state.behind = null;
+    owner.callMethod('scheduleClear');
     owner.callMethod('dragMoved', { moved: 0 });
   }
   state.moved = 0;
@@ -133,5 +189,7 @@ module.exports = {
   touchStart: onTouchStart,
   touchMove: onTouchMove,
   touchEnd: onTouchEnd,
-  syncLock: syncLock
+  syncUiLock: syncUiLock,
+  syncAnimLock: syncAnimLock,
+  clearAll: clearAll
 };

@@ -218,7 +218,10 @@ Page(withTheme({
     if (!item) return;
     api.logBehavior('not_interest', item.type, item.id).catch(() => {});
     wx.showToast({ title: '好的，少推这类', icon: 'none' });
-    this.onAdvance();
+    // 驱动组件真实换卡（视觉与游标同步；advance 事件回调统一推进 cursorIdx）
+    const stack = this.selectComponent('#cardStack');
+    if (stack) stack.advanceByButton();
+    else this.onAdvance();
   },
 
   /** 关闭触发（遮罩点击/下拉/关闭按钮）：置 show=false 驱动组件退出动画。
