@@ -1,131 +1,281 @@
-// pages/index/index.js - 首页：随机入口 + 今日推荐 + 分类速览
+// pages/index/index.js - 首页：AI 饮食灵感（方案 A 卡栈）+ 个性化推荐 feed
+// 数据流：getFeed(cursor) → 队列缓存 → card-stack 组件消费；滑动接近队尾自动预加载下一页。
+// 行为上报：曝光/换一道/不感兴趣/点赞/想吃 全部走 logBehavior，按 openid 服务端隔离。
 const api = require('../../services/db');
 const { getNavMetrics } = require('../../utils/util');
-const { fenToYuan, shuffle } = require('../../utils/util');
 const { withTheme } = require('../../theme/theme-page');
 
 Page(withTheme({
   data: {
     navHeight: 88,
     loading: true,
-    inited: false,        // 是否已有数据
-    todayDish: null,      // 今日推荐
-    categories: [],
-    greeting: ''
+    inited: false,
+    greeting: '',
+    // feed
+    feedQueue: [],        // 全量已取回队列
+    cursorIdx: 0,         // 当前卡指针
+    visibleItems: [],     // 传给 card-stack 的可见切片（4 张）
+    nextCursor: '',
+    hasMore: true,
+    feedLoading: false,
+    coldStart: false,
+    // 抽屉
+    sheetShow: false,
+    sheetItem: null,
+    // 操作区状态
+    curLiked: false,
+    curSaved: false,
+    idxText: ''
   },
 
   onLoad() {
-    // 沉浸式导航：内容区让位高度（与组件同一度量源，随主题布局策略变化）
-    this.setData({ navHeight: getNavMetrics().headerHeight });
-
-    this.setData({ greeting: this.buildGreeting() });
-  },
-
-  /** 页面级 tap：坐标命中 Kitty 区域时触发弹跳（Kitty 本体 pointer-events:none 不挡点击） */
-  onPageTap(e) {
-    const t = e.changedTouches && e.changedTouches[0];
-    if (!t) return;
-    const kitty = this.selectComponent('#kitty');
-    if (kitty) kitty.tryTapBounce(t.clientX, t.clientY);
+    this.setData({ navHeight: getNavMetrics().headerHeight, greeting: this.buildGreeting() });
   },
 
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0 });
     }
-    this.loadData();
+    // 首次加载 or 从其他页回来时轻量刷新（节流 30s，避免 onShow 高频请求）
+    const now = Date.now();
+    if (!this.data.feedQueue.length) {
+      this.checkInited().then(() => this.loadFeed(true));
+    } else if (!this._lastShow || now - this._lastShow > 30000) {
+      this.refreshCurrentStates();
+    }
+    this._lastShow = now;
+  },
+
+  onPullDownRefresh() {
+    this.loadFeed(true).then(() => wx.stopPullDownRefresh()).catch(() => wx.stopPullDownRefresh());
+  },
+
+  async checkInited() {
+    try {
+      const stats = await api.getStats();
+      this.setData({ inited: stats.dishCount > 0 });
+    } catch (e) { /* 静默 */ }
   },
 
   buildGreeting() {
     const h = new Date().getHours();
-    if (h < 6) return '夜深了，来点宵夜灵感？';
-    if (h < 11) return '早上好，今天想吃点啥？';
-    if (h < 14) return '中午好，午饭有着落了吗？';
+    if (h < 6) return '夜深了，来点宵夜灵感';
+    if (h < 11) return '早上好，今天想吃点啥';
+    if (h < 14) return '中午好，午饭有着落了吗';
     if (h < 18) return '下午好，先想想晚饭吃啥';
     return '晚上好，今天吃点好的';
   },
 
-  async loadData() {
+  /* ==================== feed 加载 ==================== */
+
+  async loadFeed(reset) {
+    if (this.data.feedLoading) return;
+    this.setData({ feedLoading: true, loading: reset ? true : this.data.loading });
     try {
-      const [categories, dishes, stats] = await Promise.all([
-        api.listCategories(),
-        api.listDishes(),
-        api.getStats()
-      ]);
-      const inited = stats.dishCount > 0;
-
-      // 今日推荐：从非"不想再吃"的菜里，按当天日期做稳定伪随机（当天不变）
-      let todayDish = null;
-      const pool = dishes.filter(d => d.status !== 'never');
-      if (pool.length) {
-        const dayKey = new Date().toDateString();
-        let hash = 0;
-        for (let i = 0; i < dayKey.length; i++) {
-          hash = (hash * 31 + dayKey.charCodeAt(i)) % 997;
-        }
-        const picked = pool[hash % pool.length];
-        const cat = categories.find(c => c._id === picked.categoryId);
-        todayDish = {
-          ...picked,
-          priceYuan: fenToYuan(picked.price),
-          categoryName: cat ? cat.name : ''
-        };
-      }
-
+      const cursor = reset ? '' : this.data.nextCursor;
+      const res = await api.getFeed(cursor, 6);
+      const merged = reset ? res.items : this.data.feedQueue.concat(res.items);
       this.setData({
         loading: false,
-        inited,
-        todayDish,
-        categories: categories.slice(0, 6)
+        feedLoading: false,
+        feedQueue: merged,
+        cursorIdx: reset ? 0 : this.data.cursorIdx,
+        nextCursor: res.nextCursor || '',
+        hasMore: !!res.hasMore,
+        coldStart: !!(res.profile && res.profile.coldStart)
+      });
+      this.syncVisible();
+      // 曝光上报（只报页首两张，失败静默）
+      res.items.slice(0, 2).forEach(it => {
+        api.logBehavior('expose', it.type, it.id).catch(() => {});
       });
     } catch (err) {
-      api.handleErr(err);
-      this.setData({ loading: false });
+      this.setData({ loading: false, feedLoading: false });
+      api.handleErr(err, '推荐加载失败');
     }
   },
 
-  // 去随机页
+  /** 同步可见切片 + 操作区状态 */
+  syncVisible() {
+    const { feedQueue, cursorIdx } = this.data;
+    const visibleItems = feedQueue.slice(cursorIdx, cursorIdx + 4);
+    const cur = feedQueue[cursorIdx];
+    this.setData({
+      visibleItems,
+      curLiked: cur ? !!cur.liked : false,
+      curSaved: !!(cur && cur.savedDishId),
+      idxText: cur ? `${cursorIdx + 1} / ${feedQueue.length}` : ''
+    });
+  },
+
+  /** 从详情/抽屉返回后刷新当前卡的互动状态（仅公开卡需要回源） */
+  async refreshCurrentStates() {
+    const cur = this.data.feedQueue[this.data.cursorIdx];
+    if (!cur || cur.type !== 'public') return;
+    try {
+      const p = await api.getPublicDish(cur.id);
+      const patch = {};
+      patch[`feedQueue[${this.data.cursorIdx}].liked`] = !!p.liked;
+      patch[`feedQueue[${this.data.cursorIdx}].likeCount`] = p.likeCount || 0;
+      patch[`feedQueue[${this.data.cursorIdx}].savedDishId`] = p.savedDishId || '';
+      this.setData(patch);
+      this.syncVisible();
+    } catch (e) { /* 撤回等情况静默 */ }
+  },
+
+  /* ==================== 卡栈事件 ==================== */
+
+  /** card-stack 提交换卡：推进指针 + 预加载 + 行为上报 */
+  onAdvance() {
+    const { feedQueue, cursorIdx } = this.data;
+    const cur = feedQueue[cursorIdx];
+    if (cur) api.logBehavior('next', cur.type, cur.id).catch(() => {});
+    if (cursorIdx >= feedQueue.length - 1) {
+      if (this.data.hasMore && this.data.nextCursor) {
+        // 队尾：等下一页（loadFeed 完成后 syncVisible 自然推进到重置位）
+        this.loadFeed(false).then(() => {
+          if (this.data.cursorIdx < this.data.feedQueue.length - 1) {
+            this.setData({ cursorIdx: this.data.cursorIdx + 1 });
+            this.syncVisible();
+          }
+        });
+        return;
+      }
+      // 环形：游标耗尽从头再来
+      this.setData({ cursorIdx: 0 });
+      this.syncVisible();
+      return;
+    }
+    this.setData({ cursorIdx: cursorIdx + 1 });
+    this.syncVisible();
+    // 接近队尾预加载下一批
+    if (this.data.cursorIdx + 3 >= feedQueue.length && this.data.hasMore && this.data.nextCursor) {
+      this.loadFeed(false);
+    }
+    const nxt = this.data.feedQueue[this.data.cursorIdx];
+    if (nxt) api.logBehavior('expose', nxt.type, nxt.id).catch(() => {});
+  },
+
+  onCardTap(e) {
+    const item = e.detail.item;
+    if (!item) return;
+    this.setData({ sheetItem: this.decorateSheet(item), sheetShow: true });
+  },
+
+  onNotInterest(e) {
+    const item = e.detail.item;
+    if (!item) return;
+    api.logBehavior('not_interest', item.type, item.id).catch(() => {});
+    wx.showToast({ title: '好的，少推这类', icon: 'none' });
+    this.onAdvance();
+  },
+
+  onSheetClose() {
+    this.setData({ sheetShow: false });
+  },
+
+  /** 抽屉数据装饰（互动状态映射到统一字段） */
+  decorateSheet(item) {
+    return Object.assign({}, item, {
+      liked: !!item.liked,
+      saved: !!item.savedDishId
+    });
+  },
+
+  onSheetLike() { this.onLike(); },
+  onSheetWant() { this.onWant(); },
+
+  /* ==================== 操作区：喜欢 / 换一道 / 想吃 ==================== */
+
+  async onLike() {
+    const cur = this.data.feedQueue[this.data.cursorIdx];
+    if (!cur) return;
+    if (cur.type !== 'public') {
+      wx.showToast({ title: '自己的菜用评分表达喜好哦', icon: 'none' });
+      return;
+    }
+    const next = !cur.liked;
+    try {
+      const res = await api.likePublicDish(cur.id, next);
+      const patch = {};
+      patch[`feedQueue[${this.data.cursorIdx}].liked`] = res.liked;
+      patch[`feedQueue[${this.data.cursorIdx}].likeCount`] = res.likeCount;
+      this.setData(patch);
+      this.syncVisible();
+      if (this.data.sheetItem && this.data.sheetItem.id === cur.id) {
+        this.setData({ 'sheetItem.liked': res.liked, 'sheetItem.likeCount': res.likeCount });
+      }
+      api.logBehavior(res.liked ? 'like' : 'unlike', 'public', cur.id).catch(() => {});
+    } catch (err) { api.handleErr(err); }
+  },
+
+  onNext() {
+    const stack = this.selectComponent('#cardStack');
+    if (stack) stack.advanceByButton();
+  },
+
+  async onWant() {
+    const cur = this.data.feedQueue[this.data.cursorIdx];
+    if (!cur) return;
+    if (cur.type === 'public') {
+      if (cur.savedDishId) {
+        wx.showToast({ title: '已在你的菜单', icon: 'none' });
+        return;
+      }
+      wx.showLoading({ title: '加入中' });
+      try {
+        const res = await api.savePublicDish(cur.id);
+        wx.hideLoading();
+        const patch = {};
+        patch[`feedQueue[${this.data.cursorIdx}].savedDishId`] = res.dishId;
+        this.setData(patch);
+        this.syncVisible();
+        if (this.data.sheetItem && this.data.sheetItem.id === cur.id) {
+          this.setData({ 'sheetItem.saved': true, 'sheetItem.savedDishId': res.dishId, sheetShow: false });
+        }
+        wx.showToast({ title: res.duplicated ? '已在你的菜单' : '已加入想吃清单', icon: 'success' });
+        api.logBehavior('save', 'public', cur.id).catch(() => {});
+      } catch (err) { wx.hideLoading(); api.handleErr(err); }
+    } else {
+      // 自己的菜：不复制数据、不覆盖吃过记录，引导按现有状态操作
+      wx.showToast({ title: cur.status === 'want' ? '已是想吃状态' : '自己的菜可在详情页调整状态', icon: 'none' });
+    }
+  },
+
+  /* ==================== 旧入口保留 ==================== */
+
   goRandom() {
     wx.switchTab({ url: '/pages/random/random' });
   },
 
-  // 点分类 -> 菜品库并带筛选
-  goCategory(e) {
-    const { id, name } = e.currentTarget.dataset;
-    const app = getApp();
-    app.globalData.dishesFilter = { categoryId: id, categoryName: name };
-    wx.switchTab({ url: '/pages/dishes/dishes' });
+  goAdd() {
+    wx.navigateTo({ url: '/pages/dish-edit/dish-edit' });
   },
 
-  // 看全部菜品
-  goDishes() {
-    getApp().globalData.dishesFilter = null;
-    wx.switchTab({ url: '/pages/dishes/dishes' });
-  },
-
-  // 点今日推荐 -> 详情
-  goDetail(e) {
-    const { id } = e.currentTarget.dataset;
-    wx.navigateTo({ url: `/pages/dish-detail/dish-detail?id=${id}` });
-  },
-
-  // 一键初始化示例数据
   async onInitDemo() {
     wx.showLoading({ title: '初始化中' });
     try {
       await api.initDemo();
       wx.hideLoading();
       wx.showToast({ title: '已添加示例菜品', icon: 'success' });
-      this.loadData();
+      await this.checkInited();
+      this.loadFeed(true);
     } catch (err) {
       wx.hideLoading();
       api.handleErr(err);
     }
   },
 
-  // 添加菜品
-  goAdd() {
-    wx.navigateTo({ url: '/pages/dish-edit/dish-edit' });
+  goTastePrefs() {
+    wx.navigateTo({ url: '/pages/taste-prefs/taste-prefs' });
+  },
+
+  /** 页面级 tap：Kitty 弹跳（装饰组件自带 pointer-events:none） */
+  onPageTap(e) {
+    const t = e.changedTouches && e.changedTouches[0];
+    if (!t) return;
+    const kitty = this.selectComponent('#kitty');
+    if (kitty) kitty.tryTapBounce(t.clientX, t.clientY);
   },
 
   onShareTimeline() {

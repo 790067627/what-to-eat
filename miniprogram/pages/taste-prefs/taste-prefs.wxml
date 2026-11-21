@@ -1,0 +1,52 @@
+<page-meta page-style="{{themeVars}}" root-background-color="{{themeWindowBg}}" background-color="{{themeWindowBg}}" background-text-style="{{themeJs.mode === 'dark' ? 'light' : 'dark'}}" />
+<!-- page-meta 必须是页面第一个节点 -->
+
+<custom-navbar title="口味偏好" />
+
+<view class="page" style="padding-top: {{navHeight}}px">
+  <view class="tip card">
+    <view class="tip-title">设置口味偏好</view>
+    <view class="tip-desc">新用户冷启动用。AI 会优先按你的口味匹配推荐，社区热度只作辅助。忌口优先级最高。</view>
+  </view>
+
+  <!-- 口味维度滑杆 -->
+  <view class="card">
+    <view class="section-title">口味倾向</view>
+    <view class="dim" wx:for="{{dims}}" wx:key="key">
+      <view class="dim-head">
+        <text class="dim-label">{{item.label}}</text>
+        <text class="dim-val">{{prefs[item.key]}}</text>
+      </view>
+      <view class="dim-hint">{{item.hint}}</view>
+      <slider
+        min="0" max="100" step="5"
+        value="{{prefs[item.key]}}"
+        data-key="{{item.key}}"
+        bindchange="onSlider"
+        activeColor="{{themeJs.slider.active}}"
+        backgroundColor="{{themeJs.slider.track}}"
+        block-color="{{themeJs.slider.active}}"
+        block-size="20"
+      />
+    </view>
+  </view>
+
+  <!-- 忌口 -->
+  <view class="card">
+    <view class="section-title">忌口（推荐时硬过滤）</view>
+    <view class="avoid-wrap">
+      <text
+        wx:for="{{avoidPresets}}" wx:key="*this"
+        class="avoid-chip {{avoidTags.indexOf(item) >= 0 ? 'on' : ''}}"
+        data-tag="{{item}}"
+        bindtap="toggleAvoid"
+      >{{item}}</text>
+    </view>
+  </view>
+
+  <view class="save-bar">
+    <button class="btn-primary save-btn" bindtap="onSave" disabled="{{saving}}">{{saving ? '保存中…' : '保存偏好'}}</button>
+  </view>
+
+  <view style="height: 60rpx"></view>
+</view>

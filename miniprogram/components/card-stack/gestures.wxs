@@ -1,0 +1,114 @@
+// components/card-stack/gestures.wxs — 手势响应层（视图层执行，零 setData）
+// WXS 响应事件：通过 ownerInstance.selectComponent 直接改样式，逻辑层零开销。
+// 参数与方案 A POC 对齐：阈值 96px、速度 0.55px/ms、阻尼上限 260px、旋转 0.045°/px
+var THRESH = 96;
+var VELOCITY = 0.55;
+var DAMP = 260;
+
+var state = {
+  dragging: false,
+  startX: 0,
+  startY: 0,
+  dx: 0,
+  lastX: 0,
+  lastT: 0,
+  vx: 0,
+  moved: 0,
+  horizontal: null   // 首段位移方向锁定：true=横滑接管，false=纵滑放行
+};
+
+function frontOf(owner) { return owner.selectComponent('#cardFront'); }
+function behindOf(owner) { return owner.selectComponent('#cardBehind'); }
+
+function onTouchStart(e, owner) {
+  var t = e.touches[0];
+  state.dragging = true;
+  state.startX = t.clientX;
+  state.startY = t.clientY;
+  state.lastX = t.clientX;
+  state.lastT = e.timeStamp;
+  state.dx = 0;
+  state.vx = 0;
+  state.moved = 0;
+  state.horizontal = null;
+  var front = frontOf(owner);
+  if (front) front.setStyle({ 'transition': 'none' });
+}
+
+function onTouchMove(e, owner) {
+  if (!state.dragging) return;
+  var t = e.touches[0];
+  var rawX = t.clientX - state.startX;
+  var rawY = t.clientY - state.startY;
+
+  // 方向锁定：首段 10px 内判定横/纵，纵向放行（页面滚动不受影响）
+  if (state.horizontal === null) {
+    if (Math.abs(rawX) < 10 && Math.abs(rawY) < 10) return;
+    state.horizontal = Math.abs(rawX) > Math.abs(rawY);
+    if (!state.horizontal) { state.dragging = false; return; }
+  }
+
+  var now = e.timeStamp;
+  var dt = now - state.lastT;
+  if (dt > 0) state.vx = (t.clientX - state.lastX) / dt;
+  state.lastX = t.clientX;
+  state.lastT = now;
+
+  var a = rawX > 0 ? rawX : -rawX;
+  if (a > DAMP) { a = DAMP + (a - DAMP) * 0.4; }
+  state.dx = rawX > 0 ? a : -a;
+  var ab = state.dx > 0 ? state.dx : -state.dx;
+  state.moved = ab;
+
+  // 前卡跟手：位移 + 阻尼缩放 + 旋转（与方案 A dragTransform 一致）
+  var front = frontOf(owner);
+  if (front) {
+    var sink = ab * 0.06 > 14 ? 14 : ab * 0.06;
+    var shrink = ab * 0.0001 > 0.04 ? 0.04 : ab * 0.0001;
+    front.setStyle({
+      'transform': 'translate3d(' + (state.dx * 0.92) + 'px,' + sink + 'px,0) rotate(' + (state.dx * 0.045) + 'deg) scale(' + (1 - shrink) + ')'
+    });
+  }
+  // 后卡按进度前移一档（55%），制造补位感
+  var prog = ab / THRESH;
+  if (prog > 1) prog = 1;
+  var behind = behindOf(owner);
+  if (behind) {
+    behind.setStyle({
+      'transform': 'translate3d(' + (15 - 15 * prog * 0.55) + 'px,' + (13 - 13 * prog * 0.55) + 'px,0) scale(' + (0.965 + 0.035 * prog * 0.55) + ') rotate(' + (1.4 - 1.4 * prog * 0.55) + 'deg)',
+      'opacity': String(0.85 + 0.15 * prog)
+    });
+  }
+}
+
+function onTouchEnd(e, owner) {
+  if (!state.dragging) return;
+  state.dragging = false;
+
+  var ab = state.dx > 0 ? state.dx : -state.dx;
+  var v = state.vx > 0 ? state.vx : -state.vx;
+  var commit = ab > THRESH || v > VELOCITY;
+  var dir = state.dx < 0 ? -1 : 1;
+
+  var front = frontOf(owner);
+  var behind = behindOf(owner);
+  if (front) front.setStyle({ 'transition': 'transform 560ms cubic-bezier(.22,1.28,.36,1), opacity 420ms' });
+  if (behind) behind.setStyle({ 'transition': 'transform 560ms cubic-bezier(.22,1.28,.36,1), opacity 420ms' });
+
+  if (commit) {
+    owner.callMethod('dragMoved', { moved: state.moved });
+    owner.callMethod('commitSwipe', { dir: dir });
+  } else {
+    // 未过阈值：回弹复位
+    if (front) front.setStyle({ 'transform': 'translate3d(0,0,0) rotate(0deg) scale(1)' });
+    if (behind) behind.setStyle({ 'transform': 'translate3d(15px,13px,0) scale(0.965) rotate(1.4deg)', 'opacity': '0.85' });
+    owner.callMethod('dragMoved', { moved: 0 });
+  }
+  state.moved = 0;
+}
+
+module.exports = {
+  touchStart: onTouchStart,
+  touchMove: onTouchMove,
+  touchEnd: onTouchEnd
+};

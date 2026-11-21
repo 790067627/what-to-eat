@@ -1,0 +1,69 @@
+<!-- components/card-stack/index.wxml — 方案 A 卡栈视觉（主卡唯一清晰，后卡弱化） -->
+<wxs src="./gestures.wxs" module="gestures" />
+
+<view class="stack-host">
+  <view
+    class="stack"
+    catchtouchstart="{{gestures.touchStart}}"
+    catchtouchmove="{{gestures.touchMove}}"
+    catchtouchend="{{gestures.touchEnd}}"
+    catchtouchcancel="{{gestures.touchEnd}}"
+    bindtap="onCardTap"
+    bindlongpress="onCardLongPress"
+  >
+    <!-- 渲染顺序：深层先画（zIndex 由 class 控制），前卡最后画在最上 -->
+    <block wx:for="{{renderList}}" wx:key="key">
+      <view
+        id="{{index === 0 ? 'cardFront' : (index === 1 ? 'cardBehind' : '')}}"
+        class="cs-card depth-{{item.depth}} {{item.exiting ? ('exit-' + item.exitDir) : ''}}"
+      >
+        <!-- 照片层：全幅，主视觉 -->
+        <view class="cs-photo">
+          <image
+            wx:if="{{item.data.coverImageUrl || item.data.coverFileID}}"
+            class="cs-img"
+            src="{{item.data.coverImageUrl || item.data.coverFileID}}"
+            mode="aspectFill"
+            lazy-load="{{item.depth > 0}}"
+          />
+          <view wx:else class="cs-img cs-img-ph"></view>
+          <!-- 后卡弱化遮罩（depth>0）：模糊感压暗，保证只有主卡清晰 -->
+          <view wx:if="{{item.depth > 0}}" class="cs-veil"></view>
+          <!-- 主卡渐变压暗（保标签/菜名可读） -->
+          <view wx:if="{{item.depth === 0}}" class="cs-photo-shade"></view>
+
+          <!-- 悬浮标签：仅主卡显示 -->
+          <block wx:if="{{item.depth === 0}}">
+            <view class="cs-tag cs-tag-match"><view class="cs-pip"></view>{{item.data.matchTag}}</view>
+            <view class="cs-tag cs-tag-likes" wx:if="{{item.data.type === 'public'}}">♥ {{item.data.likeCount}}</view>
+            <view class="cs-tag cs-tag-likes" wx:elif="{{item.data.rating}}">★ 站内 {{item.data.rating}} 分</view>
+            <view class="cs-tag cs-tag-src">
+              <image wx:if="{{item.data.author.avatarUrl}}" class="cs-src-avatar" src="{{item.data.author.avatarUrl}}" mode="aspectFill" />
+              <text>{{item.data.type === 'public' ? item.data.author.nickname + ' 分享' : '我的菜品库'}}</text>
+            </view>
+            <view class="cs-title">{{item.data.name}}</view>
+          </block>
+        </view>
+
+        <!-- 信息层：AI 理由 + 标签行（仅主卡） -->
+        <view wx:if="{{item.depth === 0}}" class="cs-info">
+          <view class="cs-reason">
+            <text class="cs-ai-mark">AI</text>
+            <text class="cs-reason-txt">{{item.data.reason}}</text>
+          </view>
+          <view class="cs-meta">
+            <view class="cs-meta-tags">
+              <text wx:for="{{item.data.tags}}" wx:for-item="tag" wx:key="*this" class="cs-chip">{{tag}}</text>
+            </view>
+            <view class="cs-detail-hint">详情 ›</view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 加载/空态 -->
+    <view wx:if="{{loading}}" class="cs-loading">
+      <view class="cs-loading-text">正在为你挑菜…</view>
+    </view>
+  </view>
+</view>

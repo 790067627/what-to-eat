@@ -18,16 +18,8 @@
   </block>
 
   <block wx:else>
-    <!-- 问候 + 随机入口 -->
-    <view class="hero card">
-      <view class="hero-greeting">{{greeting}}</view>
-      <view class="hero-sub" wx:if="{{inited}}">纠结的话，交给运气吧 </view>
-      <view class="hero-sub" wx:else>先建个菜品库，再让运气帮你选 </view>
-      <view class="btn-primary hero-btn" bindtap="goRandom"><text class="bi"></text> 帮我随机抽一道</view>
-    </view>
-
-    <!-- 未初始化：引导 -->
-    <view wx:if="{{!inited}}" class="card init-card">
+    <!-- 未初始化：引导（保留原有一键示例 + 手动添加） -->
+    <view wx:if="{{!inited && !feedQueue.length}}" class="card init-card">
       <view class="section-title">菜品库还是空的</view>
       <view class="init-desc">两种方式开始：</view>
       <view class="btn-primary" style="margin-bottom:16rpx" bindtap="goAdd">＋ 手动添加第一道菜</view>
@@ -35,48 +27,50 @@
     </view>
 
     <block wx:else>
-      <!-- 今日推荐 -->
-      <view class="section-title" wx:if="{{todayDish}}">今日推荐</view>
-      <view wx:if="{{todayDish}}" class="card today-card" data-id="{{todayDish._id}}" bindtap="goDetail">
-        <image wx:if="{{todayDish.coverImage}}" class="today-img" src="{{todayDish.coverImage}}" mode="aspectFill" lazy-load />
-        <view wx:else class="today-img today-img-placeholder"><text class="bi"></text></view>
-        <view class="today-info">
-          <view class="today-name ellipsis">{{todayDish.name}}</view>
-          <view class="today-desc ellipsis-2" wx:if="{{todayDish.description}}">{{todayDish.description}}</view>
-          <view class="today-meta">
-            <text wx:if="{{todayDish.rating}}" class="today-rating">★ {{todayDish.rating}}</text>
-            <text wx:if="{{todayDish.categoryName}}" class="chip chip-plain">{{todayDish.categoryName}}</text>
-            <text wx:if="{{todayDish.priceYuan}}" class="chip">¥{{todayDish.priceYuan}}</text>
-          </view>
+      <!-- 问候行（编辑感排版，方案 A 视觉冻结） -->
+      <view class="insp-head">
+        <view class="insp-greeting">{{greeting}}，<text class="insp-em">吃什么</text>？</view>
+        <view class="insp-sub">
+          <text>AI 饮食灵感</text>
+          <text class="insp-idx" wx:if="{{idxText}}">{{idxText}}</text>
         </view>
+        <view class="insp-cold" wx:if="{{coldStart}}" bindtap="goTastePrefs">先设置口味偏好，推荐更准 ›</view>
       </view>
 
-      <!-- 分类速览 -->
-      <view class="flex-between">
-        <view class="section-title">分类速览</view>
-        <view class="more-link" bindtap="goDishes">全部菜品 ›</view>
+      <!-- 卡栈：AI 饮食灵感主体（方案 A · Swiper Cards 交互模型原生实现） -->
+      <view class="stack-zone">
+        <card-stack
+          id="cardStack"
+          items="{{visibleItems}}"
+          active-index="{{cursorIdx}}"
+          loading="{{feedLoading && !feedQueue.length}}"
+          bind:advance="onAdvance"
+          bind:cardtap="onCardTap"
+          bind:notinterest="onNotInterest"
+        />
       </view>
-      <view class="cat-grid">
-        <view
-          wx:for="{{categories}}"
-          wx:key="_id"
-          class="cat-cell card"
-          data-id="{{item._id}}"
-          data-name="{{item.name}}"
-          bindtap="goCategory"
-        >
-          <view class="cat-icon bi">{{item.icon}}</view>
-          <view class="cat-name ellipsis">{{item.name}}</view>
-        </view>
-        <view wx:if="{{!categories.length}}" class="empty-hint">还没有分类，去「我的 → 分类管理」添加</view>
+
+      <!-- 操作区：喜欢 / 换一道 / 想吃（方案 A 视觉冻结） -->
+      <view class="insp-actions">
+        <view class="insp-btn round {{curLiked ? 'on' : ''}}" bindtap="onLike">{{curLiked ? '♥' : '♡'}}</view>
+        <view class="insp-btn primary" bindtap="onNext">换一道</view>
+        <view class="insp-btn {{curSaved ? 'added' : ''}}" bindtap="onWant">{{curSaved ? '✓ 已入清单' : '想吃'}}</view>
       </view>
+
+      <view class="insp-hint">左右滑动换菜 · 点卡片看详情 · 长按不感兴趣</view>
     </block>
 
-    <!-- 樱花主题 Kitty 装饰：文档流内、随内容自然排列（分类增减自动跟随）；
-         其他主题组件内部 wx:if 不渲染不占位。必须放 .page 内：
-         page-meta root-background-color 会盖住 z-index:-1 的 fixed 元素（根因见规范 7.3） -->
+    <!-- 樱花主题 Kitty 装饰：文档流内、随内容自然排列；其他主题组件内部 wx:if 不渲染不占位。
+         必须放 .page 内：page-meta root-background-color 会盖住 z-index:-1 的 fixed 元素（规范 4.8-7） -->
     <sakura-bg id="kitty" />
-
-    <view style="height: 160rpx"></view>
   </block>
 </view>
+
+<!-- 底部详情抽屉（方案 A 视觉冻结项） -->
+<dish-sheet
+  item="{{sheetItem}}"
+  show="{{sheetShow}}"
+  bind:close="onSheetClose"
+  bind:like="onSheetLike"
+  bind:want="onSheetWant"
+/>

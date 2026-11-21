@@ -1,0 +1,56 @@
+<!-- components/dish-sheet/index.wxml — 底部详情抽屉（方案 A 视觉冻结） -->
+<view wx:if="{{visible}}" class="ds-mask {{entered ? 'on' : ''}}" bindtap="close" catchtouchmove="noop"></view>
+<view wx:if="{{visible}}" class="ds-sheet {{entered ? 'on' : ''}}" catchtap="noop">
+  <view class="ds-grip" bindtap="close"></view>
+  <scroll-view class="ds-scroll" scroll-y>
+    <block wx:if="{{item}}">
+      <image
+        wx:if="{{item.coverImageUrl || item.coverFileID}}"
+        class="ds-hero"
+        src="{{item.coverImageUrl || item.coverFileID}}"
+        mode="aspectFill"
+        bindtap="onPreviewImage"
+      />
+      <view wx:else class="ds-hero ds-hero-ph"></view>
+
+      <view class="ds-src">
+        <text wx:if="{{item.type === 'public'}}">社区公开分享 · {{item.anonymous ? '匿名厨友' : item.author.nickname}}</text>
+        <text wx:else>我的菜品库 · 私有</text>
+      </view>
+      <view class="ds-name">{{item.name}}</view>
+
+      <view class="ds-reason">
+        <text class="ds-ai-mark">AI</text>
+        <text class="ds-reason-txt">{{item.reason}}</text>
+      </view>
+
+      <view class="ds-kv">
+        <view class="ds-cell">
+          <view class="ds-k">{{item.type === 'public' ? '社区点赞' : '我的评分'}}</view>
+          <view class="ds-v">{{item.type === 'public' ? (item.likeCount || 0) + ' 赞' : ((item.rating || 0) + ' 分')}}</view>
+        </view>
+        <view class="ds-cell">
+          <view class="ds-k">来源</view>
+          <view class="ds-v">{{item.type === 'public' ? (item.anonymous ? '匿名厨友' : item.author.nickname) : '私有'}}</view>
+        </view>
+        <view class="ds-cell" wx:if="{{item.tags.length}}">
+          <view class="ds-k">标签</view>
+          <view class="ds-v ds-tags">
+            <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" class="ds-chip">{{tag}}</text>
+          </view>
+        </view>
+        <view class="ds-cell">
+          <view class="ds-k">匹配</view>
+          <view class="ds-v">{{item.matchTag}}</view>
+        </view>
+      </view>
+
+      <view class="ds-acts">
+        <view class="ds-round {{item.liked ? 'on' : ''}}" bindtap="onLike">{{item.liked ? '♥' : '♡'}}</view>
+        <view class="ds-primary {{item.saved ? 'added' : ''}}" bindtap="onWant">
+          {{item.saved ? '✓ 已入清单' : (item.type === 'public' ? '＋ 想吃（加入我的菜单）' : '想吃')}}
+        </view>
+      </view>
+    </block>
+  </scroll-view>
+</view>
