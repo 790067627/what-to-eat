@@ -379,6 +379,7 @@ module.exports = function createRecommend({ cloud, db, _, ok, fail }) {
       if (p.type === 'public') {
         item.author = { nickname: d.authorNickname || '匿名厨友', avatarUrl: urlMap[d.authorAvatar] || '' };
         item.anonymous = !!d.anonymous;
+        item.derivedFrom = d.derivedFrom || null;   // 转载归属（副本再发布时保留原作者）
         item.likeCount = d.likeCount || 0;
         item.liked = !!likeMap[p.id];
         item.savedDishId = savedMap[p.id] || '';

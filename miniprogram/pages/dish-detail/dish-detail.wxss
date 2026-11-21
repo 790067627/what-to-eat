@@ -169,3 +169,15 @@
   font-size: 24rpx; color: var(--text-on-accent, #FFFFFF); }
 .pub-check.on { background: var(--color-accent, #FF8FB8); border-color: var(--color-accent, #FF8FB8); }
 .pub-submit { margin-top: 24rpx; }
+
+/* 发布预览：转载来源明示 */
+.pub-derived {
+  margin: 16rpx 0 4rpx;
+  padding: 14rpx 20rpx;
+  border-radius: 16rpx;
+  background: var(--bg-sunken, #FDF5F9);
+  border: 1rpx dashed var(--border-strong, #F0C0D4);
+  font-size: 23rpx;
+  line-height: 1.6;
+  color: var(--text-secondary, #9C7B8C);
+}

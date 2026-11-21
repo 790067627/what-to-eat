@@ -146,6 +146,9 @@
       <text class="pub-check {{pubOpts.includePrice ? 'on' : ''}}">{{pubOpts.includePrice ? '✓' : ''}}</text>
       <text>公开价格（默认不公开）</text>
     </view>
+    <view wx:if="{{dish.sourcePublicDishId}}" class="pub-derived">
+      这道菜保存自灵感广场，发布后将标注「改编自 {{dish.sourceAuthor.nickname || '原作者'}}」
+    </view>
     <view class="pub-opt" bindtap="togglePubOpt" data-key="anonymous">
       <text class="pub-check {{pubOpts.anonymous ? 'on' : ''}}">{{pubOpts.anonymous ? '✓' : ''}}</text>
       <text>匿名分享（不显示我的昵称头像）</text>

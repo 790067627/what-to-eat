@@ -53,7 +53,7 @@
       <view wx:else class="ds-hero ds-hero-ph"></view>
 
       <view class="ds-name">{{item.name}}</view>
-      <view class="ds-meta">{{item.type === 'public' ? '社区公开分享 · ' + (item.anonymous ? '匿名厨友' : item.author.nickname) + ' · ' + (item.likeCount || 0) + ' 赞' : '我的菜品库 · 我的评分 ' + (item.ratingText || item.rating || 0)}}</view>
+      <view class="ds-meta">{{item.type === 'public' ? '社区公开分享 · ' + (item.anonymous ? '匿名厨友' : item.author.nickname) + (item.derivedFrom ? ' · 改编自 ' + item.derivedFrom.authorNickname : '') + ' · ' + (item.likeCount || 0) + ' 赞' : '我的菜品库 · 我的评分 ' + (item.ratingText || item.rating || 0)}}</view>
       <view class="ds-tags" wx:if="{{item.tags.length}}">
         <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" class="ds-chip">{{tag}}</text>
       </view>

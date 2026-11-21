@@ -203,6 +203,14 @@ module.exports = function createDiscovery({ cloud, db, _, ok, fail, fetchAll, ai
       price: options.includePrice ? (dish.price == null ? null : dish.price) : null,
       tags: Array.isArray(dish.tags) ? dish.tags.slice(0, 10) : [],
       categoryName,
+      // 转载归属链：副本菜（一键加入/定向分享保存）发布时保留原作者展示信息，
+      // 公开快照与卡片展示「改编自 XX」，不冒充原创
+      derivedFrom: dish.sourcePublicDishId
+        ? {
+            publicDishId: dish.sourcePublicDishId,
+            authorNickname: (dish.sourceAuthor && dish.sourceAuthor.nickname) || '原作者'
+          }
+        : null,
       likeCount: 0,
       saveCount: 0,
       updatedAt: db.serverDate()
