@@ -192,3 +192,11 @@
   border-radius: 14rpx;
   padding: 10rpx 18rpx;
 }
+
+/* 副本菜不可发布提示 */
+.pub-noline {
+  margin-top: 16rpx;
+  font-size: 23rpx;
+  color: var(--text-hint, #C9A8B8);
+  text-align: center;
+}

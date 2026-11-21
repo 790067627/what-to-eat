@@ -105,8 +105,8 @@
       </button>
     </view>
     
-    <!-- 第三行：公开发布（灵感广场）状态与入口 -->
-    <view class="pub-row">
+    <!-- 第三行：公开发布（灵感广场）状态与入口；保存自他人的副本不可发布 -->
+    <view class="pub-row" wx:if="{{!dish.sourcePublicDishId && !dish.sourceShareToken}}">
       <block wx:if="{{!myPub}}">
         <button class="btn-ghost share-btn" bindtap="openPublishSheet">发布到灵感广场</button>
       </block>
@@ -126,6 +126,9 @@
         <button class="btn-ghost share-btn" bindtap="openPublishSheet">重新发布到灵感广场</button>
       </block>
     </view>
+
+    </view>
+    <view wx:else class="pub-noline">保存自他人的菜品仅可自用，不能发布到灵感广场</view>
 
     <!-- 第四行：删除 -->
     <view class="delete-link" bindtap="onDelete">删除这道菜</view>

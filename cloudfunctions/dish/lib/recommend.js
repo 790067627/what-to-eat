@@ -272,6 +272,16 @@ module.exports = function createRecommend({ cloud, db, _, ok, fail }) {
         .limit(100).get();
       publicPool = res.data || [];
     } catch (e) { /* 集合未建 */ }
+    // 2.5) 已保存硬过滤：加入过菜单的公开菜不再进推荐（保存即消费完成，避免重复刷到）
+    try {
+      const saved = await db.collection('dishes')
+        .where({ openid, deleted: false, sourcePublicDishId: _.exists(true) })
+        .field({ sourcePublicDishId: true }).limit(200).get();
+      const savedSet = {};
+      (saved.data || []).forEach(d => { savedSet[d.sourcePublicDishId] = 1; });
+      publicPool = publicPool.filter(pp => !savedSet[pp._id]);
+    } catch (e) { /* 集合异常时不过滤，降级为可重复推荐 */ }
+
     // 3) 近期吃过（降权依据）
     const recentSince = new Date(Date.now() - 7 * 86400000);
     let recentLogs = [];
@@ -379,7 +389,6 @@ module.exports = function createRecommend({ cloud, db, _, ok, fail }) {
       if (p.type === 'public') {
         item.author = { nickname: d.authorNickname || '匿名厨友', avatarUrl: urlMap[d.authorAvatar] || '' };
         item.anonymous = !!d.anonymous;
-        item.derivedFrom = d.derivedFrom || null;   // 转载归属（副本再发布时保留原作者）
         item.likeCount = d.likeCount || 0;
         item.liked = !!likeMap[p.id];
         item.savedDishId = savedMap[p.id] || '';

@@ -45,9 +45,12 @@ module.exports = function createDiscovery({ cloud, db, _, ok, fail, fetchAll, ai
       const res = await db.collection('profiles').where({ openid }).limit(1).get();
       p = res.data && res.data[0];
     } catch (e) { /* 集合未建 */ }
-    const anonymous = forceAnonymous || !p || p.publicMode === 'anonymous';
-    const nickname = anonymous ? '匿名厨友' : (p.publicNickname || p.nickname || '匿名厨友');
-    return { nickname, avatarFileID: anonymous ? '' : (p.avatarFileID || ''), anonymous };
+    // 匿名仅在用户显式选择 publicMode=anonymous（或发布时勾选）时成立；
+    // 无 profiles 记录 ≠ 匿名（旧逻辑误判，导致未勾选匿名也显示「匿名厨友」）
+    const anonymous = forceAnonymous || !!(p && p.publicMode === 'anonymous');
+    const fallback = '厨友 ' + String(openid).slice(-4);   // 默认公开昵称：可辨识且不泄露完整 openid
+    const nickname = anonymous ? '匿名厨友' : ((p && (p.publicNickname || p.nickname)) || fallback);
+    return { nickname, avatarFileID: anonymous ? '' : ((p && p.avatarFileID) || ''), anonymous };
   }
 
   /** 文本内容安全检查。openapi 行为以官方文档为准；失败时返回 unavailable（走人工审核兜底，不放行） */
@@ -165,6 +168,10 @@ module.exports = function createDiscovery({ cloud, db, _, ok, fail, fetchAll, ai
     const res = await db.collection('dishes').where({ _id: dishId, openid, deleted: false }).get();
     if (!res.data.length) return fail('菜品不存在或无权操作');
     const dish = res.data[0];
+    // 只允许发布自己原创添加的菜：保存自灵感广场/好友分享的副本不可再发布
+    if (dish.sourcePublicDishId || dish.sourceShareToken) {
+      return fail('保存自他人的菜品不能发布到灵感广场，仅可发布自己添加的菜');
+    }
 
     // 公开内容文本安检（菜名 + 简介 + 标签）
     const textParts = [dish.name, options.includeDescription === false ? '' : (dish.description || ''), (dish.tags || []).join(' ')];
@@ -203,14 +210,6 @@ module.exports = function createDiscovery({ cloud, db, _, ok, fail, fetchAll, ai
       price: options.includePrice ? (dish.price == null ? null : dish.price) : null,
       tags: Array.isArray(dish.tags) ? dish.tags.slice(0, 10) : [],
       categoryName,
-      // 转载归属链：副本菜（一键加入/定向分享保存）发布时保留原作者展示信息，
-      // 公开快照与卡片展示「改编自 XX」，不冒充原创
-      derivedFrom: dish.sourcePublicDishId
-        ? {
-            publicDishId: dish.sourcePublicDishId,
-            authorNickname: (dish.sourceAuthor && dish.sourceAuthor.nickname) || '原作者'
-          }
-        : null,
       likeCount: 0,
       saveCount: 0,
       updatedAt: db.serverDate()

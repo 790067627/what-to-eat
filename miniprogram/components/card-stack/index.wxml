@@ -39,7 +39,7 @@
             <view class="cs-badges">
               <view class="cs-badge" wx:if="{{item.data.type === 'public'}}">♥ {{item.data.likeCount}} 赞 · 社区</view>
               <view class="cs-badge" wx:else>★ 我的评分 {{item.data.ratingText}} · 私有</view>
-              <view class="cs-badge">{{item.data.type === 'public' ? (item.data.derivedFrom ? '改编自 ' + item.data.derivedFrom.authorNickname : '来自 ' + item.data.author.nickname) : '我的菜品库'}}</view>
+              <view class="cs-badge">{{item.data.type === 'public' ? '来自 ' + item.data.author.nickname : '我的菜品库'}}</view>
             </view>
             <!-- 菜名 + 副行：压照片底部（POC card-title-overlay） -->
             <view class="cs-title-wrap">

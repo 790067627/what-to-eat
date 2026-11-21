@@ -277,8 +277,11 @@ Page(withTheme({
       const res = await api.publishDish(this.data.id, this.data.pubOpts);
       wx.hideLoading();
       this.setData({ showPublishSheet: false });
-      const msg = res.reviewStatus === 'approved' ? '已发布' : '已提交审核';
-      wx.showToast({ title: msg, icon: 'success' });
+      // 审核机制说明：文字+图片内容安检全过=自动发布；安检异常/待异步回调=人工审核兜底
+      const msg = res.reviewStatus === 'approved'
+        ? '内容安检通过，已发布'
+        : res.reviewStatus === 'rejected' ? '内容未过安检' : '安检待定，转人工审核';
+      wx.showToast({ title: msg, icon: res.reviewStatus === 'rejected' ? 'error' : 'success' });
       this.loadMyPublication();
     } catch (err) {
       wx.hideLoading();

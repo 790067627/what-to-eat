@@ -304,6 +304,11 @@ Page(withTheme({
         const patch = {};
         patch[`feedQueue[${this.data.cursorIdx}].savedDishId`] = res.dishId;
         this.setData(patch);
+        // 保存即消费完成：立即从当前队列移除，不再刷到（服务端 getFeed 同步硬过滤）
+        const q = this.data.feedQueue.slice();
+        q.splice(this.data.cursorIdx, 1);
+        this.setData({ feedQueue: q });
+        if (this.data.cursorIdx >= q.length) this.setData({ cursorIdx: Math.max(0, q.length - 1) });
         this.syncVisible();
         if (this.data.sheetItem && this.data.sheetItem.id === cur.id) {
           this.setData({ 'sheetItem.saved': true, 'sheetItem.savedDishId': res.dishId, sheetShow: false });
