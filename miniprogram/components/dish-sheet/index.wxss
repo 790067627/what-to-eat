@@ -3,14 +3,14 @@
  *      入场 transform .42s cubic-bezier(.32,1.25,.42,1)；遮罩 .3s */
 
 .ds-mask {
-  position: fixed; inset: 0; z-index: 900;
+  position: fixed; inset: 0; z-index: 1000;   /* 高于自定义 TabBar(999)，抽屉需盖住它 */
   background: rgba(1, 4, 9, 0.6);            /* POC .scrim */
   opacity: 0; transition: opacity 300ms;
 }
 .ds-mask.on { opacity: 1; }
 
 .ds-sheet {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 901;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1001;
   max-height: 78%;                            /* POC max-height:78% */
   border-radius: 48rpx 48rpx 0 0;             /* 24px */
   background: var(--bg-sheet, #161b22);
