@@ -6,8 +6,9 @@ new Function('module', 'Math', src)(module_, Math);
 const g = module_.exports;
 
 function mkOwner(calls) {
-  // 模拟视图层：4 张卡带 depth class（pickCards 经 selectAll+hasClass 定位）
+  // 模拟视图层：4 张卡带 depth class；selectAll 支持 .cs-card/.depth-N（pickCards 直选层级）
   const cards = [0, 1, 2, 3].map(d => ({
+    _depth: d,
     _styles: {},
     setStyle(st) { Object.assign(this._styles, st); },
     hasClass(c) { return c === 'depth-' + d; }
@@ -15,7 +16,12 @@ function mkOwner(calls) {
   return {
     callMethod: (name, arg) => calls.push([name, arg]),
     selectComponent: () => null,          // 已不依赖 id 定位
-    selectAll: (sel) => sel === '.cs-card' ? cards : [],
+    selectAll: (sel) => {
+      if (sel === '.cs-card') return cards;
+      const m = /^\.depth-(\d)$/.exec(sel);
+      if (m) return cards.filter(c => c._depth === Number(m[1]));
+      return [];
+    },
     _cards: cards
   };
 }
@@ -100,16 +106,25 @@ const swipe = (o, x0, t0) => {
   g.touchEnd(touch(x0 - 150, 400, t0 + 200), o);
 };
 
-t('commit 后未释放：第二次 touchStart 不进入 dragging（settling 锁）', () => {
+t('commit 后未释放：watchdog(700ms) 内第二次 touchStart 被 settling 锁阻断', () => {
   const calls = [];
   const o = mkOwner(calls);
-  swipe(o, 300, 0);
+  swipe(o, 300, 0);              // touchEnd @ t=200 进入 settling
   if (!calls.some(c => c[0] === 'commitSwipe')) throw new Error('首次应提交');
   calls.length = 0;
-  swipe(o, 300, 1000);           // settling 期再次滑动
+  swipe(o, 300, 300);            // 距 touchEnd 仅 100ms < 700ms watchdog → 仍锁定
   if (calls.some(c => c[0] === 'commitSwipe')) throw new Error('settling 期不应再提交');
   const peek = g._peek();
   if (peek.phase !== 'settling') throw new Error('phase 应保持 settling，实际 ' + peek.phase);
+});
+
+t('watchdog：settling 超 700ms 未收到 release 通知则自愈解锁（防跨线程死锁）', () => {
+  const calls = [];
+  const o = mkOwner(calls);
+  swipe(o, 300, 0);              // touchEnd @ t=200 settling
+  calls.length = 0;
+  swipe(o, 300, 1000);           // 距 touchEnd 800ms > 700ms → watchdog 解锁并正常提交
+  if (!calls.some(c => c[0] === 'commitSwipe')) throw new Error('watchdog 超时后应恢复可提交');
 });
 
 t('releaseToken 释放后：第二次 touchStart 正常提交（连续滑动核心用例）', () => {
@@ -137,13 +152,17 @@ t('连续 3 次滑动（每次间隔释放）全部提交成功', () => {
 
 t('未释放时 syncRelease 才恢复；dragging 中 clearAll 不清样式（竞态守卫）', () => {
   const cleared = [];
+  // 只统计 clearAll 的清空操作（transform/transition/opacity 置空），排除跟手 setStyle
+  const card = { setStyle: st => { if (st && st.transform === '') cleared.push(st); }, hasClass: () => true };
   const o = {
     callMethod: () => {},
     selectComponent: () => null,
-    selectAll: () => [{ setStyle: st => cleared.push(st), hasClass: () => false }]
+    // pickCards 直选 .depth-0/.depth-1；clearAll 用 .cs-card
+    selectAll: (sel) => (sel === '.cs-card' || sel === '.depth-0' || sel === '.depth-1') ? [card] : []
   };
   g.touchStart(touch(300, 400, 0), o);
   g.touchMove(touch(250, 400, 50), o);   // 进入 dragging
+  if (g._peek().phase !== 'dragging') throw new Error('应进入 dragging（front 节点存在）');
   g.clearAll(1, 0, o);                    // 拖拽中收到 clearToken
   if (cleared.length) throw new Error('dragging 期 clearAll 不得清样式');
   g.touchEnd(touch(250, 400, 300), o);    // 小位移回弹
