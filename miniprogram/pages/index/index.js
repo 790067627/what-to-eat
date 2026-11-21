@@ -12,9 +12,9 @@ Page(withTheme({
     inited: false,
     greeting: '',
     // feed
-    feedQueue: [],        // 全量已取回队列
-    cursorIdx: 0,         // 当前卡指针
-    visibleItems: [],     // 传给 card-stack 的可见切片（4 张）
+    feedQueue: [],        // 全量已取回队列（组件自管窗口游标）
+    feedResetToken: 0,    // 重置 feed 时自增
+    cursorIdx: 0,         // 当前卡指针（组件 advance 事件回传，仅用于操作区状态）
     nextCursor: '',
     hasMore: true,
     feedLoading: false,
@@ -93,11 +93,12 @@ Page(withTheme({
         loading: false,
         feedLoading: false,
         feedQueue: merged,
-        cursorIdx: reset ? 0 : this.data.cursorIdx,
+        feedResetToken: reset ? this.data.feedResetToken + 1 : this.data.feedResetToken,
         nextCursor: res.nextCursor || '',
         hasMore: !!res.hasMore,
         coldStart: !!(res.profile && res.profile.coldStart)
       });
+      if (reset) this.setData({ cursorIdx: 0 });
       this.syncVisible();
       // 曝光上报（只报页首两张，失败静默）
       res.items.slice(0, 2).forEach(it => {
@@ -137,6 +138,7 @@ Page(withTheme({
       this.setData({
         loading: false, feedLoading: false, legacyCloud: true,
         feedQueue: items, cursorIdx: 0, nextCursor: '', hasMore: false,
+        feedResetToken: this.data.feedResetToken + 1,
         inited: items.length > 0
       });
       this.syncVisible();
@@ -152,14 +154,11 @@ Page(withTheme({
     this.loadFeed(true);
   },
 
-  /** 同步可见切片 + 操作区状态 */
+  /** 同步操作区状态（卡片渲染由组件自管窗口，页面不再切片） */
   syncVisible() {
     const { feedQueue, cursorIdx } = this.data;
-    const visibleItems = feedQueue.slice(cursorIdx, cursorIdx + 4).map(it =>
-      Object.assign({}, it, { ratingText: (Number(it.rating) || 0).toFixed(1) }));
     const cur = feedQueue[cursorIdx];
     this.setData({
-      visibleItems,
       curLiked: cur ? !!cur.liked : false,
       curSaved: !!(cur && cur.savedDishId),
       idxText: cur ? `${cursorIdx + 1} / ${feedQueue.length}` : ''
@@ -183,34 +182,18 @@ Page(withTheme({
 
   /* ==================== 卡栈事件 ==================== */
 
-  /** card-stack 提交换卡：推进指针 + 预加载 + 行为上报 */
-  onAdvance() {
-    const { feedQueue, cursorIdx } = this.data;
-    const cur = feedQueue[cursorIdx];
-    if (cur) api.logBehavior('next', cur.type, cur.id).catch(() => {});
-    if (cursorIdx >= feedQueue.length - 1) {
-      if (this.data.hasMore && this.data.nextCursor) {
-        // 队尾：等下一页（loadFeed 完成后 syncVisible 自然推进到重置位）
-        this.loadFeed(false).then(() => {
-          if (this.data.cursorIdx < this.data.feedQueue.length - 1) {
-            this.setData({ cursorIdx: this.data.cursorIdx + 1 });
-            this.syncVisible();
-          }
-        });
-        return;
-      }
-      // 环形：游标耗尽从头再来
-      this.setData({ cursorIdx: 0 });
-      this.syncVisible();
-      return;
-    }
-    this.setData({ cursorIdx: cursorIdx + 1 });
+  /** card-stack 提交换卡（组件已前移窗口并回传游标）：同步操作区 + 预加载 + 上报 */
+  onAdvance(e) {
+    const cursor = (e && e.detail && typeof e.detail.cursor === 'number') ? e.detail.cursor : this.data.cursorIdx + 1;
+    const prev = this.data.feedQueue[this.data.cursorIdx];
+    if (prev) api.logBehavior('next', prev.type, prev.id).catch(() => {});
+    this.setData({ cursorIdx: cursor });
     this.syncVisible();
-    // 接近队尾预加载下一批
-    if (this.data.cursorIdx + 3 >= feedQueue.length && this.data.hasMore && this.data.nextCursor) {
+    // 接近队尾预加载下一批（组件窗口 4 张，剩 2 张时拉）
+    if (cursor + 2 >= this.data.feedQueue.length && this.data.hasMore && this.data.nextCursor) {
       this.loadFeed(false);
     }
-    const nxt = this.data.feedQueue[this.data.cursorIdx];
+    const nxt = this.data.feedQueue[cursor];
     if (nxt) api.logBehavior('expose', nxt.type, nxt.id).catch(() => {});
   },
 

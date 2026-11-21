@@ -1,4 +1,4 @@
-<!-- components/card-stack/index.wxml — 方案 A 卡栈视觉（主卡唯一清晰，后卡弱化） -->
+<!-- components/card-stack/index.wxml — 方案 A 卡栈（Swiper 渲染模型：节点恒定，视觉全由 class 驱动） -->
 <wxs src="./gestures.wxs" module="gestures" />
 
 <!-- 交互锁同步节点：interactionLocked 变化经 change: 机制写入 WXS 模块态 -->
@@ -13,44 +13,41 @@
     catchtouchcancel="{{gestures.touchEnd}}"
     bindlongpress="onCardLongPress"
   >
-    <!-- 渲染顺序：深层先画（zIndex 由 class 控制），前卡最后画在最上 -->
+    <!-- 节点恒定：每张卡始终渲染全部内容（标题/徽章/理由），
+         后卡弱化靠 .depth-N 的 veil 透明度 + 内容 opacity（class 过渡，无节点增删） -->
     <block wx:for="{{renderList}}" wx:key="key">
       <view
-        id="{{index === 0 ? 'cardFront' : (index === 1 ? 'cardBehind' : '')}}"
+        id="{{item.depth === 0 ? 'cardFront' : (item.depth === 1 ? 'cardBehind' : '')}}"
         class="cs-card depth-{{item.depth}} {{item.exiting ? ('exit-' + item.exitDir) : ''}}"
       >
-        <!-- 照片层：flex:1（POC .card-photo），菜名压在照片底部 -->
         <view class="cs-photo">
           <image
             wx:if="{{item.data.coverImageUrl || item.data.coverFileID}}"
             class="cs-img"
             src="{{item.data.coverImageUrl || item.data.coverFileID}}"
             mode="aspectFill"
-            lazy-load="{{item.depth > 0}}"
           />
           <view wx:else class="cs-img cs-img-ph"></view>
-          <!-- 后卡弱化遮罩（POC：后卡照片压暗，只留轮廓色感） -->
-          <view wx:if="{{item.depth > 0}}" class="cs-veil"></view>
-          <!-- 主卡底部渐变压暗（POC .card-photo::after） -->
-          <view wx:if="{{item.depth === 0}}" class="cs-photo-shade"></view>
+          <!-- 后卡压暗 veil：depth 越大越暗；depth0 透明（class 过渡） -->
+          <view class="cs-veil"></view>
+          <!-- 底部渐变压暗 -->
+          <view class="cs-photo-shade"></view>
 
-          <block wx:if="{{item.depth === 0 || item.promote}}">
-            <!-- 顶部双徽章（POC photo-badges） -->
-            <view class="cs-badges">
-              <view class="cs-badge" wx:if="{{item.data.type === 'public'}}">♥ {{item.data.likeCount}} 赞 · 社区</view>
-              <view class="cs-badge" wx:else>★ 我的评分 {{item.data.ratingText}} · 私有</view>
-              <view class="cs-badge">{{item.data.type === 'public' ? '来自 ' + item.data.author.nickname : '我的菜品库'}}</view>
-            </view>
-            <!-- 菜名 + 副行：压照片底部（POC card-title-overlay） -->
-            <view class="cs-title-wrap">
-              <view class="cs-title">{{item.data.name}}</view>
-              <view class="cs-subtitle">{{item.data.type === 'public' ? item.data.author.nickname + ' 的公开分享' : '你的菜品库 · 点击看详情'}}</view>
-            </view>
-          </block>
+          <!-- 顶部双徽章（POC photo-badges）：后卡经 .cs-overlay 透明度隐藏 -->
+          <view class="cs-badges cs-overlay">
+            <view class="cs-badge" wx:if="{{item.data.type === 'public'}}">♥ {{item.data.likeCount}} 赞 · 社区</view>
+            <view class="cs-badge" wx:else>★ 我的评分 {{item.data.ratingText}} · 私有</view>
+            <view class="cs-badge">{{item.data.type === 'public' ? '来自 ' + item.data.author.nickname : '我的菜品库'}}</view>
+          </view>
+          <!-- 菜名 + 副行：压照片底部 -->
+          <view class="cs-title-wrap cs-overlay">
+            <view class="cs-title">{{item.data.name}}</view>
+            <view class="cs-subtitle">{{item.data.type === 'public' ? item.data.author.nickname + ' 的公开分享' : '你的菜品库 · 点击看详情'}}</view>
+          </view>
         </view>
 
         <!-- 信息条：AI 理由单块（POC card-info） -->
-        <view wx:if="{{item.depth === 0 || item.promote}}" class="cs-info">
+        <view class="cs-info cs-overlay">
           <view class="cs-reason">
             <text class="cs-ai-mark">AI</text>
             <text class="cs-reason-txt">{{item.data.reason}}</text>

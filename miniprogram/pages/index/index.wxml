@@ -42,8 +42,8 @@
       <view class="stack-zone" style="height: {{stackHeightPx}}px">
         <card-stack
           id="cardStack"
-          items="{{visibleItems}}"
-          active-index="{{cursorIdx}}"
+          queue="{{feedQueue}}"
+          reset-token="{{feedResetToken}}"
           loading="{{feedLoading && !feedQueue.length}}"
           interaction-locked="{{stackLocked}}"
           bind:advance="onAdvance"
