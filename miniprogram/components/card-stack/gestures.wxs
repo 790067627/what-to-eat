@@ -27,6 +27,7 @@ var state = {
   vx: 0,
   moved: 0,
   horizontal: null,
+  settlingSince: 0,    // settling 开始时间；防跨线程 release 通知丢失造成永久死锁
   front: null,          // touchstart 缓存元素引用（每帧 selectComponent 是纯开销）
   behind: null
 };
@@ -36,15 +37,12 @@ var state = {
 // 真机上第二次 touchStart 可能查到 null/旧节点（连滑失效主嫌）。
 // class 与 patch 同帧生效，hasClass 判定永远与视觉一致。
 function pickCards(owner) {
-  var front = null, behind = null;
-  var cards = owner.selectAll('.cs-card');
-  if (cards && cards.length) {
-    for (var i = 0; i < cards.length; i++) {
-      if (!front && cards[i].hasClass('depth-0')) front = cards[i];
-      else if (!behind && cards[i].hasClass('depth-1')) behind = cards[i];
-    }
-  }
-  log('pickCards: total=' + (cards ? cards.length : 0) + ' front=' + !!front + ' behind=' + !!behind);
+  // 直接按层级选择，避免依赖 hasClass 与旧节点的判断结果。
+  var fronts = owner.selectAll('.depth-0');
+  var behinds = owner.selectAll('.depth-1');
+  var front = fronts && fronts.length ? fronts[0] : null;
+  var behind = behinds && behinds.length ? behinds[0] : null;
+  log('pickCards: front=' + !!front + ' behind=' + !!behind);
   return { front: front, behind: behind };
 }
 
@@ -74,7 +72,7 @@ function syncUiLock(newValue) {
  *  settling → idle 的唯一恢复通道，兼做兜底（提交被拒/耗尽/组件重置同样走这里） */
 function syncRelease(newValue) {
   log('syncRelease token=' + newValue + ' phase:' + state.phase + '->' + (state.phase === 'settling' ? 'idle' : state.phase));
-  if (state.phase === 'settling') state.phase = 'idle';
+  if (state.phase === 'settling') { state.phase = 'idle'; state.settlingSince = 0; }
 }
 
 /** change: 同步——清理卡片内联样式，class 完全接管。
@@ -92,6 +90,13 @@ function clearAll(newValue, oldValue, owner) {
 
 function onTouchStart(e, owner) {
   log('touchStart phase=' + state.phase + ' uiLocked=' + state.uiLocked);
+  // 防御性恢复：正常 450ms 后 JS 已释放；超过 700ms 仍 settling 说明释放通知未到。
+  // 不提前解锁正在进行的动画，也不影响抽屉的显式交互锁。
+  if (state.phase === 'settling' && e.timeStamp - state.settlingSince > 700) {
+    log('watchdog: stale settling -> idle');
+    state.phase = 'idle';
+    state.settlingSince = 0;
+  }
   if (state.uiLocked || state.phase !== 'idle') return;
   var t = e.touches[0];
   state.phase = 'dragging';
@@ -183,6 +188,7 @@ function onTouchEnd(e, owner) {
   if (commit) {
     // ===== settling：松手同帧在视图层启动终值动画，不等 JS 往返 =====
     state.phase = 'settling';
+    state.settlingSince = e.timeStamp;
     var exitX = dir < 0 ? '-120%' : '120%';
     var exitRot = dir < 0 ? '-13deg' : '13deg';
     if (state.front) {
@@ -238,7 +244,7 @@ module.exports = {
   // 测试探针：自动化用例断言/复位状态机用，业务代码不得依赖
   _peek: function () { return { phase: state.phase, uiLocked: state.uiLocked }; },
   _reset: function () {
-    state.phase = 'idle'; state.uiLocked = false; state.dragging = false;
+    state.phase = 'idle'; state.uiLocked = false; state.dragging = false; state.settlingSince = 0;
     state.dx = 0; state.vx = 0; state.moved = 0; state.horizontal = null;
     state.front = null; state.behind = null;
   }
