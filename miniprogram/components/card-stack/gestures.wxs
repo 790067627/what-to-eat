@@ -113,6 +113,11 @@ function onTouchStart(e, owner) {
   var picked = pickCards(owner);
   state.front = picked.front;
   state.behind = picked.behind;
+  if (!state.front) {
+    log('touchStart: no active front; abort gesture instead of locking');
+    state.phase = 'idle';
+    return;
+  }
   if (state.front) state.front.setStyle({ 'transition': 'none' });
   if (state.behind) state.behind.setStyle({ 'transition': 'none' });
 }
