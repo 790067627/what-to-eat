@@ -2,8 +2,6 @@
 // 手势层在 gestures.wxs（touchmove 直接 setStyle，不走 setData，保证跟手 60fps）；
 // JS 层只负责：提交换卡（出场动画 + advance 事件）、回弹兜底、误触判定、锁定。
 // 运动参数与方案 A POC 一致：阈值 96px / 速度 0.55 / 出场 400ms rotate 13° / 落位 spring(.22,1.28,.36,1)
-const { getNavMetrics } = require('../../utils/util');
-
 Component({
   options: { pureDataPattern: /^_/ },
 
@@ -15,8 +13,7 @@ Component({
 
   data: {
     renderList: [],   // [{key, depth, exiting, exitDir, data}]
-    locked: false,
-    navMode: 'minimal'
+    locked: false
   },
 
   observers: {
