@@ -33,9 +33,11 @@ Component({
 
   lifetimes: {
     attached() {
-      this._cursor = 0;
-      this._moved = 0;
-      this._win = [];
+      // 注意：properties observer 在 attached 之前已可能触发并 _rebuild（填充 _win/_cursor），
+      // 这里只能兜底初始化，绝不能重置，否则会清空已构建的窗口导致 commitSwipe 失效
+      if (this._cursor === undefined) this._cursor = 0;
+      if (this._moved === undefined) this._moved = 0;
+      if (!this._win) this._win = [];
     }
   },
 
